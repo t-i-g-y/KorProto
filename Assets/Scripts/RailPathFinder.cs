@@ -27,7 +27,7 @@ public class RailPathFinder : MonoBehaviour
             var cur = q.Dequeue();
             if (cur == goal)
                 break;
-
+            /*
             for (int d = 0; d < 6; d++)
             {
                 var nbAx = HexCoords.AxialNeighbor(cur, d);
@@ -41,6 +41,7 @@ public class RailPathFinder : MonoBehaviour
                 came[nbAx] = cur;
                 q.Enqueue(nbAx);
             }
+            */
         }
 
         if (!came.ContainsKey(goal) && start != goal)

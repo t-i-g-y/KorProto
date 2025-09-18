@@ -29,7 +29,8 @@ public class Train : MonoBehaviour
 
     void Update()
     {
-        if (waypoints == null || waypoints.Count < 2) return;
+        if (waypoints == null || waypoints.Count < 2)
+            return;
 
         var target = waypoints[idx + dir];
         var step = Speed * Time.deltaTime;
