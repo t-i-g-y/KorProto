@@ -14,6 +14,8 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Tilemap Water;
     [SerializeField] private Tilemap Rail;
     [SerializeField] private Tilemap Highlight;
+    [SerializeField] private RailPainter Painter;
+    [SerializeField] private RailTopology Topology;
     
     [Header("Tiles")]
     [SerializeField] private TileBase RailTile;
@@ -39,7 +41,7 @@ public class RailBuilderController : MonoBehaviour
     }
 
     private bool IsPointerOverUI() => EventSystem.current && EventSystem.current.IsPointerOverGameObject();
-    private bool IsLand(Vector3Int c) => Land.HasTile(c) && !Water.HasTile(c);
+    private bool IsLand(Vector3Int cell) => Land.HasTile(cell) && !Water.HasTile(cell);
 
     private Vector3Int MouseToCell()
     {
@@ -53,8 +55,8 @@ public class RailBuilderController : MonoBehaviour
 
     private void ClearHighlight()
     {
-        foreach (var c in highlightPath)
-            Highlight.SetTile(c, null);
+        foreach (var cell in highlightPath)
+            Highlight.SetTile(cell, null);
         highlightPath.Clear();
     }
 
@@ -69,6 +71,8 @@ public class RailBuilderController : MonoBehaviour
         if (mouse == null)
             return;
 
+        if (mouse.rightButton.wasPressedThisFrame)
+            Debug.Log(MouseToCell());
         if (!isBuilding && mouse.leftButton.wasPressedThisFrame)
         {
             var start = MouseToCell();
@@ -120,18 +124,23 @@ public class RailBuilderController : MonoBehaviour
 
     private void ConfirmBuild()
     {
-        foreach (var c in highlightPath)
-            Rail.SetTile(c, RailTile);
-            
-        var line = RailManager.Instance.CreateLine(highlightPath);
+        RailLine line = RailManager.Instance.CreateLine(highlightPath);
+        Painter.PaintRails(line);
+        /*
+        Topology.AddLine(highlightPath, cell =>
+        {
+            var dirs = Topology.GetDirs(cell);
+            Painter.RepaintCell(cell, dirs);
+        });
+        */
 
         if (TrainPrefab)
         {
             var pts = new List<Vector3>(highlightPath.Count);
-            foreach (var c in highlightPath)
-                pts.Add(Land.GetCellCenterWorld(c));
+            foreach (var cell in highlightPath)
+                pts.Add(Land.GetCellCenterWorld(cell));
             var train = Instantiate(TrainPrefab);
-            train.SetPath(pts, pingPong:true);
+            train.SetPath(pts, pingPong: true);
         }
 
         ClearHighlight();

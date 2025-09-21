@@ -6,12 +6,16 @@ public class RailLine
 {
     public int ID { get; }
     public readonly List<Vector3Int> Cells;
+    public readonly Vector3Int Start;
+    public readonly Vector3Int End;
     public int Length => Cells.Count;
 
     public RailLine(int id, List<Vector3Int> cells)
     {
         ID = id;
         Cells = new List<Vector3Int>(cells);
+        Start = cells[0];
+        End = cells[^1];
     }
 
     public override string ToString()
