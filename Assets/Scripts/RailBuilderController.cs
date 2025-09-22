@@ -14,30 +14,30 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Tilemap Water;
     [SerializeField] private Tilemap Rail;
     [SerializeField] private Tilemap Highlight;
-    [SerializeField] private RailPainter Painter;
-    [SerializeField] private RailTopology Topology;
+    [SerializeField] private RailPainter painter;
+    [SerializeField] private RailTopology topology;
     
     [Header("Tiles")]
-    [SerializeField] private TileBase RailTile;
-    [SerializeField] private TileBase HighlightTile;
+    [SerializeField] private TileBase railTile;
+    [SerializeField] private TileBase ghostTile;
     
     [Header("Trains")]
-    [SerializeField] private Train TrainPrefab;
+    [SerializeField] private Train trainPrefab;
 
     [Header("UI")]
-    [SerializeField] private GameObject ConfirmPanel;
-    [SerializeField] private Button ConfirmButton;
-    [SerializeField] private Button CancelButton;
+    [SerializeField] private GameObject confirmPanel;
+    [SerializeField] private Button confirmButton;
+    [SerializeField] private Button cancelButton;
 
-    private List<Vector3Int> highlightPath = new();
+    private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
     private bool awaitingConfirm = false;
 
     private void Awake()
     {
-        ConfirmPanel.SetActive(false);
-        ConfirmButton.onClick.AddListener(ConfirmBuild);
-        CancelButton.onClick.AddListener(CancelBuild);
+        confirmPanel.SetActive(false);
+        confirmButton.onClick.AddListener(ConfirmBuild);
+        cancelButton.onClick.AddListener(CancelBuild);
     }
 
     private bool IsPointerOverUI() => EventSystem.current && EventSystem.current.IsPointerOverGameObject();
@@ -55,9 +55,9 @@ public class RailBuilderController : MonoBehaviour
 
     private void ClearHighlight()
     {
-        foreach (var cell in highlightPath)
+        foreach (var cell in ghostPath)
             Highlight.SetTile(cell, null);
-        highlightPath.Clear();
+        ghostPath.Clear();
     }
 
     private void Update()
@@ -80,28 +80,28 @@ public class RailBuilderController : MonoBehaviour
                 return;
             isBuilding = true;
             ClearHighlight();
-            highlightPath.Add(start);
-            Highlight.SetTile(start, HighlightTile);
+            ghostPath.Add(start);
+            Highlight.SetTile(start, ghostTile);
             return;
         }
 
         if (isBuilding && mouse.leftButton.isPressed)
         {
             var cur = MouseToCell();
-            if (cur == highlightPath[^1])
+            if (cur == ghostPath[^1])
                 return;
 
-            if (IsLand(cur) && HexCoords.AreNeighbors(highlightPath[^1], cur))
+            if (IsLand(cur) && HexCoords.AreNeighbors(ghostPath[^1], cur))
             {
-                if (highlightPath.Count >= 2 && cur == highlightPath[^2])
+                if (ghostPath.Count >= 2 && cur == ghostPath[^2])
                 {
-                    Highlight.SetTile(highlightPath[^1], null);
-                    highlightPath.RemoveAt(highlightPath.Count - 1);
+                    Highlight.SetTile(ghostPath[^1], null);
+                    ghostPath.RemoveAt(ghostPath.Count - 1);
                 }
-                else if (!highlightPath.Contains(cur))
+                else if (!ghostPath.Contains(cur))
                 {
-                    highlightPath.Add(cur);
-                    Highlight.SetTile(cur, HighlightTile);
+                    ghostPath.Add(cur);
+                    Highlight.SetTile(cur, ghostTile);
                 }
             }
             return;
@@ -110,10 +110,10 @@ public class RailBuilderController : MonoBehaviour
         if (isBuilding && mouse.leftButton.wasReleasedThisFrame)
         {
             isBuilding = false;
-            if (highlightPath.Count >= 2)
+            if (ghostPath.Count >= 2)
             {
                 awaitingConfirm = true;
-                ConfirmPanel.SetActive(true);
+                confirmPanel.SetActive(true);
             }
             else
             {
@@ -124,34 +124,27 @@ public class RailBuilderController : MonoBehaviour
 
     private void ConfirmBuild()
     {
-        RailLine line = RailManager.Instance.CreateLine(highlightPath);
-        Painter.PaintRails(line);
-        /*
-        Topology.AddLine(highlightPath, cell =>
-        {
-            var dirs = Topology.GetDirs(cell);
-            Painter.RepaintCell(cell, dirs);
-        });
-        */
+        RailLine line = RailManager.Instance.CreateLine(ghostPath);
+        painter.PaintRails(line, false);
 
-        if (TrainPrefab)
+        if (trainPrefab)
         {
-            var pts = new List<Vector3>(highlightPath.Count);
-            foreach (var cell in highlightPath)
+            var pts = new List<Vector3>(ghostPath.Count);
+            foreach (var cell in ghostPath)
                 pts.Add(Land.GetCellCenterWorld(cell));
-            var train = Instantiate(TrainPrefab);
-            train.SetPath(pts, pingPong: true);
+            var train = Instantiate(trainPrefab);
+            train.SetPath(pts);
         }
 
         ClearHighlight();
-        ConfirmPanel.SetActive(false);
+        confirmPanel.SetActive(false);
         awaitingConfirm = false;
     }
 
     private void CancelBuild()
     {
         ClearHighlight();
-        ConfirmPanel.SetActive(false);
+        confirmPanel.SetActive(false);
         awaitingConfirm = false;
     }
 }

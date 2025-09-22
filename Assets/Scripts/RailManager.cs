@@ -6,7 +6,7 @@ public class RailManager : MonoBehaviour
 {
     private int nextID;
     public static RailManager Instance { get; private set; }
-    public readonly Dictionary<int, RailLine> Lines = new();
+    public readonly List<RailLine> Lines = new();
 
     void Awake()
     {
@@ -17,13 +17,13 @@ public class RailManager : MonoBehaviour
     public RailLine CreateLine(List<Vector3Int> cells)
     {
         var line = new RailLine(nextID++, cells);
-        Lines[line.ID] = line;
+        Lines.Add(line);
         return line;
     }
 
     public void RemoveLine(int id)
     {
-        Lines.Remove(id);
+        Lines.RemoveAt(id);
     }
 
     public void PrintLines()

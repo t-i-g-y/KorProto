@@ -1629,14 +1629,14 @@ MonoBehaviour:
   Water: {fileID: 1511215492}
   Rail: {fileID: 1229081899}
   Highlight: {fileID: 589051900}
-  Painter: {fileID: 1078854479}
-  Topology: {fileID: 1078854478}
-  RailTile: {fileID: 11400000, guid: 4f674d84d2eb2fe4598ae776b968602e, type: 2}
-  HighlightTile: {fileID: 11400000, guid: a1259d29251b7e44e82f8f28ce0850bc, type: 2}
-  TrainPrefab: {fileID: 7379100791626278401, guid: 390097e6ee23ce6418cc76b58fa19d9b, type: 3}
-  ConfirmPanel: {fileID: 642512377}
-  ConfirmButton: {fileID: 1037795844}
-  CancelButton: {fileID: 418404358}
+  painter: {fileID: 1078854479}
+  topology: {fileID: 1078854478}
+  railTile: {fileID: 11400000, guid: 4f674d84d2eb2fe4598ae776b968602e, type: 2}
+  ghostTile: {fileID: 11400000, guid: a1259d29251b7e44e82f8f28ce0850bc, type: 2}
+  trainPrefab: {fileID: 7379100791626278401, guid: 390097e6ee23ce6418cc76b58fa19d9b, type: 3}
+  confirmPanel: {fileID: 642512377}
+  confirmButton: {fileID: 1037795844}
+  cancelButton: {fileID: 418404358}
 --- !u!4 &1078854477
 Transform:
   m_ObjectHideFlags: 0
@@ -3299,6 +3299,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1542589353}
   m_CullTransparentMesh: 1
+--- !u!1 &1714035320
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1714035322}
+  - component: {fileID: 1714035321}
+  m_Layer: 0
+  m_Name: ObjectPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1714035321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714035320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffe914e95c93a284eb10b3353c0db3a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPool
+--- !u!4 &1714035322
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714035320}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0079, y: -0.45981, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -3310,3 +3354,4 @@ SceneRoots:
   - {fileID: 803709675}
   - {fileID: 1403025594}
   - {fileID: 893751401}
+  - {fileID: 1714035322}
