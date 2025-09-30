@@ -16,6 +16,7 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Tilemap Highlight;
     [SerializeField] private RailPainter painter;
     [SerializeField] private RailTopology topology;
+    [SerializeField] private GameConfig config;
     
     [Header("Tiles")]
     [SerializeField] private TileBase railTile;
@@ -129,11 +130,15 @@ public class RailBuilderController : MonoBehaviour
 
         if (trainPrefab)
         {
-            var pts = new List<Vector3>(ghostPath.Count);
-            foreach (var cell in ghostPath)
-                pts.Add(Land.GetCellCenterWorld(cell));
+            var ptsWorld = new List<Vector3>(ghostPath.Count);
+            foreach (var c in ghostPath)
+                ptsWorld.Add(Land.GetCellCenterWorld(c));
+
             var train = Instantiate(trainPrefab);
-            train.SetPath(pts);
+            train.config = config;
+            train.onlyLoadRequested = true;
+            train.SetPath(ptsWorld, new List<Vector3Int>(ghostPath));
+
         }
 
         ClearHighlight();
