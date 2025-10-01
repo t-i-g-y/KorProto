@@ -59,6 +59,7 @@ public class RailBuilderController : MonoBehaviour
         foreach (var cell in ghostPath)
             Highlight.SetTile(cell, null);
         ghostPath.Clear();
+        painter.ClearGhost();
     }
 
     private void Update()
@@ -82,7 +83,7 @@ public class RailBuilderController : MonoBehaviour
             isBuilding = true;
             ClearHighlight();
             ghostPath.Add(start);
-            Highlight.SetTile(start, ghostTile);
+            painter.PaintGhostPath(ghostPath);
             return;
         }
 
@@ -104,6 +105,7 @@ public class RailBuilderController : MonoBehaviour
                     ghostPath.Add(cur);
                     Highlight.SetTile(cur, ghostTile);
                 }
+                painter.PaintGhostPath(ghostPath);
             }
             return;
         }
