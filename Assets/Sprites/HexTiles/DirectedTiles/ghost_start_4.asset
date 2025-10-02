@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ghost_start_4
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 7566806938619920780, guid: b50112eed7a14b447928a741baf55731, type: 3}
-  m_Color: {r: 0.25943398, g: 1, b: 0.50241244, a: 1}
+  m_Color: {r: 0.24230155, g: 0.9339623, b: 0.46919551, a: 0.50980395}
   m_Transform:
     e00: 1
     e01: 0
