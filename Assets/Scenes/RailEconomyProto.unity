@@ -129,7 +129,6 @@ GameObject:
   m_Component:
   - component: {fileID: 115607713}
   - component: {fileID: 115607712}
-  - component: {fileID: 115607714}
   m_Layer: 0
   m_Name: tile_0
   m_TagString: Untagged
@@ -210,22 +209,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 503436476}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &115607714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 115607711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a903ee9605c349845940966aadb63996, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Tile
-  terrainType: 0
-  endpointType: 0
-  terrainButton: {fileID: 0}
-  endpointButton: {fileID: 0}
 --- !u!1 &503436475
 GameObject:
   m_ObjectHideFlags: 0

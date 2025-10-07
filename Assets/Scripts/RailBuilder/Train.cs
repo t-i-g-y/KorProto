@@ -1,4 +1,3 @@
-// Scripts/Trains/Train.cs
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -94,7 +93,8 @@ public class Train : MonoBehaviour
             foreach (ResourceType t in Enum.GetValues(typeof(ResourceType))) {
                 if (!s.Produces(t))
                     continue;
-                if (onlyLoadRequested && GlobalDemand.Outstanding[(int)t].Amount <= 0) continue;
+                if (onlyLoadRequested && GlobalDemand.Outstanding[(int)t].Amount <= 0)
+                    continue;
 
                 while (free > 0 && s.supply[(int)t].Amount > 0) {
                     yield return new WaitForSeconds(config.TimePerLoadSec);
