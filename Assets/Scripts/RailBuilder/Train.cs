@@ -16,8 +16,8 @@ public class Train : MonoBehaviour
     [Header("Timing")]
     public GameConfig config;
 
-    private List<Vector3> worldPts;
-    private List<Vector3Int> cells;
+    [SerializeField] private List<Vector3> worldPts;
+    [SerializeField] private List<Vector3Int> cells;
     private int idx = 0;
     private int dir = 1;
     private bool dwelling = false;
@@ -47,14 +47,14 @@ public class Train : MonoBehaviour
 
     void Update()
     {
-        if (dwelling || worldPts==null || worldPts.Count<2)
+        if (dwelling || worldPts == null || worldPts.Count < 2)
             return;
 
         var target = worldPts[idx + dir];
         var step = speedUnitsPerSec * Time.deltaTime;
         transform.position = Vector3.MoveTowards(transform.position, target, step);
-
-        if (Vector3.Distance(transform.position, target) <= arriveSnap)
+        float snap = ((target == worldPts[0]) || (target == worldPts[^1])) ? arriveSnap : 0f;
+        if (Vector3.Distance(transform.position, target) <= snap)
         {
             idx += dir;
 
@@ -90,7 +90,8 @@ public class Train : MonoBehaviour
         int free = capacity - CargoCount();
         if (free > 0)
         {
-            foreach (ResourceType t in Enum.GetValues(typeof(ResourceType))) {
+            foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
+            {
                 if (!s.Produces(t))
                     continue;
                 if (onlyLoadRequested && GlobalDemand.Outstanding[(int)t].Amount <= 0)

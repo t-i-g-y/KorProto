@@ -104,10 +104,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train
   speedUnitsPerSec: 1
-  arriveSnap: 0.5
+  arriveSnap: 0.2
   capacity: 6
   onlyLoadRequested: 0
   config: {fileID: 11400000, guid: 802f55cd01f4e3d41a03420cc5645b8f, type: 2}
+  worldPts: []
+  cells: []
   cargo:
   - _type: 0
     _amount: 0
