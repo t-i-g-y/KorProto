@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum ResourceType
@@ -7,7 +8,7 @@ public enum ResourceType
     Square
 }
 
-[System.Serializable]
+[Serializable]
 public struct ResourceAmount
 {
     [SerializeField] private ResourceType _type;

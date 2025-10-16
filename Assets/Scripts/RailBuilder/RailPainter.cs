@@ -7,25 +7,19 @@ using UnityEngine.Tilemaps;
 public class RailPainter : MonoBehaviour
 {
     [Header("Committed layers")]
-    [SerializeField] private Tilemap railA;
-    [SerializeField] private Tilemap railB;
+    [SerializeField] private Tilemap[] rails;
     [SerializeField] private RailVisualSet visuals;
 
     [Header("Ghost layers")]
-    [SerializeField] private Tilemap ghostA;
-    [SerializeField] private Tilemap ghostB;
+    [SerializeField] private Tilemap ghost;
     [SerializeField] private RailVisualSet ghostVisuals;
 
-    public void ClearCell(Vector3Int c)
-    {
-        railA?.SetTile(c, null);
-        railB?.SetTile(c, null);
-    }
+    [Header("Scene")]
+    [SerializeField] private RailSystem system;
 
     public void ClearGhost()
     {
-        ghostA?.ClearAllTiles();
-        ghostB?.ClearAllTiles();
+        ghost?.ClearAllTiles();
     }
 
     public void PaintRails(RailLine railLine, bool isSelected)
@@ -43,18 +37,35 @@ public class RailPainter : MonoBehaviour
                 Debug.Log($"Impossible dir={dir}");
                 return;
             }
-            railA.SetTile(cells[i], startTiles[dir]);
+            rails[dir].SetTile(cells[i], startTiles[dir]);
             sb.Append($" {dir}");
         }
-        railA.SetTile(railLine.End, endTiles[dir]);
+        rails[dir].SetTile(railLine.End, endTiles[dir]);
         sb.Append($" {dir}.");
         Debug.Log(sb.ToString());
     }
 
+    public void UnpaintRails(RailLine railLine)
+    {
+        StringBuilder sb = new StringBuilder($"Dir map of Line for removal {railLine.ID}:");
+        var cells = railLine.Cells;
+        int dir = -1;
+        for (int i = 0; i < railLine.Length - 1; i++)
+        {
+            dir = HexCoords.DirIndex(cells[i], cells[i + 1]);
+            if (system.GetHexRailDirs(cells[i])[dir] == 0)
+                rails[dir].SetTile(cells[i], null);
+            sb.Append($" {dir}");
+        }
+        if (system.GetHexRailDirs(railLine.End)[dir] == 0)
+            rails[dir].SetTile(railLine.End, null);
+        sb.Append($" {dir}.");
+        Debug.Log(sb.ToString());
+    }
     public void PaintGhostPath(List<Vector3Int> path)
     {
         ClearGhost();
-        if (path == null || path.Count < 2 || ghostA == null || ghostB == null)
+        if (path == null || path.Count < 2 || ghost == null)
             return;
 
         for (int i = 0; i < path.Count - 1; i++)
@@ -62,12 +73,12 @@ public class RailPainter : MonoBehaviour
             int dir = HexCoords.DirIndex(path[i], path[i + 1]);
             if (dir > 5 || dir < 0)
                 return;
-            ghostB.SetTile(path[i], ghostVisuals.StartTiles[dir]);
+            ghost.SetTile(path[i], ghostVisuals.StartTiles[dir]);
         }
 
-        int lastDir = HexCoords.DirIndex(path[^1], path[^2]);
+        int lastDir = HexCoords.DirIndex(path[^2], path[^1]);
         if (lastDir >= 0 && lastDir <= 5)
-            ghostA.SetTile(path[^1], ghostVisuals.EndTiles[lastDir]);
+            ghost.SetTile(path[^1], ghostVisuals.EndTiles[lastDir]);
     }
 }
 

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5be5812cd88d35144bc0152505793397, type: 3}
+  m_Name: TransparentTileVisuals
+  m_EditorClassIdentifier: Assembly-CSharp::RailVisualSet
+  StartTiles:
+  - {fileID: 11400000, guid: a5ff0eca4cd764347a1de2f5423664f2, type: 2}
+  - {fileID: 11400000, guid: 146030fe75347744193c898bc89699ec, type: 2}
+  - {fileID: 11400000, guid: 90daa9de1006dbc40bc3abbf644b66be, type: 2}
+  - {fileID: 11400000, guid: a318dbe83a8cfa148a6db5b69195447c, type: 2}
+  - {fileID: 11400000, guid: 11a01fa05c3e77c43ac22216c15f9796, type: 2}
+  - {fileID: 11400000, guid: a662e8c5001dc0a4e8111f78899b29d1, type: 2}
+  EndTiles:
+  - {fileID: 11400000, guid: 07f5e90f8e80cef409c0dfbf1c518e11, type: 2}
+  - {fileID: 11400000, guid: f544b1c96bf7a1e47b30e99c7953feb9, type: 2}
+  - {fileID: 11400000, guid: 1efda50131de80743a0b385a20678af5, type: 2}
+  - {fileID: 11400000, guid: 5968e3083fa22da44bcc1ac5cc07c0cc, type: 2}
+  - {fileID: 11400000, guid: 6100af6f0cce3ee40bc38ab7330549bd, type: 2}
+  - {fileID: 11400000, guid: 4375b48b34a48c44889c6a811f5abdb5, type: 2}
+  SelectedStartTiles:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  SelectedEndTiles:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

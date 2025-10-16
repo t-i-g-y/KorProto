@@ -16,6 +16,7 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Tilemap Highlight;
     [SerializeField] private RailPainter painter;
     [SerializeField] private RailTopology topology;
+    [SerializeField] private RailSystem system;
     [SerializeField] private GameConfig config;
     
     [Header("Tiles")]
@@ -26,9 +27,10 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Train trainPrefab;
 
     [Header("UI")]
-    [SerializeField] private GameObject confirmPanel;
+    [SerializeField] private GameObject confirmHolder;
     [SerializeField] private Button confirmButton;
     [SerializeField] private Button cancelButton;
+    [SerializeField] private float verticalOffset;
 
     private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
@@ -36,7 +38,7 @@ public class RailBuilderController : MonoBehaviour
 
     private void Awake()
     {
-        confirmPanel.SetActive(false);
+        confirmHolder.SetActive(false);
         confirmButton.onClick.AddListener(ConfirmBuild);
         cancelButton.onClick.AddListener(CancelBuild);
     }
@@ -116,7 +118,10 @@ public class RailBuilderController : MonoBehaviour
             if (ghostPath.Count >= 2)
             {
                 awaitingConfirm = true;
-                confirmPanel.SetActive(true);
+                Vector3 offset = new Vector3(0, verticalOffset, 0);
+                confirmHolder.transform.position = Cam.WorldToScreenPoint(Land.GetCellCenterWorld(ghostPath[^1])) + offset;
+                
+                confirmHolder.SetActive(true);
             }
             else
             {
@@ -144,14 +149,14 @@ public class RailBuilderController : MonoBehaviour
         }
 
         ClearHighlight();
-        confirmPanel.SetActive(false);
+        confirmHolder.SetActive(false);
         awaitingConfirm = false;
     }
 
     private void CancelBuild()
     {
         ClearHighlight();
-        confirmPanel.SetActive(false);
+        confirmHolder.SetActive(false);
         awaitingConfirm = false;
     }
 }

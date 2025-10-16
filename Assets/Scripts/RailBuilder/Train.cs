@@ -58,7 +58,7 @@ public class Train : MonoBehaviour
         {
             idx += dir;
 
-            if (StationRegistry.TryGet(cells[idx], out var station))
+            if ((idx == 0 || idx == cells.Count - 1) & StationRegistry.TryGet(cells[idx], out var station))
             {
                 StartCoroutine(DwellAtStation(station));
                 return;

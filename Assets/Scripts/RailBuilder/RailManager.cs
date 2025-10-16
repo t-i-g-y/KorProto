@@ -7,6 +7,7 @@ public class RailManager : MonoBehaviour
     private int nextID;
     public static RailManager Instance { get; private set; }
     public readonly List<RailLine> Lines = new();
+    [SerializeField] private RailPainter painter;
 
     void Awake()
     {
@@ -21,9 +22,11 @@ public class RailManager : MonoBehaviour
         return line;
     }
 
-    public void RemoveLine(int id)
+    public void RemoveLine(RailLine line)
     {
-        Lines.RemoveAt(id);
+        RailSystem.Instance.RemoveRailData(line);
+        painter.UnpaintRails(line);
+        Lines.RemoveAt(line.ID);
     }
 
     public void PrintLines()
