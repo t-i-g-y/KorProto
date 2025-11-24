@@ -2128,6 +2128,7 @@ MonoBehaviour:
   minY: 0
   maxX: 10
   maxY: 10
+  mapRailDataVisualiser: []
 --- !u!4 &682146609
 Transform:
   m_ObjectHideFlags: 0
@@ -2773,7 +2774,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d8e6b3f0e8c0149b87f33afb316a5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailManager
-  painter: {fileID: 0}
+  painter: {fileID: 1078854479}
 --- !u!4 &893751401
 Transform:
   m_ObjectHideFlags: 0
@@ -3144,15 +3145,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d5179011f99c274a93dd101622e9c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailBuilderController
-  Cam: {fileID: 519420031}
-  ParentGrid: {fileID: 823401945}
-  Land: {fileID: 1224172966}
-  Water: {fileID: 1511215492}
-  Rail: {fileID: 1229081899}
-  Highlight: {fileID: 589051900}
+  cam: {fileID: 519420031}
+  parentGrid: {fileID: 823401945}
+  land: {fileID: 1224172966}
+  water: {fileID: 1511215492}
+  ghost: {fileID: 589051900}
   painter: {fileID: 1078854479}
-  topology: {fileID: 1078854478}
-  system: {fileID: 0}
+  system: {fileID: 682146608}
   config: {fileID: 11400000, guid: 802f55cd01f4e3d41a03420cc5645b8f, type: 2}
   railTile: {fileID: 11400000, guid: 4f674d84d2eb2fe4598ae776b968602e, type: 2}
   ghostTile: {fileID: 11400000, guid: a1259d29251b7e44e82f8f28ce0850bc, type: 2}
@@ -3210,7 +3209,7 @@ MonoBehaviour:
   visuals: {fileID: 11400000, guid: 9602396e60df3804eaf7d13644305e1f, type: 2}
   ghost: {fileID: 589051900}
   ghostVisuals: {fileID: 11400000, guid: 3b34d0cd8a55d5242be5b03d1a157252, type: 2}
-  system: {fileID: 0}
+  system: {fileID: 682146608}
 --- !u!4 &1200022376 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3260184370460204197, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
@@ -3386,8 +3385,8 @@ Tilemap:
   - first: {x: 5, y: 3, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileIndex: 0
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3516,8 +3515,8 @@ Tilemap:
   - first: {x: 8, y: 5, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileIndex: 0
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3526,8 +3525,8 @@ Tilemap:
   - first: {x: 4, y: 6, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileIndex: 0
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3546,8 +3545,8 @@ Tilemap:
   - first: {x: 6, y: 6, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileIndex: 0
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3645,15 +3644,15 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 29
+  - m_RefCount: 33
     m_Data: {fileID: 11400000, guid: 75e5a05eda07248f49b07ae89d335542, type: 2}
-  - m_RefCount: 4
-    m_Data: {fileID: 11400000, guid: 1828f182e6be3454ba3dc24491221984, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
-  - m_RefCount: 29
+  - m_RefCount: 33
     m_Data: {fileID: -7857746361985806455, guid: e2b64acb9673f4d5ea2ec23e834a1f89, type: 3}
-  - m_RefCount: 4
-    m_Data: {fileID: 7399533318584292489, guid: f716f24de3ef20e4bb63dd9aa1dcf6b8, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileMatrixArray:
   - m_RefCount: 33
     m_Data:
@@ -6215,10 +6214,10 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 823401946}
-  - {fileID: 1078854477}
   - {fileID: 803709675}
   - {fileID: 1403025594}
+  - {fileID: 1078854477}
   - {fileID: 893751401}
-  - {fileID: 1435811512}
   - {fileID: 682146609}
+  - {fileID: 1435811512}
   - {fileID: 1041365984}

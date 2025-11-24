@@ -19,6 +19,7 @@ public class RailManager : MonoBehaviour
     {
         var line = new RailLine(nextID++, cells);
         Lines.Add(line);
+        RailSystem.Instance.AddRailData(line);
         return line;
     }
 
@@ -26,7 +27,10 @@ public class RailManager : MonoBehaviour
     {
         RailSystem.Instance.RemoveRailData(line);
         painter.UnpaintRails(line);
-        Lines.RemoveAt(line.ID);
+        if (!Lines.Remove(line))
+        {
+            Lines.RemoveAll(l => l.ID == line.ID);
+        }
     }
 
     public void PrintLines()
