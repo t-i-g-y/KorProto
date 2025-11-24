@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -91,10 +92,49 @@ public class RailSystem : MonoBehaviour
 
     private bool AreLinesEqual(RailLine a, RailLine b)
     {
+        if (a.Length != b.Length) 
+            return false;
+
+        bool forwardMatch = true;
         for (int i = 0; i < a.Length; i++)
+        {
             if (a.Cells[i] != b.Cells[i])
+            {
+                forwardMatch = false;
+                break;
+            }
+        }
+
+        if (forwardMatch) 
+            return true;
+
+        for (int i = 0; i < a.Length; i++)
+            if (a.Cells[i] != b.Cells[b.Length - 1 - i])
                 return false;
+        return true;
+    }
+
+    private bool AreLinesEqual(RailLine a, List<Vector3Int> ghostCells)
+    {
+        if (a.Length != ghostCells.Count) 
+            return false;
+
+        bool forwardMatch = true;
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (a.Cells[i] != ghostCells[i])
+            {
+                forwardMatch = false;
+                break;
+            }
+        }
         
+        if (forwardMatch) 
+            return true;
+
+        for (int i = 0; i < a.Length; i++)
+            if (a.Cells[i] != ghostCells[ghostCells.Count - 1 - i])
+                return false;
         return true;
     }
 
@@ -105,6 +145,16 @@ public class RailSystem : MonoBehaviour
                 return true;
         
         return false;
+    }
+
+    public bool IsLineDuplicate(List<Vector3Int> ghostPath)
+    {
+        foreach (var oldLine in RailManager.Instance.Lines)
+            if (oldLine.Length == ghostPath.Count && AreLinesEqual(oldLine, ghostPath))
+                return true;
+        
+        return false;
+            
     }
     private bool IsInBounds(Vector3Int coords) => coords.x >= 0 && coords.x < mapRailData.GetLength(0) && coords.y >= 0 && coords.y < mapRailData.GetLength(1);
 

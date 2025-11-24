@@ -116,11 +116,18 @@ public class RailBuilderController : MonoBehaviour
             isBuilding = false;
             if (ghostPath.Count >= 2)
             {
-                awaitingConfirm = true;
-                Vector3 offset = new Vector3(0, verticalOffset, 0);
-                confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
-                
-                confirmHolder.SetActive(true);
+                if (RailSystem.Instance.IsLineDuplicate(ghostPath))
+                {
+                    ClearHighlight();
+                    Debug.Log("Can't create duplicate!");
+                }
+                else
+                {
+                    awaitingConfirm = true;
+                    Vector3 offset = new Vector3(0, verticalOffset, 0);
+                    confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
+                    confirmHolder.SetActive(true);
+                }
             }
             else
             {
