@@ -26,22 +26,44 @@ public class RailPainter : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder($"Dir map of Line {railLine.ID}:");
         var cells = railLine.Cells;
-        int dir = -1;
+        int dirAB = -1;
         var startTiles = isSelected ? visuals.SelectedStartTiles : visuals.StartTiles;
         var endTiles = isSelected ? visuals.SelectedEndTiles : visuals.EndTiles;
         for (int i = 0; i < railLine.Length - 1; i++)
         {
-            dir = HexCoords.DirIndex(cells[i], cells[i + 1]);
-            if (dir > 5 || dir < 0)
+            if (i == 0)
             {
-                Debug.Log($"Impossible dir={dir}");
-                return;
+                dirAB = HexCoords.DirIndex(cells[i], cells[i + 1]);
+                if (dirAB > 5 || dirAB < 0)
+                {
+                    Debug.Log($"Impossible dir={dirAB}");
+                    return;
+                }
+                rails[dirAB].SetTile(cells[i], startTiles[dirAB]);
+                sb.Append($" {dirAB}->");
             }
-            rails[dir].SetTile(cells[i], startTiles[dir]);
-            sb.Append($" {dir}");
+            else
+            {
+                var dirs = HexCoords.GetDoubleSidedDirs(cells[i], cells[i + 1]);
+                dirAB = HexCoords.DirIndex(cells[i], cells[i + 1]);
+                int dirBA = HexCoords.DirIndex(cells[i], cells[i - 1]);
+                if (dirAB > 5 || dirAB < 0)
+                {
+                    Debug.Log($"Impossible dirAB={dirAB}");
+                    return;
+                }
+                else if (dirBA > 5 || dirBA < 0)
+                {
+                    Debug.Log($"Impossible dirBA={dirBA}");
+                    return;
+                }
+                rails[dirAB].SetTile(cells[i], startTiles[dirAB]);
+                rails[dirBA].SetTile(cells[i], startTiles[dirBA]);
+            }
+            
         }
-        rails[dir].SetTile(railLine.End, endTiles[dir]);
-        sb.Append($" {dir}.");
+        rails[dirAB].SetTile(railLine.End, endTiles[dirAB]);
+        sb.Append($" {dirAB}.");
         Debug.Log(sb.ToString());
     }
 
@@ -62,6 +84,7 @@ public class RailPainter : MonoBehaviour
         sb.Append($" {dir}.");
         Debug.Log(sb.ToString());
     }
+
     public void PaintGhostPath(List<Vector3Int> path)
     {
         ClearGhost();
