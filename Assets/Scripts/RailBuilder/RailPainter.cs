@@ -40,7 +40,7 @@ public class RailPainter : MonoBehaviour
                     return;
                 }
                 rails[dirAB].SetTile(cells[i], startTiles[dirAB]);
-                sb.Append($" {dirAB}->");
+                sb.Append($" {dirAB} ->");
             }
             else
             {
@@ -59,11 +59,12 @@ public class RailPainter : MonoBehaviour
                 }
                 rails[dirAB].SetTile(cells[i], startTiles[dirAB]);
                 rails[dirBA].SetTile(cells[i], startTiles[dirBA]);
+                sb.Append($" {dirBA}-{dirAB} ");
             }
             
         }
         rails[dirAB].SetTile(railLine.End, endTiles[dirAB]);
-        sb.Append($" {dirAB}.");
+        sb.Append($"-> {dirAB}");
         Debug.Log(sb.ToString());
     }
 

@@ -10,15 +10,20 @@ public class UIRailListController : MonoBehaviour
     void Awake()
     {
         listPanel.SetActive(false);
-    } 
+    }
 
     void Start()
     {
-        
+
     }
 
     void Update()
     {
         
+    }
+
+    public void TogglePanel(GameObject panel)
+    {
+        panel.SetActive(!panel.activeSelf);
     }
 }
