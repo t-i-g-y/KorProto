@@ -98,7 +98,7 @@ public class RailManager : MonoBehaviour
     {
         if (painter == null || line == null) 
             return;
-        
+        SelectedLine = null;
         painter.PaintRails(line, false);
     }
 

@@ -28,10 +28,10 @@ public class UIRailLineEntry : MonoBehaviour
         if (lineName != null)
             lineName.text = $"Line {line.ID}";
 
-        SetSelected(false);
-
         selectButton.onClick.AddListener(() => OnSelectClicked?.Invoke(this));
         deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke(this));
+
+        SetSelected(false);
     }
 
     public void SetSelected(bool selected)

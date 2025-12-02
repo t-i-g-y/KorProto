@@ -75,7 +75,7 @@ public class UIRailListController : MonoBehaviour
     {
         if (line == null)
             return;
-        
+         Debug.Log($"UIRailListController.OnLineSelected: {line.ID}");
         if (entries.TryGetValue(line.ID, out var entry))
             entry.SetSelected(true);
     }
@@ -84,7 +84,7 @@ public class UIRailListController : MonoBehaviour
     {
         if (line == null)
             return;
-        
+         Debug.Log($"UIRailListController.OnLineDeelected: {line.ID}");
         if (entries.TryGetValue(line.ID, out var entry))
             entry.SetSelected(false);
     }
@@ -93,7 +93,7 @@ public class UIRailListController : MonoBehaviour
     {
         if (entry == null || entry.ReferenceLine == null) 
             return;
-
+        Debug.Log($"UIRailListController.HandleSelectClicked: entry {entry.ReferenceLine.ID}, IsSelected={entry.IsSelected}");
         RailManager.Instance.ToggleSelection(entry.ReferenceLine);
     }
 
