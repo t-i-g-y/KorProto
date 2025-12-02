@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class RailLine
@@ -9,6 +10,7 @@ public class RailLine
     public readonly Vector3Int Start;
     public readonly Vector3Int End;
     public int Length => Cells.Count;
+    public Train assignedTrain;
 
     public RailLine(int id, List<Vector3Int> cells)
     {
@@ -25,5 +27,11 @@ public class RailLine
             output.Append($" {Cells[i]}");
         output.Append(";");
         return output.ToString();
+    }
+
+    private void OnDestroy()
+    {
+        assignedTrain.gameObject.SetActive(false);
+        assignedTrain.UpgradeSpeed(0);
     }
 }

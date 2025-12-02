@@ -114,4 +114,9 @@ public class Train : MonoBehaviour
     public void UpgradeCapacity(int delta) => capacity = Mathf.Max(0, capacity + delta);
     public void UpgradeSpeed(float mul) => speedUnitsPerSec *= Mathf.Max(0.1f, mul);
     public ResourceAmount[] Manifest() => cargo;
+
+    private void OnDestroy()
+    {
+        Debug.Log("Train destroyed");
+    }
 }

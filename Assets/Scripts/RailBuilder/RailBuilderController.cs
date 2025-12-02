@@ -151,7 +151,7 @@ public class RailBuilderController : MonoBehaviour
             train.config = config;
             train.onlyLoadRequested = true;
             train.SetPath(ptsWorld, new List<Vector3Int>(ghostPath));
-
+            line.assignedTrain = train;
         }
 
         ClearHighlight();

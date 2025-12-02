@@ -41,18 +41,18 @@ public class RailSystem : MonoBehaviour
         {
             var a = line.Cells[i];
             var b = line.Cells[i + 1];
-            int dAB = HexCoords.DirIndex(a, b);
-            int dBA = HexCoords.DirIndex(b, a);
+            int dirAB = HexCoords.DirIndex(a, b);
+            int dirBA = HexCoords.DirIndex(b, a);
 
             if (IsInBounds(a))
             {
-                mapRailData[a.x, a.y].RailDirs[dAB]++;
+                mapRailData[a.x, a.y].RailDirs[dirAB]++;
                 UpdateRailDataVisualiser(a.x, a.y);
             }
                 
             if (IsInBounds(b))
             {
-                mapRailData[b.x, b.y].RailDirs[dBA]++;
+                mapRailData[b.x, b.y].RailDirs[dirBA]++;
                 UpdateRailDataVisualiser(b.x, b.y);
             }
         }
@@ -63,28 +63,55 @@ public class RailSystem : MonoBehaviour
         if (line == null || line.Length < 2) 
             return;
 
+        int dir = -1;
+
         for (int i = 0; i < line.Length - 1; i++)
         {
-            var a = line.Cells[i];
-            var b = line.Cells[i + 1];
-            int dAB = HexCoords.DirIndex(a, b);
-            int dBA = HexCoords.DirIndex(b, a);
+            var prevCell = line.End;
+            var cell = line.Cells[i];
+            var nextCell = line.Cells[i + 1];
+            int dirAB = HexCoords.DirIndex(cell, nextCell);
+            int dirBA = HexCoords.DirIndex(nextCell, cell);
 
-            if (IsInBounds(a))
+            if (i == 0)
             {
-                mapRailData[a.x, a.y].RailDirs[dAB]--;
-                if (mapRailData[a.x, a.y].RailDirs[dAB] < 0)
-                    Debug.Log($"ERROR: negative value at ({a.x}, {a.y}) dir {dAB}");
-                UpdateRailDataVisualiser(a.x, a.y);
+                dir = HexCoords.DirIndex(cell, nextCell);
+                if (IsInBounds(cell))
+                {
+                    mapRailData[cell.x, cell.y].RailDirs[dirAB]--;
+                    if (mapRailData[cell.x, cell.y].RailDirs[dirAB] < 0)
+                        Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirAB}");
+                    UpdateRailDataVisualiser(cell.x, cell.y);
+                }
             }
+            else
+            {
+                prevCell = line.Cells[i - 1];
+                dirAB = HexCoords.DirIndex(cell, nextCell);
+                dirBA = HexCoords.DirIndex(cell, prevCell);
 
-            if (IsInBounds(b))
-            {
-                mapRailData[b.x, b.y].RailDirs[dBA]--;
-                if (mapRailData[b.x, b.y].RailDirs[dBA] < 0)
-                    Debug.Log($"ERROR: negative value at ({b.x}, {b.y}) dir {dBA}");
-                UpdateRailDataVisualiser(b.x, b.y);
+                if (IsInBounds(cell))
+                {
+                    mapRailData[cell.x, cell.y].RailDirs[dirAB]--;
+                    if (mapRailData[cell.x, cell.y].RailDirs[dirAB] < 0)
+                        Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirAB}");
+
+                    mapRailData[cell.x, cell.y].RailDirs[dirBA]--;
+                    if (mapRailData[cell.x, cell.y].RailDirs[dirBA] < 0)
+                        Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirBA}");
+                    UpdateRailDataVisualiser(cell.x, cell.y);
+                }
             }
+        }
+
+        var lastCell = line.End;
+        if (IsInBounds(lastCell))
+        {
+            dir = HexCoords.DirIndex(lastCell, line.Cells[line.Length - 2]);
+            mapRailData[lastCell.x, lastCell.y].RailDirs[dir]--;
+            if (mapRailData[lastCell.x, lastCell.y].RailDirs[dir] < 0)
+                Debug.Log($"ERROR: negative value at ({lastCell.x}, {lastCell.y}) dir {dir}");
+            UpdateRailDataVisualiser(lastCell.x, lastCell.y);
         }
     }
 
