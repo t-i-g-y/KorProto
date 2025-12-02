@@ -27,16 +27,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6100af6f0cce3ee40bc38ab7330549bd, type: 2}
   - {fileID: 11400000, guid: 4375b48b34a48c44889c6a811f5abdb5, type: 2}
   SelectedStartTiles:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 17365e428174e154189cffdb70df29d6, type: 2}
+  - {fileID: 11400000, guid: 66a8a2d7bcff5a54b816c19cfca8176e, type: 2}
+  - {fileID: 11400000, guid: cf275d86c1be055479b4a38c2fe3dc63, type: 2}
+  - {fileID: 11400000, guid: 5edbc426104ab4b449b7d88b64ab2094, type: 2}
+  - {fileID: 11400000, guid: 6e8a14c14140e614393d6249d81b7bf3, type: 2}
+  - {fileID: 11400000, guid: 0988fba62b4d2f948bc2d2561cace7d5, type: 2}
   SelectedEndTiles:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 17365e428174e154189cffdb70df29d6, type: 2}
+  - {fileID: 11400000, guid: 66a8a2d7bcff5a54b816c19cfca8176e, type: 2}
+  - {fileID: 11400000, guid: cf275d86c1be055479b4a38c2fe3dc63, type: 2}
+  - {fileID: 11400000, guid: 5edbc426104ab4b449b7d88b64ab2094, type: 2}
+  - {fileID: 11400000, guid: 6e8a14c14140e614393d6249d81b7bf3, type: 2}
+  - {fileID: 11400000, guid: 0988fba62b4d2f948bc2d2561cace7d5, type: 2}
