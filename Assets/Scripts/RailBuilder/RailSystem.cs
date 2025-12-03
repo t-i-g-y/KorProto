@@ -13,6 +13,7 @@ public class RailSystem : MonoBehaviour
 
     void Awake()
     {   
+        Instance = this;
         int width = maxX - minX;
         int height = maxY - minY;
 
@@ -28,8 +29,6 @@ public class RailSystem : MonoBehaviour
                 UpdateRailDataVisualiser(i, j);
             }
         }
-
-        Instance = this;
     }
 
     public void AddRailData(RailLine line)
