@@ -10,7 +10,7 @@ public class RailLine
     public readonly Vector3Int Start;
     public readonly Vector3Int End;
     public int Length => Cells.Count;
-    public Train assignedTrain;
+    public Train AssignedTrain;
 
     public RailLine(int id, List<Vector3Int> cells)
     {
@@ -31,7 +31,7 @@ public class RailLine
 
     private void OnDestroy()
     {
-        assignedTrain.gameObject.SetActive(false);
-        assignedTrain.UpgradeSpeed(0);
+        AssignedTrain.gameObject.SetActive(false);
+        AssignedTrain.UpgradeSpeed(0);
     }
 }

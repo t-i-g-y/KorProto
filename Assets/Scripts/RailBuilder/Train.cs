@@ -21,6 +21,12 @@ public class Train : MonoBehaviour
     [Header("Timing")]
     public GameConfig config;
 
+    // Заголовок - Экономические характеристики
+    [Header("Economy")]
+    // Стоимость обслуживания поезда
+    [SerializeField] private float maintenanceCost = 10f;
+
+    public RailLine AssignedLine;
     // Маршрут поезда в системе координат Unity
     [SerializeField] private List<Vector3> worldPts;
     // Маршрута поезда в системе координат тайлов (целочисленные координаты)
@@ -91,6 +97,9 @@ public class Train : MonoBehaviour
     private IEnumerator DwellAtStation(Station s)
     {
         dwelling = true;
+        yield return new WaitForSeconds(0.5f);
+        FinanceManager.Instance.GenerateIncomeForRailLine(AssignedLine);
+        FinanceManager.Instance.DeductMaintenanceCost(maintenanceCost);
 
         foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
         {
