@@ -5,21 +5,32 @@ using System;
 
 public class Train : MonoBehaviour
 {
+    // Заголовок - Движение поезда
     [Header("Motion")]
     [SerializeField] private float speedUnitsPerSec = 4f;
+
+    // Расстояние от центра конечно тайла, на котором поезд разворачивается
     [SerializeField] private float arriveSnap = 0.02f;
 
+    // Заголовок - Вместимость поезда
     [Header("Capacity")]
     [SerializeField] private int capacity = 6;
     public bool onlyLoadRequested = false;
 
+    // Заголовок - Временные характеристики
     [Header("Timing")]
     public GameConfig config;
 
+    // Маршрут поезда в системе координат Unity
     [SerializeField] private List<Vector3> worldPts;
+    // Маршрута поезда в системе координат тайлов (целочисленные координаты)
     [SerializeField] private List<Vector3Int> cells;
+
+    // Индекс текущего тайла
     private int idx = 0;
+    // Индекс направления поезда. 1 = от первого в списке до последнего, -1 = наоборот
     private int dir = 1;
+    // Статус остановки поезда. True = поезд стоит на станции, False = поезд не задерживается на станции (или в движении)
     private bool dwelling = false;
 
     [SerializeField] private ResourceAmount[] cargo = new ResourceAmount[]
@@ -45,13 +56,20 @@ public class Train : MonoBehaviour
         transform.position = worldPts[0];
     }
 
+
     void Update()
+    {
+        HandleTrainMovement();
+    }
+
+    // Функция движения поезда
+    private void HandleTrainMovement()
     {
         if (dwelling || worldPts == null || worldPts.Count < 2)
             return;
 
         var target = worldPts[idx + dir];
-        var step = speedUnitsPerSec * Time.deltaTime;
+        var step = speedUnitsPerSec * TimeManager.Instance.CustomDeltaTime;
         transform.position = Vector3.MoveTowards(transform.position, target, step);
         float snap = ((target == worldPts[0]) || (target == worldPts[^1])) ? arriveSnap : 0f;
         if (Vector3.Distance(transform.position, target) <= snap)
@@ -69,7 +87,8 @@ public class Train : MonoBehaviour
         }
     }
 
-    IEnumerator DwellAtStation(Station s)
+    // Функция задержки поезда на станции
+    private IEnumerator DwellAtStation(Station s)
     {
         dwelling = true;
 
@@ -80,7 +99,7 @@ public class Train : MonoBehaviour
             int canUnload = Mathf.Min(cargo[(int)t].Amount, s.demand[(int)t].Amount);
             for (int i = 0; i < canUnload; i++)
             {
-                yield return new WaitForSeconds(config.TimePerUnloadSec);
+                yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
                 cargo[(int)t]--;
                 s.demand[(int)t]--;
                 GlobalDemand.Outstanding[(int)t].Amount = Mathf.Max(0, GlobalDemand.Outstanding[(int)t].Amount);
@@ -98,7 +117,7 @@ public class Train : MonoBehaviour
                     continue;
 
                 while (free > 0 && s.supply[(int)t].Amount > 0) {
-                    yield return new WaitForSeconds(config.TimePerLoadSec);
+                    yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
                     s.supply[(int)t]--;
                     cargo[(int)t]++;
                     free--;

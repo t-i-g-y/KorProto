@@ -51,8 +51,8 @@ public class Station : MonoBehaviour
         if (!config)
             return;
 
-        spawnTimer += Time.deltaTime;
-        demandTimer += Time.deltaTime;
+        spawnTimer += TimeManager.Instance.CustomDeltaTime;
+        demandTimer += TimeManager.Instance.CustomDeltaTime;
 
         if (spawnTimer >= config.SpawnEverySec)
         {
