@@ -5,18 +5,42 @@ public class FinanceManager : MonoBehaviour
 {
     private float balance;
     private float lastBalanceChange;
+    private float dayBalance;
+    private int currentDay;
     [SerializeField] private TerrainConfig terrainConfig;
     
     public float Balance => balance;
     public float LastBalanceChange => lastBalanceChange;
-
+    public float DayBalance
+    {
+        get => dayBalance;
+        /*
+        set
+        {
+            if (currentDay != TimeManager.Instance.DayCounter)
+            {
+                currentDay = TimeManager.Instance.DayCounter;
+                dayBalance = 0f;
+            }
+            Debug.Log($"Daily balance change: {value}");
+            dayBalance += value;
+        }*/
+        set => dayBalance = value;
+    }
+    public int CurrentDay
+    {
+        get => currentDay;
+        set => currentDay = value;
+    }
     public static FinanceManager Instance { get; private set; }
 
     private void Awake()
     {
         Instance = this;
-        balance = 1000;
-        lastBalanceChange = 0;
+        currentDay = 0;
+        balance = 1000f;
+        lastBalanceChange = 0f;
+        dayBalance = 0f;
         RailManager.LineCreated += DeductForLineConstruction;
         RailManager.LineRemoved += RefundForLineRemoval;
     }
@@ -32,6 +56,8 @@ public class FinanceManager : MonoBehaviour
         lastBalanceChange = amount;
         balance += amount;
         Debug.Log($"Balance: {balance}");
+        DayBalance += amount;
+        Debug.Log($"Current balance of the day: {dayBalance}");
     }
 
     public void DeductForLineConstruction(RailLine line)
