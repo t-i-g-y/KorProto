@@ -648,7 +648,7 @@ GameObject:
   - component: {fileID: 4395973415196203005}
   - component: {fileID: 2748361908671632076}
   m_Layer: 5
-  m_Name: LineEntry
+  m_Name: RailLineEntry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

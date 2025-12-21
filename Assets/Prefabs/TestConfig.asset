@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76d72b34024dbcf4b8d003c1141485b6, type: 3}
   m_Name: TestConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  SpawnEverySec: 6
+  SpawnEverySec: 2
   SpawnBatchMin: 1
   SpawnBatchMax: 2
   TimePerLoadSec: 0.5

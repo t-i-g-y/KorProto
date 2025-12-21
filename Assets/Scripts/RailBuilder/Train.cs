@@ -139,7 +139,7 @@ public class Train : MonoBehaviour
             dir = -dir;
         dwelling = false;
     }
-
+    
     public void UpgradeCapacity(int delta) => capacity = Mathf.Max(0, capacity + delta);
     public void UpgradeSpeed(float mul) => speedUnitsPerSec *= Mathf.Max(0.1f, mul);
     public ResourceAmount[] Manifest() => cargo;
