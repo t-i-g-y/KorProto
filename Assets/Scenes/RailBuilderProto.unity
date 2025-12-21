@@ -1676,7 +1676,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.78, y: 2.8, z: -10}
+  m_LocalPosition: {x: 5, y: 2.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7162,6 +7162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinanceManager
   terrainConfig: {fileID: 11400000, guid: 01cbf3c111566124c9684b4248dc2130, type: 2}
+  resourcePriceConfig: {fileID: 11400000, guid: b878d20dd38dc414d9bad31621d32416, type: 2}
 --- !u!4 &2110463926
 Transform:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ public class FinanceManager : MonoBehaviour
     private float dayBalance;
     private int currentDay;
     [SerializeField] private TerrainConfig terrainConfig;
+    [SerializeField] private ResourcePriceConfig resourcePriceConfig;
     
     public float Balance => balance;
     public float LastBalanceChange => lastBalanceChange;
@@ -121,5 +122,7 @@ public class FinanceManager : MonoBehaviour
     {
         AdjustBalance(-maintenanceCost);
     }
+
+    public void SellResource(ResourceType resource) => AdjustBalance(resourcePriceConfig.ResourcePriceList[(int)resource].Price);
 }
 
