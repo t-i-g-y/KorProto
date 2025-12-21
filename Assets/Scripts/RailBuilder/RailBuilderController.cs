@@ -150,8 +150,9 @@ public class RailBuilderController : MonoBehaviour
             var train = Instantiate(trainPrefab);
             train.config = config;
             train.onlyLoadRequested = true;
+            train.AssignedLine = line;
             train.SetPath(ptsWorld, new List<Vector3Int>(ghostPath));
-            line.assignedTrain = train;
+            line.AssignedTrain = train;
         }
 
         ClearHighlight();

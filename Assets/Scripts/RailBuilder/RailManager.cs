@@ -24,7 +24,7 @@ public class RailManager : MonoBehaviour
     {
         var line = new RailLine(nextID++, cells);
         Lines.Add(line);
-        RailSystem.Instance.AddRailData(line);
+        //RailSystem.Instance.AddRailData(line);
         LineCreated?.Invoke(line);
         return line;
     }
@@ -37,10 +37,10 @@ public class RailManager : MonoBehaviour
             LineDeselected?.Invoke(line);
         }
 
-        RailSystem.Instance.RemoveRailData(line);
+        //RailSystem.Instance.RemoveRailData(line);
         painter.UnpaintRails(line);
-        line.assignedTrain.gameObject.SetActive(false);
-        line.assignedTrain.UpgradeSpeed(0);
+        line.AssignedTrain.gameObject.SetActive(false);
+        line.AssignedTrain.UpgradeSpeed(0);
         if (!Lines.Remove(line))
         {
             Lines.RemoveAll(l => l.ID == line.ID);

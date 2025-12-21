@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,10 +12,54 @@ public class TimeManager : MonoBehaviour
     ** 1 = базовая скорость
     ** 2 = ускоренная 2х скорость
     */
+    [SerializeField] private TMP_Text dayHourText;
     [SerializeField] private float timeMultiplier = 1f;
     private float previousTimeMultiplier = 1f;
+
+    [SerializeField] private float secondsPerHour = 1f;
+    private float accumulatedSeconds = 0f;
+    private int dayCounter = 0;
+    private int hourCounter = 0;
     public float TimeMultiplier => timeMultiplier;
     public float CustomDeltaTime => Time.deltaTime * timeMultiplier;
+    public int DayCounter
+    {
+        get => dayCounter;
+        set
+        {
+            if (value != dayCounter)
+            {
+                dayCounter = value > 0 ? value : 0;
+                FinanceManager.Instance.CurrentDay = dayCounter;
+                FinanceManager.Instance.DayBalance = 0;
+            }
+            
+        }
+    }
+    public int HourCounter
+    {
+        get => hourCounter;
+        set
+        {
+            int hourValue = value;
+            if (hourValue > 23)
+            {
+                DayCounter += hourValue / 24;
+                HourCounter = 0;
+                HourCounter += hourValue % 24;
+            }
+            else if (hourValue < 0)
+            {
+                hourCounter = 0;
+            }
+            else
+            {
+                hourCounter = value;
+            }
+        }
+    }
+
+    public string DayHourString => hourCounter > 9 ? $"Day {dayCounter} {hourCounter}:00" : $"Day {dayCounter} 0{hourCounter}:00";
 
     private void Awake()
     {
@@ -57,6 +102,19 @@ public class TimeManager : MonoBehaviour
                 SetSpeed(5f);
         }
 
+        float delta = Time.deltaTime * timeMultiplier;
+        if (delta <= 0f)
+            return;
+        
+        accumulatedSeconds += delta;
+
+        if (accumulatedSeconds >= secondsPerHour)
+        {
+            int hours = Mathf.FloorToInt(accumulatedSeconds / secondsPerHour);
+            accumulatedSeconds -= hours * secondsPerHour;
+            HourCounter += hours;
+            dayHourText.text = DayHourString;
+        }
         /*
         if (Input.GetKeyDown(KeyCode.Space))
         {

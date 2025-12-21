@@ -21,6 +21,12 @@ public class Train : MonoBehaviour
     [Header("Timing")]
     public GameConfig config;
 
+    // Заголовок - Экономические характеристики
+    [Header("Economy")]
+    // Стоимость обслуживания поезда
+    [SerializeField] private float maintenanceCost = 10f;
+
+    public RailLine AssignedLine;
     // Маршрут поезда в системе координат Unity
     [SerializeField] private List<Vector3> worldPts;
     // Маршрута поезда в системе координат тайлов (целочисленные координаты)
@@ -88,38 +94,42 @@ public class Train : MonoBehaviour
     }
 
     // Функция задержки поезда на станции
-    private IEnumerator DwellAtStation(Station s)
+    private IEnumerator DwellAtStation(Station station)
     {
         dwelling = true;
+        yield return new WaitForSeconds(0.5f);
+        FinanceManager.Instance.GenerateIncomeForRailLine(AssignedLine);
+        FinanceManager.Instance.DeductMaintenanceCost(maintenanceCost);
 
-        foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
         {
-            if (!s.Consumes(t))
+            if (!station.Consumes(resource))
                 continue;
-            int canUnload = Mathf.Min(cargo[(int)t].Amount, s.demand[(int)t].Amount);
+            int canUnload = Mathf.Min(cargo[(int)resource].Amount, station.demand[(int)resource].Amount);
             for (int i = 0; i < canUnload; i++)
             {
                 yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
-                cargo[(int)t]--;
-                s.demand[(int)t]--;
-                GlobalDemand.Outstanding[(int)t].Amount = Mathf.Max(0, GlobalDemand.Outstanding[(int)t].Amount);
+                cargo[(int)resource]--;
+                FinanceManager.Instance.SellResource(resource);
+                station.demand[(int)resource]--;
+                GlobalDemand.Outstanding[(int)resource].Amount = Mathf.Max(0, GlobalDemand.Outstanding[(int)resource].Amount);
             }
         }
 
         int free = capacity - CargoCount();
         if (free > 0)
         {
-            foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
+            foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
             {
-                if (!s.Produces(t))
+                if (!station.Produces(resource))
                     continue;
-                if (onlyLoadRequested && GlobalDemand.Outstanding[(int)t].Amount <= 0)
+                if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
                     continue;
 
-                while (free > 0 && s.supply[(int)t].Amount > 0) {
+                while (free > 0 && station.supply[(int)resource].Amount > 0) {
                     yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
-                    s.supply[(int)t]--;
-                    cargo[(int)t]++;
+                    station.supply[(int)resource]--;
+                    cargo[(int)resource]++;
                     free--;
                 }
             }

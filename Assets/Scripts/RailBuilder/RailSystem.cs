@@ -29,6 +29,15 @@ public class RailSystem : MonoBehaviour
                 UpdateRailDataVisualiser(i, j);
             }
         }
+
+        RailManager.LineCreated += AddRailData;
+        RailManager.LineRemoved += RemoveRailData;
+    }
+
+    private void OnDestroy()
+    {
+        RailManager.LineCreated -= AddRailData;
+        RailManager.LineRemoved -= RemoveRailData;
     }
 
     public void AddRailData(RailLine line)
@@ -116,6 +125,8 @@ public class RailSystem : MonoBehaviour
 
     public int[] GetHexRailDirs(Vector3Int coords) => mapRailData[coords.x, coords.y].RailDirs;
 
+    public TerrainType GetTerrainType(Vector3Int coords) => mapRailData[coords.x, coords.y].HexTerrain;
+
     private bool AreLinesEqual(RailLine a, RailLine b)
     {
         if (a.Length != b.Length) 
@@ -187,7 +198,7 @@ public class RailSystem : MonoBehaviour
     private void UpdateRailDataVisualiser(int r, int q)
     {
         mapRailDataVisualiser[r].row[q] = mapRailData[r, q];
-    }
+    } 
     
 }
 
@@ -196,11 +207,19 @@ public struct HexRailData
 {
     public Vector3Int HexCoords;
     public int[] RailDirs;
-
+    public TerrainType HexTerrain;
     public HexRailData(Vector3Int coords)
     {
         HexCoords = coords;
         RailDirs = new int[6];
+        HexTerrain = TerrainType.Grassland;
+    }
+
+    public HexRailData(Vector3Int coords, TerrainType terrain)
+    {
+        HexCoords = coords;
+        RailDirs = new int[6];
+        HexTerrain = terrain;
     }
 }
 
