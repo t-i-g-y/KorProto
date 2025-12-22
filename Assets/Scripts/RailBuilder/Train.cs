@@ -12,6 +12,11 @@ public class Train : MonoBehaviour
     // Расстояние от центра конечно тайла, на котором поезд разворачивается
     [SerializeField] private float arriveSnap = 0.02f;
 
+    // Скорость поворота
+    [SerializeField] private float rotationSpeed = 10f;
+    private Quaternion targetRotation;
+    private Vector3 lastPosition;
+
     // Заголовок - Вместимость поезда
     [Header("Capacity")]
     [SerializeField] private int capacity = 6;
@@ -60,6 +65,15 @@ public class Train : MonoBehaviour
         idx = 0;
         dir = 1;
         transform.position = worldPts[0];
+        lastPosition = transform.position;
+        
+
+        Vector3 initialDir = (worldPts[1] - worldPts[0]).normalized;
+        if (initialDir.sqrMagnitude > 0.0001f)
+            targetRotation = Quaternion.LookRotation(Vector3.forward, initialDir);
+        else
+            targetRotation = transform.rotation;
+        transform.rotation = targetRotation;
     }
 
 
@@ -68,7 +82,7 @@ public class Train : MonoBehaviour
         HandleTrainMovement();
     }
 
-    // Функция движения поезда
+    // Функция движения поезда meow
     private void HandleTrainMovement()
     {
         if (dwelling || worldPts == null || worldPts.Count < 2)
@@ -76,7 +90,18 @@ public class Train : MonoBehaviour
 
         var target = worldPts[idx + dir];
         var step = speedUnitsPerSec * TimeManager.Instance.CustomDeltaTime;
+
+        Vector3 beforeMove = transform.position;
         transform.position = Vector3.MoveTowards(transform.position, target, step);
+        Vector3 moveDir = (transform.position - beforeMove).normalized;
+
+        if (moveDir.sqrMagnitude > 0.0001f)
+        {
+            var requiredRotation = Quaternion.LookRotation(Vector3.forward, moveDir);
+            targetRotation = requiredRotation;
+        }   
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * TimeManager.Instance.CustomDeltaTime);
+
         float snap = ((target == worldPts[0]) || (target == worldPts[^1])) ? arriveSnap : 0f;
         if (Vector3.Distance(transform.position, target) <= snap)
         {
