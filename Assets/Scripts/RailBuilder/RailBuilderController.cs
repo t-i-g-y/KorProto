@@ -33,6 +33,9 @@ public class RailBuilderController : MonoBehaviour
     private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
     private bool awaitingConfirm = false;
+    private bool canBuildLakeCrossing = false;
+    private bool canBuildMountainTunnel = false;
+    private bool canBuildSeaTunnel = false;
 
     private void Awake()
     {
@@ -43,6 +46,7 @@ public class RailBuilderController : MonoBehaviour
 
     private bool IsPointerOverUI() => EventSystem.current && EventSystem.current.IsPointerOverGameObject();
     private bool IsLand(Vector3Int cell) => land.HasTile(cell) && !water.HasTile(cell);
+    private bool IsWater(Vector3Int cell) => !land.HasTile(cell) && water.HasTile(cell);
 
     private Vector3Int MouseToCell()
     {
@@ -81,6 +85,26 @@ public class RailBuilderController : MonoBehaviour
             var start = MouseToCell();
             if (!IsLand(start))
                 return;
+            
+            TerrainType terrain = RailSystem.Instance.GetTerrainType(start);
+            if ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel))
+            {
+                Debug.Log("Can't start on water tile!");
+                return;
+            }
+
+            if ((terrain == TerrainType.Lake && !canBuildLakeCrossing) || (terrain == TerrainType.Sea && !canBuildSeaTunnel))
+            {
+                Debug.Log("Can't build on water tile!");
+                return;
+            }
+
+            if (terrain == TerrainType.Mountain && !canBuildMountainTunnel)
+            {
+                Debug.Log("Can't build on Mountain!");
+                return;
+            }
+
             isBuilding = true;
             ClearHighlight();
             ghostPath.Add(start);
@@ -94,8 +118,38 @@ public class RailBuilderController : MonoBehaviour
             if (cur == ghostPath[^1])
                 return;
 
-            if (IsLand(cur) && HexCoords.AreNeighbors(ghostPath[^1], cur))
+            TerrainType terrain = RailSystem.Instance.GetTerrainType(cur);
+
+            if (terrain == TerrainType.Ocean)
+                return;
+
+            if (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel) && HexCoords.AreNeighbors(ghostPath[^1], cur))
             {
+                if (ghostPath.Count >= 2 && cur == ghostPath[^2])
+                {
+                    ghost.SetTile(ghostPath[^1], null);
+                    ghostPath.RemoveAt(ghostPath.Count - 1);
+                }
+                else if (!ghostPath.Contains(cur))
+                {
+                    ghostPath.Add(cur);
+                    ghost.SetTile(cur, ghostTile);
+                }
+                painter.PaintGhostPath(ghostPath);
+            }
+            else if (IsWater(cur) && HexCoords.AreNeighbors(ghostPath[^1], cur))
+            {
+                TerrainType prevTerrain = RailSystem.Instance.GetTerrainType(ghostPath[^1]);
+
+                if (prevTerrain == TerrainType.Lake || prevTerrain == TerrainType.Sea)
+                    return;
+                
+                if (terrain == TerrainType.Lake && !canBuildLakeCrossing)
+                    return;
+                
+                if (terrain == TerrainType.Sea && !canBuildSeaTunnel)
+                    return;
+                
                 if (ghostPath.Count >= 2 && cur == ghostPath[^2])
                 {
                     ghost.SetTile(ghostPath[^1], null);
@@ -116,7 +170,12 @@ public class RailBuilderController : MonoBehaviour
             isBuilding = false;
             if (ghostPath.Count >= 2)
             {
-                if (RailSystem.Instance.IsLineDuplicate(ghostPath))
+                if (RailSystem.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Lake || RailSystem.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Sea)
+                {
+                    Debug.Log("Can't create line: Water tile cannot be the last tile.");
+                    ClearHighlight();
+                }
+                else if (RailSystem.Instance.IsLineDuplicate(ghostPath))
                 {
                     ClearHighlight();
                     Debug.Log("Can't create duplicate!");
@@ -159,4 +218,8 @@ public class RailBuilderController : MonoBehaviour
         confirmHolder.SetActive(false);
         awaitingConfirm = false;
     }
+
+    public void AllowLakeCrossing(bool allowed) => canBuildLakeCrossing = allowed;
+    public void AllowMountainTunnel(bool allowed) => canBuildMountainTunnel = allowed;
+    public void AllowSeaTunnel(bool allowed) => canBuildSeaTunnel = allowed;
 }
