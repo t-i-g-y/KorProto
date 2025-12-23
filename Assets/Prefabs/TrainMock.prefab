@@ -293,10 +293,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e94f2c417f6ddfc4fa3ff70e3adc13ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train
-  speedUnitsPerSec: 1
+  speedUnitsPerSec: 0.6
   arriveSnap: 0.2
   rotationSpeed: 10
-  capacity: 6
+  trainHeadCapacity: 6
+  totalCapacity: 6
   onlyLoadRequested: 0
   config: {fileID: 11400000, guid: cf71a7f4ffad4d348aef33fe6b1b0e95, type: 2}
   maintenanceCost: 10

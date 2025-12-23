@@ -47,7 +47,7 @@ public class FinanceManager : MonoBehaviour
             Destroy(gameObject);
         }
         currentDay = 0;
-        balance = 1000f;
+        balance = 100f;
         lastBalanceChange = 0f;
         dayBalance = 0f;
         RailManager.LineCreated += DeductForLineConstruction;

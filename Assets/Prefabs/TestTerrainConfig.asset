@@ -33,7 +33,7 @@ MonoBehaviour:
   - TerrainType: 8
     Multiplier: 4
   - TerrainType: 9
-    Multiplier: 4
+    Multiplier: 5
   - TerrainType: 10
     Multiplier: 4
   - TerrainType: 11

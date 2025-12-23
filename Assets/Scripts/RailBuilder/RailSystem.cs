@@ -186,7 +186,7 @@ public class RailSystem : MonoBehaviour
         {
             var waterTileBase = water.GetTile(cell);
             if (waterTileBase == null) 
-                return TerrainType.Lake;
+                return TerrainType.Ocean;
 
             if (waterTileBase is Tile waterTile && waterTile.sprite != null)
             {
@@ -202,7 +202,7 @@ public class RailSystem : MonoBehaviour
                     return terrain;
             }
 
-            return TerrainType.Lake;
+            return TerrainType.Ocean;
         }
 
         var landTileBase = land.GetTile(cell);
