@@ -143,16 +143,9 @@ public class RailBuilderController : MonoBehaviour
 
         if (trainPrefab)
         {
-            var ptsWorld = new List<Vector3>(ghostPath.Count);
-            foreach (var c in ghostPath)
-                ptsWorld.Add(land.GetCellCenterWorld(c));
-
             var train = Instantiate(trainPrefab);
-            train.config = config;
-            train.onlyLoadRequested = true;
-            train.AssignedLine = line;
-            train.SetPath(ptsWorld, new List<Vector3Int>(ghostPath));
-            line.AssignedTrain = train;
+            
+            TrainManager.Instance.RegisterTrain(train, line);
         }
 
         ClearHighlight();

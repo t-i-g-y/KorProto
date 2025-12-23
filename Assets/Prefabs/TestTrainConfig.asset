@@ -9,12 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76d72b34024dbcf4b8d003c1141485b6, type: 3}
-  m_Name: TestConfig
-  m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  SpawnEverySec: 2
-  SpawnBatchMin: 1
-  SpawnBatchMax: 2
+  m_Script: {fileID: 11500000, guid: fbbb9ce5ff61b6341b90acd97169f0b4, type: 3}
+  m_Name: TestTrainConfig
+  m_EditorClassIdentifier: Assembly-CSharp::TrainConfig
   TimePerLoadSec: 0.5
   TimePerUnloadSec: 0.5
   StationSupplyCap: 20

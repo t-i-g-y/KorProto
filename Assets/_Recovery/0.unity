@@ -562,10 +562,6 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
-      propertyPath: consumeSquare
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
       propertyPath: produceCircle
       value: 0
       objectReference: {fileID: 0}
@@ -8231,10 +8227,6 @@ PrefabInstance:
     - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
       propertyPath: produceCircle
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
-      propertyPath: produceSquare
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

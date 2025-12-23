@@ -17,7 +17,15 @@ public class RailManager : MonoBehaviour
     void Awake()
     {
         nextID = 0;
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public RailLine CreateLine(List<Vector3Int> cells)
@@ -36,17 +44,18 @@ public class RailManager : MonoBehaviour
             InternalDeselect(line);
             LineDeselected?.Invoke(line);
         }
-
+        
+        TrainManager.Instance.RemoveTrain(line.AssignedTrain);
+        
         //RailSystem.Instance.RemoveRailData(line);
-        painter.UnpaintRails(line);
-        line.AssignedTrain.gameObject.SetActive(false);
-        line.AssignedTrain.UpgradeSpeed(0);
+        
         if (!Lines.Remove(line))
         {
             Lines.RemoveAll(l => l.ID == line.ID);
         }
 
         LineRemoved?.Invoke(line);
+        //painter.UnpaintRails(line);
     }
 
     public void PrintLines()

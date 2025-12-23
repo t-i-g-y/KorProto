@@ -17,6 +17,15 @@ public class RailPainter : MonoBehaviour
     [Header("Scene")]
     [SerializeField] private RailSystem system;
 
+    private void Awake()
+    {
+        RailManager.LineRemoved += UnpaintRails;
+    }
+
+    private void OnDestroy()
+    {
+        RailManager.LineRemoved -= UnpaintRails;        
+    }
     public void ClearGhost()
     {
         ghost?.ClearAllTiles();
