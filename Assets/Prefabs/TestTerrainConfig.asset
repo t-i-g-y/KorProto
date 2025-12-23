@@ -12,14 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b62ddac284490fd4abac898628d00726, type: 3}
   m_Name: TestTerrainConfig
   m_EditorClassIdentifier: Assembly-CSharp::TerrainConfig
-  terrainBaseCost: 100
-  terrainCostMultipliers:
-  - 1
-  - 1.75
-  - 1.5
-  - 1.25
-  - 1.75
-  - 1.75
-  - 2.25
-  - 3
-  - 4
+  TerrainBaseCost: 100
+  TerrainCostMultipliers:
+  - TerrainType: 0
+    Multiplier: 1
+  - TerrainType: 1
+    Multiplier: 1.75
+  - TerrainType: 2
+    Multiplier: 1.5
+  - TerrainType: 3
+    Multiplier: 1.25
+  - TerrainType: 4
+    Multiplier: 1.75
+  - TerrainType: 5
+    Multiplier: 1.75
+  - TerrainType: 6
+    Multiplier: 2.25
+  - TerrainType: 7
+    Multiplier: 3
+  - TerrainType: 8
+    Multiplier: 4
+  - TerrainType: 9
+    Multiplier: 4
+  - TerrainType: 10
+    Multiplier: 4
+  - TerrainType: 11
+    Multiplier: 4
