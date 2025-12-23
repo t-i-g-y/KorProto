@@ -60,6 +60,12 @@ public class TrainManager : MonoBehaviour
             TrainDeselected?.Invoke(train);
         }
 
+        for (int i = 0; i < train.Wagons.Count; i++)
+        {
+            Destroy(train.Wagons[i].gameObject);
+            train.Wagons[i] = null;
+        }
+        train.Wagons.Clear();
         Trains.Remove(train);
         TrainRemoved?.Invoke(train);
 
