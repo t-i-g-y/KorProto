@@ -8,14 +8,12 @@ using UnityEngine.UI;
 public class RailBuilderController : MonoBehaviour
 {
     [Header("Scene Objects")]
-    [SerializeField] private Camera Cam;
-    [SerializeField] private Grid ParentGrid;
-    [SerializeField] private Tilemap Land;
-    [SerializeField] private Tilemap Water;
-    [SerializeField] private Tilemap Rail;
-    [SerializeField] private Tilemap Highlight;
+    [SerializeField] private Camera cam;
+    [SerializeField] private Grid parentGrid;
+    [SerializeField] private Tilemap land;
+    [SerializeField] private Tilemap water;
+    [SerializeField] private Tilemap ghost;
     [SerializeField] private RailPainter painter;
-    [SerializeField] private RailTopology topology;
     [SerializeField] private RailSystem system;
     [SerializeField] private GameConfig config;
     
@@ -44,7 +42,7 @@ public class RailBuilderController : MonoBehaviour
     }
 
     private bool IsPointerOverUI() => EventSystem.current && EventSystem.current.IsPointerOverGameObject();
-    private bool IsLand(Vector3Int cell) => Land.HasTile(cell) && !Water.HasTile(cell);
+    private bool IsLand(Vector3Int cell) => land.HasTile(cell) && !water.HasTile(cell);
 
     private Vector3Int MouseToCell()
     {
@@ -52,14 +50,14 @@ public class RailBuilderController : MonoBehaviour
         if (mouse == null)
             return Vector3Int.zero;
         Vector2 screenPos = mouse.position.ReadValue();
-        Vector3 world = Cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, Cam.transform.position.z * -1f));
-        return ParentGrid.WorldToCell(world);
+        Vector3 world = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, cam.transform.position.z * -1f));
+        return parentGrid.WorldToCell(world);
     }
 
     private void ClearHighlight()
     {
         foreach (var cell in ghostPath)
-            Highlight.SetTile(cell, null);
+            ghost.SetTile(cell, null);
         ghostPath.Clear();
         painter.ClearGhost();
     }
@@ -77,6 +75,7 @@ public class RailBuilderController : MonoBehaviour
 
         if (mouse.rightButton.wasPressedThisFrame)
             Debug.Log(MouseToCell());
+    
         if (!isBuilding && mouse.leftButton.wasPressedThisFrame)
         {
             var start = MouseToCell();
@@ -99,13 +98,13 @@ public class RailBuilderController : MonoBehaviour
             {
                 if (ghostPath.Count >= 2 && cur == ghostPath[^2])
                 {
-                    Highlight.SetTile(ghostPath[^1], null);
+                    ghost.SetTile(ghostPath[^1], null);
                     ghostPath.RemoveAt(ghostPath.Count - 1);
                 }
                 else if (!ghostPath.Contains(cur))
                 {
                     ghostPath.Add(cur);
-                    Highlight.SetTile(cur, ghostTile);
+                    ghost.SetTile(cur, ghostTile);
                 }
                 painter.PaintGhostPath(ghostPath);
             }
@@ -117,11 +116,18 @@ public class RailBuilderController : MonoBehaviour
             isBuilding = false;
             if (ghostPath.Count >= 2)
             {
-                awaitingConfirm = true;
-                Vector3 offset = new Vector3(0, verticalOffset, 0);
-                confirmHolder.transform.position = Cam.WorldToScreenPoint(Land.GetCellCenterWorld(ghostPath[^1])) + offset;
-                
-                confirmHolder.SetActive(true);
+                if (RailSystem.Instance.IsLineDuplicate(ghostPath))
+                {
+                    ClearHighlight();
+                    Debug.Log("Can't create duplicate!");
+                }
+                else
+                {
+                    awaitingConfirm = true;
+                    Vector3 offset = new Vector3(0, verticalOffset, 0);
+                    confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
+                    confirmHolder.SetActive(true);
+                }
             }
             else
             {
@@ -137,15 +143,9 @@ public class RailBuilderController : MonoBehaviour
 
         if (trainPrefab)
         {
-            var ptsWorld = new List<Vector3>(ghostPath.Count);
-            foreach (var c in ghostPath)
-                ptsWorld.Add(Land.GetCellCenterWorld(c));
-
             var train = Instantiate(trainPrefab);
-            train.config = config;
-            train.onlyLoadRequested = true;
-            train.SetPath(ptsWorld, new List<Vector3Int>(ghostPath));
-
+            
+            TrainManager.Instance.RegisterTrain(train, line);
         }
 
         ClearHighlight();
