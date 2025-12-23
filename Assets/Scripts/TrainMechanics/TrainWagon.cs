@@ -4,6 +4,7 @@ public class TrainWagon : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer bodyRenderer;
     [SerializeField] private float followDistance = 1f;
+    [SerializeField] private CargoVisualizer visualizer;
     private Train ownerTrain;
     private int indexInTrain;
 

@@ -20,7 +20,8 @@ public class Train : MonoBehaviour
 
     // Заголовок - Вместимость поезда
     [Header("Capacity")]
-    [SerializeField] private int capacity = 6;
+    [SerializeField] private int trainHeadCapacity = 6;
+    [SerializeField] private int totalCapacity = 6;
     public bool onlyLoadRequested = false;
 
     // Заголовок - Временные характеристики
@@ -42,11 +43,13 @@ public class Train : MonoBehaviour
     [SerializeField] private SpriteRenderer bodyRenderer;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
+    [SerializeField] private CargoVisualizer visualizer;
 
     [Header("Wagons")]
     [SerializeField] private TrainWagon wagonPrefab;
     [SerializeField] private int maxWagons = 2;
     private List<TrainWagon> wagons = new();
+    private List<CargoVisualizer> wagonVisualizers = new();
     private List<Vector3> positionHistory = new();
 
     // Индекс текущего тайла
@@ -62,11 +65,10 @@ public class Train : MonoBehaviour
         new ResourceAmount(ResourceType.Triangle),
         new ResourceAmount(ResourceType.Square) 
     };
-
     private int CargoCount() => cargo[(int)ResourceType.Circle].Amount + cargo[(int)ResourceType.Triangle].Amount + cargo[(int)ResourceType.Square].Amount;
 
     public int ID { get; private set; }
-    public int Capacity => capacity;
+    public int TotalCapacity => totalCapacity;
     public List<TrainWagon> Wagons => wagons;
     public float Speed => speedUnitsPerSec;
     public int SpeedLevel
@@ -170,13 +172,26 @@ public class Train : MonoBehaviour
             {
                 yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
                 cargo[(int)resource]--;
+                int cargoCount = CargoCount();
+                if (cargoCount >= 6)
+                {
+                    ResourceAmount[] wagonCargo = new ResourceAmount[]
+                    {
+                        new ResourceAmount(ResourceType.Circle, Math.Max(cargo[0].Amount - trainHeadCapacity, 0)),
+                        new ResourceAmount(ResourceType.Triangle, Math.Max(cargo[1].Amount - trainHeadCapacity, 0)),
+                        new ResourceAmount(ResourceType.Square, Math.Max(cargo[2].Amount - trainHeadCapacity, 0)) 
+                    };
+                    wagonVisualizers[0].ShowCargo(wagonCargo);
+                }
+                else
+                    visualizer.ShowCargo(cargo);
                 FinanceManager.Instance.SellResource(resource);
                 station.demand[(int)resource]--;
                 GlobalDemand.Outstanding[(int)resource].Amount = Mathf.Max(0, GlobalDemand.Outstanding[(int)resource].Amount);
             }
         }
 
-        int free = capacity - CargoCount();
+        int free = totalCapacity - CargoCount();
         if (free > 0)
         {
             foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
@@ -186,10 +201,24 @@ public class Train : MonoBehaviour
                 if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
                     continue;
 
-                while (free > 0 && station.supply[(int)resource].Amount > 0) {
+                while (free > 0 && station.supply[(int)resource].Amount > 0) 
+                {
                     yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
                     station.supply[(int)resource]--;
                     cargo[(int)resource]++;
+                    int cargoCount = CargoCount();
+                    if (cargoCount > 6)
+                    {
+                        ResourceAmount[] wagonCargo = new ResourceAmount[]
+                        {
+                            new ResourceAmount(ResourceType.Circle, Math.Max(cargo[0].Amount - trainHeadCapacity, 0)),
+                            new ResourceAmount(ResourceType.Triangle, Math.Max(cargo[1].Amount - trainHeadCapacity, 0)),
+                            new ResourceAmount(ResourceType.Square, Math.Max(cargo[2].Amount - trainHeadCapacity, 0)) 
+                        };
+                        wagonVisualizers[0].ShowCargo(wagonCargo);
+                    }
+                    else
+                        visualizer.ShowCargo(cargo);
                     free--;
                 }
             }
@@ -200,7 +229,7 @@ public class Train : MonoBehaviour
         dwelling = false;
     }
     
-    public void UpgradeCapacity(int delta) => capacity = Mathf.Max(0, capacity + delta);
+    public void UpgradeCapacity(int delta) => totalCapacity = Mathf.Max(0, totalCapacity + delta);
     public void UpgradeSpeed(float mul) => speedUnitsPerSec *= Mathf.Max(0.1f, mul);
     public void SetSpeedLevel(int lvl)
     {
@@ -229,9 +258,11 @@ public class Train : MonoBehaviour
 
         newWagon.transform.position = transform.position;
         wagons.Add(newWagon);
-
+        CargoVisualizer wagonVisualizer = newWagon.GetComponent<CargoVisualizer>();
+        wagonVisualizers.Add(wagonVisualizer);
         UpgradeCapacity(6);
     }
+
     public ResourceAmount[] Manifest() => cargo;
     public void SetSelectedVisual(bool isSelected)
     {
