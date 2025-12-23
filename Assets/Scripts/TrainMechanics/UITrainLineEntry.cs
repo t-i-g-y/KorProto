@@ -24,6 +24,9 @@ public class UITrainLineEntry : MonoBehaviour
     public Train ReferenceTrain { get; private set; }
     public RailLine ReferenceLine { get; private set; }
     public bool IsSelected { get; private set; }
+
+    public event Action<UITrainLineEntry> OnSpeedClicked;
+    public event Action<UITrainLineEntry> OnCapacityClicked;
     public event Action<UITrainLineEntry> OnSelectClicked;
     public event Action<UITrainLineEntry> OnDeleteClicked;
 
@@ -31,11 +34,45 @@ public class UITrainLineEntry : MonoBehaviour
     {
         ReferenceTrain = train;
         ReferenceLine = line;
-        
+
+        if (trainText != null)
+            trainText.text = $"Train {train.ID}";
+
         if (lineText != null)
-            lineText.text = $"Line {line.ID}";
+            lineText.text = $"L{line.ID}";
 
         selectButton.onClick.AddListener(() => OnSelectClicked?.Invoke(this));
         deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke(this));
+        speedButton.onClick.AddListener(() => OnSpeedClicked?.Invoke(this));
+        capacityButton.onClick.AddListener(() => OnCapacityClicked?.Invoke(this));
+
+        UpdateSpeedText();
+        UpdateCapacityText();
+        SetSelected(false);
     }
+
+    public void SetSelected(bool selected)
+    {
+        IsSelected = selected;
+        if (selectText != null)
+        {
+            selectText.text = selected ? "SEL" : "SEL";
+            selectText.color = selected ? deselectTextColor : selectTextColor;
+        }
+        if (selectImage != null)
+            selectImage.color = selected ? deselectColor : selectColor;
+    }
+
+    public void UpdateSpeedText()
+    {
+        if (speedText != null && ReferenceTrain != null)
+            speedText.text = $"SP:{ReferenceTrain.SpeedLevel}";
+    }
+
+    public void UpdateCapacityText()
+    {
+        if (capacityText != null && ReferenceTrain != null)
+            capacityText.text = $"W:{ReferenceTrain.Wagons.Count}";
+    }
+
 }

@@ -463,7 +463,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1873628541570717942}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -1237,7 +1237,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8611530521722091946}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -1368,11 +1368,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: baa89e5d06aa3d843b358b1de65dad71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UITrainLineEntry
-  lineName: {fileID: 0}
-  selectButton: {fileID: 0}
-  selectText: {fileID: 0}
-  selectImage: {fileID: 0}
-  deleteButton: {fileID: 0}
+  trainText: {fileID: 3746962203085639172}
+  lineText: {fileID: 5177061086463592753}
+  speedButton: {fileID: 6759748688241504860}
+  speedText: {fileID: 7614563986204041489}
+  capacityButton: {fileID: 7370723971602126374}
+  capacityText: {fileID: 6338761195254611027}
+  selectButton: {fileID: 746205490274271146}
+  selectText: {fileID: 5253913592599982545}
+  selectImage: {fileID: 3899403552261716633}
+  deleteButton: {fileID: 3310455178923437956}
   selectColor:
     serializedVersion: 2
     rgba: 4282698752

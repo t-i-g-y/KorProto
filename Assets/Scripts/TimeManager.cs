@@ -72,6 +72,7 @@ public class TimeManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        
     }
 
     public void Pause() => timeMultiplier = 0f;

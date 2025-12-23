@@ -13,7 +13,16 @@ public class RailSystem : MonoBehaviour
 
     void Awake()
     {   
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
         int width = maxX - minX;
         int height = maxY - minY;
 

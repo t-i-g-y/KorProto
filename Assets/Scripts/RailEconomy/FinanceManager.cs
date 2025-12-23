@@ -37,7 +37,15 @@ public class FinanceManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         currentDay = 0;
         balance = 1000f;
         lastBalanceChange = 0f;
