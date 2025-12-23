@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// DEPRECATED
 public class RailTopology : MonoBehaviour
 {
     private readonly Dictionary<Vector3Int, HashSet<int>> dirsByCell = new();
