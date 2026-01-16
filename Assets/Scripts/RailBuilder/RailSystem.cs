@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.Tilemaps;
 
 public class RailSystem : MonoBehaviour
 {
@@ -9,6 +9,11 @@ public class RailSystem : MonoBehaviour
     [SerializeField] private int minX, minY;
     [SerializeField] private int maxX, maxY;
     private HexRailData[,] mapRailData;
+    [SerializeField] private Tilemap land;
+    [SerializeField] private Tilemap water;
+    [SerializeField] private Sprite[] terrainTileSprites;
+    [SerializeField] private TerrainType[] terrainTypes;
+    private Dictionary<Sprite, TerrainType> spriteToTerrain;
     [SerializeField] private HexRailDataRow[] mapRailDataVisualiser;
 
     void Awake()
@@ -25,22 +30,62 @@ public class RailSystem : MonoBehaviour
 
         int width = maxX - minX;
         int height = maxY - minY;
+        if (minX < 0)
+            width++;
+        if (minY < 0)
+            height++;
 
         mapRailData = new HexRailData[width, height];
         mapRailDataVisualiser = new HexRailDataRow[height];
-        for (int h = 0; h < height; h++)
-            mapRailDataVisualiser[h] = new HexRailDataRow(width);
-        for (int i = 0; i < width; i++)
+        for (int y = 0; y < height; y++)
+            mapRailDataVisualiser[y] = new HexRailDataRow(width);
+        for (int x = 0; x < width; x++)
         {
-            for (int j = 0; j < height; j++)
+            for (int y = 0; y < height; y++)
             {
-                mapRailData[i, j] = new HexRailData(new Vector3Int(i, j, 0));
-                UpdateRailDataVisualiser(i, j);
+                var worldCell = new Vector3Int(x + minX, y + minY, 0);
+                mapRailData[x, y] = new HexRailData(worldCell);
+                UpdateRailDataVisualiser(x, y);
             }
         }
 
         RailManager.LineCreated += AddRailData;
         RailManager.LineRemoved += RemoveRailData;
+
+        
+    }
+
+    private void Start()
+    {
+        spriteToTerrain = new Dictionary<Sprite, TerrainType>();
+        for (int i = 0; i < Mathf.Min(terrainTileSprites.Length, terrainTypes.Length); i++)
+            if (terrainTileSprites[i] != null && !spriteToTerrain.ContainsKey(terrainTileSprites[i]))
+                spriteToTerrain.Add(terrainTileSprites[i], terrainTypes[i]);
+        
+        for (int x = 0; x < mapRailData.GetLength(0); x++)
+        {
+            for (int y = 0; y < mapRailData.GetLength(1); y++)
+            {
+                var worldCell = new Vector3Int(x + minX, y + minY, 0);
+
+                bool waterPresent = false;
+                if (water != null)
+                {
+                    if (water.GetTile(worldCell) != null) 
+                        waterPresent = true;
+                    else if (water.GetInstantiatedObject(worldCell) != null) 
+                        waterPresent = true;
+                }
+
+                TerrainType terrain = GetTerrainTypeFromSprite(worldCell, waterPresent);
+
+                var data = mapRailData[x, y];
+                data.HexTerrain = terrain;
+                mapRailData[x, y] = data;
+
+                UpdateRailDataVisualiser(x, y);
+            }
+        }
     }
 
     private void OnDestroy()
@@ -63,14 +108,14 @@ public class RailSystem : MonoBehaviour
 
             if (IsInBounds(a))
             {
-                mapRailData[a.x, a.y].RailDirs[dirAB]++;
-                UpdateRailDataVisualiser(a.x, a.y);
+                mapRailData[a.x - minX, a.y - minY].RailDirs[dirAB]++;
+                UpdateRailDataVisualiser(a.x - minX, a.y - minY);
             }
                 
             if (IsInBounds(b))
             {
-                mapRailData[b.x, b.y].RailDirs[dirBA]++;
-                UpdateRailDataVisualiser(b.x, b.y);
+                mapRailData[b.x - minX, b.y - minY].RailDirs[dirBA]++;
+                UpdateRailDataVisualiser(b.x - minX, b.y - minY);
             }
         }
     }
@@ -95,10 +140,10 @@ public class RailSystem : MonoBehaviour
                 dir = HexCoords.DirIndex(cell, nextCell);
                 if (IsInBounds(cell))
                 {
-                    mapRailData[cell.x, cell.y].RailDirs[dirAB]--;
-                    if (mapRailData[cell.x, cell.y].RailDirs[dirAB] < 0)
+                    mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirAB]--;
+                    if (mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirAB] < 0)
                         Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirAB}");
-                    UpdateRailDataVisualiser(cell.x, cell.y);
+                    UpdateRailDataVisualiser(cell.x - minX, cell.y - minY);
                 }
             }
             else
@@ -109,14 +154,14 @@ public class RailSystem : MonoBehaviour
 
                 if (IsInBounds(cell))
                 {
-                    mapRailData[cell.x, cell.y].RailDirs[dirAB]--;
-                    if (mapRailData[cell.x, cell.y].RailDirs[dirAB] < 0)
+                    mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirAB]--;
+                    if (mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirAB] < 0)
                         Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirAB}");
 
-                    mapRailData[cell.x, cell.y].RailDirs[dirBA]--;
-                    if (mapRailData[cell.x, cell.y].RailDirs[dirBA] < 0)
+                    mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirBA]--;
+                    if (mapRailData[cell.x - minX, cell.y - minY].RailDirs[dirBA] < 0)
                         Debug.Log($"ERROR: negative value at ({cell.x}, {cell.y}) dir {dirBA}");
-                    UpdateRailDataVisualiser(cell.x, cell.y);
+                    UpdateRailDataVisualiser(cell.x - minX, cell.y - minY);
                 }
             }
         }
@@ -125,17 +170,61 @@ public class RailSystem : MonoBehaviour
         if (IsInBounds(lastCell))
         {
             dir = HexCoords.DirIndex(lastCell, line.Cells[line.Length - 2]);
-            mapRailData[lastCell.x, lastCell.y].RailDirs[dir]--;
-            if (mapRailData[lastCell.x, lastCell.y].RailDirs[dir] < 0)
+            mapRailData[lastCell.x - minX, lastCell.y - minY].RailDirs[dir]--;
+            if (mapRailData[lastCell.x - minX, lastCell.y - minY].RailDirs[dir] < 0)
                 Debug.Log($"ERROR: negative value at ({lastCell.x}, {lastCell.y}) dir {dir}");
-            UpdateRailDataVisualiser(lastCell.x, lastCell.y);
+            UpdateRailDataVisualiser(lastCell.x - minX, lastCell.y - minY);
         }
     }
 
-    public int[] GetHexRailDirs(Vector3Int coords) => mapRailData[coords.x, coords.y].RailDirs;
+    public int[] GetHexRailDirs(Vector3Int cell) => mapRailData[cell.x - minX, cell.y - minY].RailDirs;
 
-    public TerrainType GetTerrainType(Vector3Int coords) => mapRailData[coords.x, coords.y].HexTerrain;
+    public TerrainType GetTerrainType(Vector3Int cell) => mapRailData[cell.x - minX, cell.y - minY].HexTerrain;
+    public TerrainType GetTerrainTypeFromSprite(Vector3Int cell, bool isWater = false)
+    {
+        if (isWater)
+        {
+            var waterTileBase = water.GetTile(cell);
+            if (waterTileBase == null) 
+                return TerrainType.Ocean;
 
+            if (waterTileBase is Tile waterTile && waterTile.sprite != null)
+            {
+                if (spriteToTerrain.TryGetValue(waterTile.sprite, out var terrain)) 
+                    return terrain;
+            }
+
+            var waterObj = land.GetInstantiatedObject(cell);
+            if (waterObj != null)
+            {
+                var sr = waterObj.GetComponent<SpriteRenderer>();
+                if (sr != null && sr.sprite != null && spriteToTerrain.TryGetValue(sr.sprite, out var terrain)) 
+                    return terrain;
+            }
+
+            return TerrainType.Ocean;
+        }
+
+        var landTileBase = land.GetTile(cell);
+        if (landTileBase == null) 
+            return TerrainType.Grassland;
+
+        if (landTileBase is Tile tile && tile.sprite != null)
+        {
+            if (spriteToTerrain.TryGetValue(tile.sprite, out var terrain)) 
+                return terrain;
+        }
+
+        var landObj = land.GetInstantiatedObject(cell);
+        if (landObj != null)
+        {
+            var sr = landObj.GetComponent<SpriteRenderer>();
+            if (sr != null && sr.sprite != null && spriteToTerrain.TryGetValue(sr.sprite, out var terrain)) 
+                return terrain;
+        }
+
+        return TerrainType.Grassland;
+    }
     private bool AreLinesEqual(RailLine a, RailLine b)
     {
         if (a.Length != b.Length) 
@@ -202,11 +291,21 @@ public class RailSystem : MonoBehaviour
         return false;
             
     }
-    private bool IsInBounds(Vector3Int coords) => coords.x >= 0 && coords.x < mapRailData.GetLength(0) && coords.y >= 0 && coords.y < mapRailData.GetLength(1);
+    private bool IsInBounds(Vector3Int cell) => (cell.x - minX) >= 0 && (cell.x - minX) < mapRailData.GetLength(0) && (cell.y - minY) >= 0 && (cell.y - minY) < mapRailData.GetLength(1);
 
-    private void UpdateRailDataVisualiser(int r, int q)
+    private void UpdateRailDataVisualiser(int x, int y)
     {
-        mapRailDataVisualiser[r].row[q] = mapRailData[r, q];
+        if (mapRailDataVisualiser == null) 
+            return;
+        if (y >= mapRailDataVisualiser.Length) 
+            return;
+        var row = mapRailDataVisualiser[y];
+        if (row.row == null) 
+            return;
+        if (x >= row.row.Length) 
+            return;
+        row.row[x] = mapRailData[x, y];
+        mapRailDataVisualiser[y] = row;
     } 
     
 }

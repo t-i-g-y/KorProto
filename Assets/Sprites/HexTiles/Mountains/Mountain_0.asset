@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Grass-1_0
+  m_Name: Mountain_0
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
-  m_Sprite: {fileID: -7857746361985806455, guid: e2b64acb9673f4d5ea2ec23e834a1f89, type: 3}
+  m_Sprite: {fileID: -1819830194433888264, guid: c38b36a4dc7fc460fbb4d0527a5e66c2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

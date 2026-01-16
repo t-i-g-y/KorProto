@@ -12,5 +12,8 @@ public enum TerrainType
     Swamp,
     Tropics,
     River,
+    Lake,
+    Sea,
+    Ocean,
     Mountain
 }

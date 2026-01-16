@@ -7,7 +7,7 @@ public class Train : MonoBehaviour
 {
     // Заголовок - Движение поезда
     [Header("Motion")]
-    [SerializeField] private float speedUnitsPerSec = 1f;
+    [SerializeField] private float speedUnitsPerSec = 0.6f;
     private int speedLevel = 1;
 
     // Расстояние от центра конечно тайла, на котором поезд разворачивается
@@ -237,13 +237,13 @@ public class Train : MonoBehaviour
         switch (SpeedLevel)
         {
             case 1:
-                speedUnitsPerSec = 1f;
+                speedUnitsPerSec = 0.6f;
                 break;
             case 2:
-                speedUnitsPerSec = 1.5f;
+                speedUnitsPerSec = 0.8f;
                 break;
             case 3:
-                speedUnitsPerSec = 2f;
+                speedUnitsPerSec = 1.2f;
                 break;
         }
     }
