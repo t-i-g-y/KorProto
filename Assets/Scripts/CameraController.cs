@@ -13,6 +13,15 @@ public class CameraController : MonoBehaviour
     private Camera cam;
     private Vector2 moveInput;
 
+
+    public bool CameraKeyboardMovement;
+    public bool CameraDragPan;
+    [SerializeField] private float dragPanSpeed = 1f;
+    [SerializeField] private bool invertDrag = false;
+    private bool isDragging;
+    private Vector3 dragStartWorldCamPos;
+    private Vector2 dragStartMouseScreenPos;
+
     private void Start()
     {
         cam = Camera.main;
@@ -26,6 +35,18 @@ public class CameraController : MonoBehaviour
     }
 
     private void HandleMovement()
+    {
+        if (CameraDragPan)
+        {
+            HandleDragPan();
+        }
+        if (CameraKeyboardMovement)
+        {
+            HandleKeyboardMovement();
+        }
+    }
+
+    private void HandleKeyboardMovement()
     {
         moveInput = new Vector2(
             Keyboard.current.dKey.isPressed ? 1f : (Keyboard.current.aKey.isPressed ? -1f : 0f),
@@ -53,6 +74,42 @@ public class CameraController : MonoBehaviour
         }
 
         transform.Translate(move);
+    }
+
+    private void HandleDragPan()
+    {
+        if (Mouse.current == null) 
+            return;
+
+        var button = Mouse.current.rightButton;
+
+        if (button.wasPressedThisFrame)
+        {
+            isDragging = true;
+            dragStartMouseScreenPos = Mouse.current.position.ReadValue();
+            dragStartWorldCamPos = transform.position;
+        }
+
+        if (isDragging && button.isPressed)
+        {
+            Vector2 currentMouse = Mouse.current.position.ReadValue();
+            Vector2 deltaPixels = currentMouse - dragStartMouseScreenPos;
+
+            float worldPerPixelY = (cam.orthographicSize * 2f) / Screen.height;
+            float worldPerPixelX = worldPerPixelY * cam.aspect;
+
+            Vector3 deltaWorld = new Vector3(deltaPixels.x * worldPerPixelX, deltaPixels.y * worldPerPixelY, 0f);
+
+            float sign = invertDrag ? 1f : -1f;
+            Vector3 target = dragStartWorldCamPos + deltaWorld * sign * dragPanSpeed;
+
+            transform.position = new Vector3(target.x, target.y, transform.position.z);
+        }
+
+        if (button.wasReleasedThisFrame)
+        {
+            isDragging = false;
+        }
     }
 
     private void HandleZoom()
