@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// to deprecate
 public class TechManager : MonoBehaviour
 {
     [SerializeField] private RailBuilderController railBuilder;
