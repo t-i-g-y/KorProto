@@ -54,11 +54,13 @@ public class UITrainLineEntry : MonoBehaviour
     public void SetSelected(bool selected)
     {
         IsSelected = selected;
+
         if (selectText != null)
         {
-            selectText.text = selected ? "SEL" : "SEL";
+            selectText.text = "SEL";
             selectText.color = selected ? deselectTextColor : selectTextColor;
         }
+
         if (selectImage != null)
             selectImage.color = selected ? deselectColor : selectColor;
     }
@@ -71,8 +73,8 @@ public class UITrainLineEntry : MonoBehaviour
 
     public void UpdateCapacityText()
     {
-        if (capacityText != null && ReferenceTrain != null)
-            capacityText.text = $"W:{ReferenceTrain.Wagons.Count}";
+        if (capacityText != null && ReferenceTrain != null && ReferenceTrain.AttachedTrainConsist != null)
+            capacityText.text = $"W:{ReferenceTrain.AttachedTrainConsist.WagonCount}";
     }
-
+    
 }

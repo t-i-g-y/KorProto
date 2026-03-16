@@ -32,6 +32,6 @@ public class RailLine
     private void OnDestroy()
     {
         AssignedTrain.gameObject.SetActive(false);
-        AssignedTrain.UpgradeSpeed(0);
+        AssignedTrain.ChangeSpeed(0f);
     }
 }
