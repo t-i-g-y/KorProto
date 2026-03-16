@@ -4,9 +4,12 @@ using System.Collections.Generic;
 public class CargoVisualizer : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer[] slots;
-    [SerializeField] private Sprite circleSprite;
-    [SerializeField] private Sprite triangleSprite;
-    [SerializeField] private Sprite squareSprite;
+    [SerializeField] private Sprite coalSprite;
+    [SerializeField] private Sprite ironSprite;
+    [SerializeField] private Sprite milkSprite;
+    [SerializeField] private Sprite waterSprite;
+    [SerializeField] private Sprite milletSprite;
+    [SerializeField] private Sprite plasticSprite;
 
     public int MaxDisplay => slots.Length;
 
@@ -14,16 +17,12 @@ public class CargoVisualizer : MonoBehaviour
     {
         List<ResourceType> list = new();
 
-        int circles = cargo[(int)ResourceType.Circle].Amount;
-        int triangles = cargo[(int)ResourceType.Triangle].Amount;
-        int squares = cargo[(int)ResourceType.Square].Amount;
-
-        for (int i = 0; i < circles; i++) 
-            list.Add(ResourceType.Circle);
-        for (int i = 0; i < triangles; i++) 
-            list.Add(ResourceType.Triangle);
-        for (int i = 0; i < squares; i++) 
-            list.Add(ResourceType.Square);
+        foreach (ResourceType resourceType in System.Enum.GetValues(typeof(ResourceType)))
+        {
+            int amount = cargo[(int)resourceType].Amount;
+            for (int index = 0; index < amount; index++)
+                list.Add(resourceType);
+        }
 
         for (int i = 0; i < slots.Length; i++)
         {
@@ -43,9 +42,12 @@ public class CargoVisualizer : MonoBehaviour
     {
         return resource switch
         {
-            ResourceType.Circle => circleSprite,
-            ResourceType.Triangle => triangleSprite,
-            ResourceType.Square => squareSprite,
+            ResourceType.Coal => coalSprite,
+            ResourceType.Iron => ironSprite,
+            ResourceType.Milk => milkSprite,
+            ResourceType.Water => waterSprite,
+            ResourceType.Millet => milletSprite,
+            ResourceType.Plastic => plasticSprite,
             _ => null
         };
     }
