@@ -59,13 +59,25 @@ public class Train : MonoBehaviour
     // Статус остановки поезда. True = поезд стоит на станции, False = поезд не задерживается на станции (или в движении)
     private bool dwelling = false;
 
-    [SerializeField] private ResourceAmount[] cargo = new ResourceAmount[]
+    [SerializeField] private ResourceAmount[] cargo;
+
+    private int CargoCount()
     {
-        new ResourceAmount(ResourceType.Circle),
-        new ResourceAmount(ResourceType.Triangle),
-        new ResourceAmount(ResourceType.Square) 
-    };
-    private int CargoCount() => cargo[(int)ResourceType.Circle].Amount + cargo[(int)ResourceType.Triangle].Amount + cargo[(int)ResourceType.Square].Amount;
+        int total = 0;
+
+        if (cargo == null)
+            return 0;
+
+        foreach (ResourceAmount resourceAmount in cargo)
+            total += resourceAmount.Amount;
+
+        return total;
+    }
+
+    private void Awake()
+    {
+        EnsureCargoInitialized();
+    }
 
     public int ID { get; private set; }
     public int TotalCapacity => totalCapacity;
@@ -85,6 +97,7 @@ public class Train : MonoBehaviour
     }
     public void SetPath(List<Vector3> ptsWorld, List<Vector3Int> ptsCells)
     {
+        EnsureCargoInitialized();
         worldPts = ptsWorld;
         cells = ptsCells;
         ID = TrainManager.Instance.NextID;
@@ -167,27 +180,18 @@ public class Train : MonoBehaviour
         {
             if (!station.Consumes(resource))
                 continue;
-            int canUnload = Mathf.Min(cargo[(int)resource].Amount, station.demand[(int)resource].Amount);
+
+            int resourceIndex = (int)resource;
+            int canUnload = Mathf.Min(cargo[resourceIndex].Amount, station.GetDemandAmount(resource));
+
             for (int i = 0; i < canUnload; i++)
             {
                 yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
-                cargo[(int)resource]--;
-                int cargoCount = CargoCount();
-                if (cargoCount >= 6)
-                {
-                    ResourceAmount[] wagonCargo = new ResourceAmount[]
-                    {
-                        new ResourceAmount(ResourceType.Circle, Math.Max(cargo[0].Amount - trainHeadCapacity, 0)),
-                        new ResourceAmount(ResourceType.Triangle, Math.Max(cargo[1].Amount - trainHeadCapacity, 0)),
-                        new ResourceAmount(ResourceType.Square, Math.Max(cargo[2].Amount - trainHeadCapacity, 0)) 
-                    };
-                    wagonVisualizers[0].ShowCargo(wagonCargo);
-                }
-                else
-                    visualizer.ShowCargo(cargo);
+
+                cargo[resourceIndex].Amount--;
+                UpdateCargoVisualizers();
                 FinanceManager.Instance.SellResource(resource);
-                station.demand[(int)resource]--;
-                GlobalDemand.Outstanding[(int)resource].Amount = Mathf.Max(0, GlobalDemand.Outstanding[(int)resource].Amount);
+                station.TrySatisfyDemand(resource, 1);
             }
         }
 
@@ -201,24 +205,15 @@ public class Train : MonoBehaviour
                 if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
                     continue;
 
-                while (free > 0 && station.supply[(int)resource].Amount > 0) 
+                while (free > 0 && station.GetSupplyAmount(resource) > 0)
                 {
                     yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
-                    station.supply[(int)resource]--;
-                    cargo[(int)resource]++;
-                    int cargoCount = CargoCount();
-                    if (cargoCount > 6)
-                    {
-                        ResourceAmount[] wagonCargo = new ResourceAmount[]
-                        {
-                            new ResourceAmount(ResourceType.Circle, Math.Max(cargo[0].Amount - trainHeadCapacity, 0)),
-                            new ResourceAmount(ResourceType.Triangle, Math.Max(cargo[1].Amount - trainHeadCapacity, 0)),
-                            new ResourceAmount(ResourceType.Square, Math.Max(cargo[2].Amount - trainHeadCapacity, 0)) 
-                        };
-                        wagonVisualizers[0].ShowCargo(wagonCargo);
-                    }
-                    else
-                        visualizer.ShowCargo(cargo);
+
+                    if (!station.TryTakeSupply(resource, 1))
+                        break;
+
+                    cargo[(int)resource].Amount++;
+                    UpdateCargoVisualizers();
                     free--;
                 }
             }
@@ -264,6 +259,7 @@ public class Train : MonoBehaviour
     }
 
     public ResourceAmount[] Manifest() => cargo;
+
     public void SetSelectedVisual(bool isSelected)
     {
         if (bodyRenderer != null)
@@ -293,5 +289,68 @@ public class Train : MonoBehaviour
     private void OnDestroy()
     {
         Debug.Log("Train destroyed");
+    }
+
+    private void EnsureCargoInitialized()
+    {
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+
+        if (cargo == null || cargo.Length != resourceTypes.Length)
+            cargo = new ResourceAmount[resourceTypes.Length];
+
+        for (int index = 0; index < resourceTypes.Length; index++)
+        {
+            if (cargo[index].Type != resourceTypes[index])
+                cargo[index] = new ResourceAmount(resourceTypes[index], Mathf.Max(0, cargo[index].Amount));
+        }
+    }
+
+    private void UpdateCargoVisualizers()
+    {
+        if (visualizer != null)
+            visualizer.ShowCargo(BuildCargoSlice(0, trainHeadCapacity));
+
+        for (int wagonIndex = 0; wagonIndex < wagonVisualizers.Count; wagonIndex++)
+        {
+            CargoVisualizer wagonVisualizer = wagonVisualizers[wagonIndex];
+            if (wagonVisualizer == null)
+                continue;
+
+            int sliceStart = trainHeadCapacity + wagonIndex * 6;
+            wagonVisualizer.ShowCargo(BuildCargoSlice(sliceStart, 6));
+        }
+    }
+
+    private ResourceAmount[] BuildCargoSlice(int startIndex, int capacity)
+    {
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+        ResourceAmount[] slice = new ResourceAmount[resourceTypes.Length];
+
+        for (int index = 0; index < resourceTypes.Length; index++)
+            slice[index] = new ResourceAmount(resourceTypes[index]);
+
+        int remainingToSkip = Mathf.Max(0, startIndex);
+        int remainingToTake = Mathf.Max(0, capacity);
+
+        foreach (ResourceType resourceType in resourceTypes)
+        {
+            int cargoAmount = cargo[(int)resourceType].Amount;
+
+            if (remainingToSkip >= cargoAmount)
+            {
+                remainingToSkip -= cargoAmount;
+                continue;
+            }
+
+            int visibleAmount = Mathf.Min(cargoAmount - remainingToSkip, remainingToTake);
+            slice[(int)resourceType].Amount = visibleAmount;
+            remainingToTake -= visibleAmount;
+            remainingToSkip = 0;
+
+            if (remainingToTake <= 0)
+                break;
+        }
+
+        return slice;
     }
 }

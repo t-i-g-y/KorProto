@@ -4,10 +4,16 @@ using UnityEngine;
 
 public static class GlobalDemand
 {
-    public static readonly ResourceAmount[] Outstanding = new ResourceAmount[]
+    public static readonly ResourceAmount[] Outstanding = CreateOutstanding();
+
+    private static ResourceAmount[] CreateOutstanding()
     {
-        new ResourceAmount(ResourceType.Circle),
-        new ResourceAmount(ResourceType.Triangle),
-        new ResourceAmount(ResourceType.Square) 
-    };
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+        ResourceAmount[] outstanding = new ResourceAmount[resourceTypes.Length];
+
+        for (int index = 0; index < resourceTypes.Length; index++)
+            outstanding[index] = new ResourceAmount(resourceTypes[index]);
+
+        return outstanding;
+    }
 }

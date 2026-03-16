@@ -3,47 +3,54 @@ using UnityEngine;
 
 public enum ResourceType
 {
-    Circle,
-    Triangle,
-    Square
+    Coal,
+    Iron,
+    Milk,
+    Water,
+    Millet,
+    Plastic,
+    Circle
 }
 
 [Serializable]
 public struct ResourceAmount
 {
-    [SerializeField] private ResourceType _type;
-    [SerializeField]private int _amount;
+    [SerializeField] private ResourceType type;
+    [SerializeField] private int amount;
 
     public ResourceAmount(ResourceType type)
     {
-        _type = type;
-        _amount = 0;
+        this.type = type;
+        amount = 0;
     }
+
     public ResourceAmount(ResourceType type, int amount)
     {
-        _type = type;
-        _amount = amount;
+        this.type = type;
+        this.amount = amount;
     }
 
     public ResourceType Type
     {
-        get => _type;
-        set => _type = value;
+        get => type;
+        set => type = value;
     }
 
     public int Amount
     {
-        get => _amount;
-        set => _amount = value;
+        get => amount;
+        set => amount = value;
     }
 
-    public static ResourceAmount operator ++(ResourceAmount resourceAmount) => new ResourceAmount(resourceAmount.Type, resourceAmount.Amount + 1);
+    public static ResourceAmount operator ++(ResourceAmount resourceAmount) =>
+        new(resourceAmount.Type, resourceAmount.Amount + 1);
 
-    public static ResourceAmount operator --(ResourceAmount resourceAmount) => new ResourceAmount(resourceAmount.Type, resourceAmount.Amount - 1);
+    public static ResourceAmount operator --(ResourceAmount resourceAmount) =>
+        new(resourceAmount.Type, resourceAmount.Amount - 1);
 
-    public static ResourceAmount operator +(ResourceAmount resourceAmount, int n) => new ResourceAmount(resourceAmount.Type, resourceAmount.Amount + n);
+    public static ResourceAmount operator +(ResourceAmount resourceAmount, int value) =>
+        new(resourceAmount.Type, resourceAmount.Amount + value);
 
-    public static ResourceAmount operator -(ResourceAmount resourceAmount, int n) => new ResourceAmount(resourceAmount.Type, resourceAmount.Amount - n);
-
-    
+    public static ResourceAmount operator -(ResourceAmount resourceAmount, int value) =>
+        new(resourceAmount.Type, resourceAmount.Amount - value);
 }

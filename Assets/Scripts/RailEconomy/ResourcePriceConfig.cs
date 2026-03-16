@@ -6,9 +6,12 @@ public class ResourcePriceConfig : ScriptableObject
 {
     public ResourcePrice[] ResourcePriceList =
     {
-        new ResourcePrice { Resource = ResourceType.Circle, Price = 50 },
-        new ResourcePrice { Resource = ResourceType.Triangle, Price = 80 },
-        new ResourcePrice { Resource = ResourceType.Square, Price = 100 }
+        new ResourcePrice { Resource = ResourceType.Coal, Price = 50 },
+        new ResourcePrice { Resource = ResourceType.Iron, Price = 80 },
+        new ResourcePrice { Resource = ResourceType.Milk, Price = 65 },
+        new ResourcePrice { Resource = ResourceType.Water, Price = 30 },
+        new ResourcePrice { Resource = ResourceType.Millet, Price = 55 },
+        new ResourcePrice { Resource = ResourceType.Plastic, Price = 100 }
     };
 }
 
