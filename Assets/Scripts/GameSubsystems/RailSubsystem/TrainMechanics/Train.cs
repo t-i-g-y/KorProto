@@ -1,356 +1,373 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System;
+using UnityEngine;
 
 public class Train : MonoBehaviour
 {
-    // Заголовок - Движение поезда
-    [Header("Motion")]
-    [SerializeField] private float speedUnitsPerSec = 0.6f;
-    private int speedLevel = 1;
-
-    // Расстояние от центра конечно тайла, на котором поезд разворачивается
-    [SerializeField] private float arriveSnap = 0.02f;
-
-    // Скорость поворота
-    [SerializeField] private float rotationSpeed = 10f;
-    private Quaternion targetRotation;
-    private Vector3 lastPosition;
-
-    // Заголовок - Вместимость поезда
-    [Header("Capacity")]
-    [SerializeField] private int trainHeadCapacity = 6;
-    [SerializeField] private int totalCapacity = 6;
-    public bool onlyLoadRequested = false;
-
-    // Заголовок - Временные характеристики
-    [Header("Timing")]
-    public TrainConfig config;
-
-    // Заголовок - Экономические характеристики
-    [Header("Economy")]
-    // Стоимость обслуживания поезда
-    [SerializeField] private float maintenanceCost = 10f;
-
-    public RailLine AssignedLine;
-    // Маршрут поезда в системе координат Unity
-    [SerializeField] private List<Vector3> worldPts;
-    // Маршрута поезда в системе координат тайлов (целочисленные координаты)
-    [SerializeField] private List<Vector3Int> cells;
+    [Header("ID")]
+    [SerializeField] private int id;
+    public int ID => id;
 
     [Header("Visuals")]
-    [SerializeField] private SpriteRenderer bodyRenderer;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
-    [SerializeField] private CargoVisualizer visualizer;
+    [SerializeField] private CargoVisualizer cargoVisualizer;
 
-    [Header("Wagons")]
-    [SerializeField] private TrainWagon wagonPrefab;
-    [SerializeField] private int maxWagons = 2;
-    private List<TrainWagon> wagons = new();
-    private List<CargoVisualizer> wagonVisualizers = new();
-    private List<Vector3> positionHistory = new();
+    [Header("Movement")]
+    [SerializeField] private RailLine assignedLine;
+    [SerializeField] private float speed = 0.6f;
+    [SerializeField] private float arriveDistance = 0.02f;
+    [SerializeField] private float stationDwellSeconds = 0.5f;
+    [SerializeField] private List<Vector3Int> routeTiles = new();
+    [SerializeField] private List<Vector3> routeCoords = new();
+    [SerializeField] private int dir = 1;
+    [SerializeField] private int currentTileIndex = 0;
+    [SerializeField] private bool atStation = false;
 
-    // Индекс текущего тайла
-    private int idx = 0;
-    // Индекс направления поезда. 1 = от первого в списке до последнего, -1 = наоборот
-    private int dir = 1;
-    // Статус остановки поезда. True = поезд стоит на станции, False = поезд не задерживается на станции (или в движении)
-    private bool dwelling = false;
+    [Header("Consist")]
+    [SerializeField] private TrainConsist attachedTrainConsist;
+    [SerializeField] private TrainWagonView wagonViewPrefab;
+    [SerializeField] private List<TrainWagonView> attachedWagonViews = new();
 
-    [SerializeField] private ResourceAmount[] cargo;
+    [Header("Config")]
+    [SerializeField] private TrainConfig config;
+    [SerializeField] private bool onlyLoadRequested = true;
 
-    private int CargoCount()
-    {
-        int total = 0;
-
-        if (cargo == null)
-            return 0;
-
-        foreach (ResourceAmount resourceAmount in cargo)
-            total += resourceAmount.Amount;
-
-        return total;
-    }
+    private float[] segmentLengths;
+    private float totalRouteLength;
+    private float headDistance;
+    private bool isDwelling;
+    private int speedLevel = 1;
+    public RailLine AssignedLine => assignedLine;
+    public List<Vector3Int> RouteTiles => routeTiles;
+    public List<Vector3> RouteCoords => routeCoords;
+    public int Dir => dir;
+    public int CurrentTileIndex => currentTileIndex;
+    public bool AtStation => atStation;
+    public CargoVisualizer CargoVisualizer => cargoVisualizer;
+    public TrainConsist AttachedTrainConsist => attachedTrainConsist;
+    public List<TrainWagonView> AttachedWagonViews => attachedWagonViews;
+    public int SpeedLevel => speedLevel;
+    public float Speed => speed;
 
     private void Awake()
     {
-        EnsureCargoInitialized();
+        if (attachedTrainConsist == null)
+            attachedTrainConsist = GetComponent<TrainConsist>();
     }
-
-    public int ID { get; private set; }
-    public int TotalCapacity => totalCapacity;
-    public List<TrainWagon> Wagons => wagons;
-    public float Speed => speedUnitsPerSec;
-    public int SpeedLevel
-    {
-        get => speedLevel;
-        set
-        {
-            if (value > 3 || value < 1)
-                return;
-            
-            speedLevel = value;
-        }
-
-    }
-    public void SetPath(List<Vector3> ptsWorld, List<Vector3Int> ptsCells)
-    {
-        EnsureCargoInitialized();
-        worldPts = ptsWorld;
-        cells = ptsCells;
-        ID = TrainManager.Instance.NextID;
-        if (worldPts == null || worldPts.Count < 2)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        idx = 0;
-        dir = 1;
-        transform.position = worldPts[0];
-        lastPosition = transform.position;
-        
-
-        Vector3 initialDir = (worldPts[1] - worldPts[0]).normalized;
-        if (initialDir.sqrMagnitude > 0.0001f)
-            targetRotation = Quaternion.LookRotation(Vector3.forward, initialDir);
-        else
-            targetRotation = transform.rotation;
-        transform.rotation = targetRotation;
-    }
-
 
     private void Update()
     {
         HandleTrainMovement();
     }
 
-    // Функция движения поезда meow
-    private void HandleTrainMovement()
+    public void Initialize(RailLine line, int trainId, TrainConfig trainConfig)
     {
-        if (dwelling || worldPts == null || worldPts.Count < 2)
-            return;
-
-        var target = worldPts[idx + dir];
-        var step = speedUnitsPerSec * TimeManager.Instance.CustomDeltaTime;
-
-        Vector3 beforeMove = transform.position;
-        transform.position = Vector3.MoveTowards(transform.position, target, step);
-        positionHistory.Insert(0, transform.position);
-        int maxHistory = 64;
-        if (positionHistory.Count > maxHistory)
-            positionHistory.RemoveAt(positionHistory.Count - 1);
-        Vector3 moveDir = (transform.position - beforeMove).normalized;
-
-        if (moveDir.sqrMagnitude > 0.0001f)
-        {
-            var requiredRotation = Quaternion.LookRotation(Vector3.forward, moveDir);
-            targetRotation = requiredRotation;
-        }   
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * TimeManager.Instance.CustomDeltaTime);
-
-        
-
-        float snap = ((target == worldPts[0]) || (target == worldPts[^1])) ? arriveSnap : 0f;
-        if (Vector3.Distance(transform.position, target) <= snap)
-        {
-            idx += dir;
-
-            if ((idx == 0 || idx == cells.Count - 1) & StationRegistry.TryGet(cells[idx], out var station))
-            {
-                StartCoroutine(DwellAtStation(station));
-                return;
-            }
-
-            if (idx == worldPts.Count - 1 || idx == 0)
-                dir = -dir;
-        }
+        assignedLine = line;
+        id = trainId;
+        config = trainConfig;
     }
 
-    // Функция задержки поезда на станции
-    private IEnumerator DwellAtStation(Station station)
+    public void SetPath(List<Vector3Int> tiles, List<Vector3> coords)
     {
-        dwelling = true;
-        yield return new WaitForSeconds(0.5f);
-        FinanceManager.Instance.GenerateIncomeForRailLine(AssignedLine);
-        FinanceManager.Instance.DeductMaintenanceCost(maintenanceCost);
+        routeTiles = tiles ?? new List<Vector3Int>();
+        routeCoords = coords ?? new List<Vector3>();
 
-        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        if (routeCoords.Count < 2)
         {
-            if (!station.Consumes(resource))
-                continue;
+            Debug.LogError("train path must contain at least 2 tiles");
+            enabled = false;
+            return;
+        }
 
-            int resourceIndex = (int)resource;
-            int canUnload = Mathf.Min(cargo[resourceIndex].Amount, station.GetDemandAmount(resource));
+        RebuildRouteCache();
 
-            for (int i = 0; i < canUnload; i++)
+        dir = 1;
+        currentTileIndex = 0;
+        atStation = false;
+        isDwelling = false;
+        headDistance = 0f;
+
+        transform.position = routeCoords[0];
+
+        EvaluatePoseAtDistance(0f, out _, out Vector3 forward);
+        if (forward.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(Vector3.forward, forward);
+
+        SyncWagonViews(true);
+        RefreshCargoVisuals();
+    }
+
+    public void HandleTrainMovement()
+    {
+        if (isDwelling || routeCoords == null || routeCoords.Count < 2)
+            return;
+
+        float delta = speed * TimeManager.Instance.CustomDeltaTime * dir;
+        headDistance += delta;
+
+        if (dir > 0 && headDistance >= totalRouteLength - arriveDistance)
+        {
+            headDistance = totalRouteLength;
+            currentTileIndex = routeTiles.Count - 1;
+            TryArriveAtEndpoint();
+            return;
+        }
+
+        if (dir < 0 && headDistance <= arriveDistance)
+        {
+            headDistance = 0f;
+            currentTileIndex = 0;
+            TryArriveAtEndpoint();
+            return;
+        }
+
+        Vector3 pos;
+        Vector3 forwardDir;
+        EvaluatePoseAtDistance(headDistance, out pos, out forwardDir);
+
+        transform.position = pos;
+        if (forwardDir.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
+
+        UpdateCurrentTileIndexFromDistance();
+        SyncWagonViews(false);
+    }
+
+    public IEnumerator ArriveAtStation(Station station)
+    {
+        isDwelling = true;
+        atStation = true;
+
+        yield return new WaitForSeconds(stationDwellSeconds);
+
+        if (attachedTrainConsist != null)
+        {
+            while (attachedTrainConsist.TryUnloadOne(station))
             {
+                RefreshCargoVisuals();
                 yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
-
-                cargo[resourceIndex].Amount--;
-                UpdateCargoVisualizers();
-                FinanceManager.Instance.SellResource(resource);
-                station.TrySatisfyDemand(resource, 1);
             }
-        }
 
-        int free = totalCapacity - CargoCount();
-        if (free > 0)
-        {
-            foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+            while (attachedTrainConsist.TryLoadOne(station, onlyLoadRequested))
             {
-                if (!station.Produces(resource))
-                    continue;
-                if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
-                    continue;
-
-                while (free > 0 && station.GetSupplyAmount(resource) > 0)
-                {
-                    yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
-
-                    if (!station.TryTakeSupply(resource, 1))
-                        break;
-
-                    cargo[(int)resource].Amount++;
-                    UpdateCargoVisualizers();
-                    free--;
-                }
+                RefreshCargoVisuals();
+                yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
             }
         }
 
-        if (idx == worldPts.Count - 1 || idx == 0)
-            dir = -dir;
-        dwelling = false;
+        dir *= -1;
+
+        EvaluatePoseAtDistance(headDistance, out Vector3 pos, out Vector3 forwardDir);
+        transform.position = pos;
+
+        if (forwardDir.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
+
+        SyncWagonViews(true);
+        
+        atStation = false;
+        isDwelling = false;
     }
-    
-    public void UpgradeCapacity(int delta) => totalCapacity = Mathf.Max(0, totalCapacity + delta);
-    public void UpgradeSpeed(float mul) => speedUnitsPerSec *= Mathf.Max(0.1f, mul);
-    public void SetSpeedLevel(int lvl)
+
+    public void ChangeSpeed(float multiplier)
     {
-        SpeedLevel = lvl;
-        switch (SpeedLevel)
+        speed = Mathf.Max(0f, speed * multiplier);
+    }
+
+    public void SetSpeedLevel(int level)
+    {
+        speedLevel = Mathf.Clamp(level, 1, 3);
+
+        switch (speedLevel)
         {
-            case 1:
-                speedUnitsPerSec = 0.6f;
+            case 0:
+                speed = 0f;
                 break;
-            case 2:
-                speedUnitsPerSec = 0.8f;
+            case 1: 
+                speed = 0.6f; 
                 break;
-            case 3:
-                speedUnitsPerSec = 1.2f;
+            case 2: 
+                speed = 0.8f; 
+                break;
+            case 3: 
+                speed = 1.2f; 
                 break;
         }
     }
 
-    public void TryAddWagon()
+    public void SyncWagonViews(bool snapImmediately = false)
     {
-        if (wagons.Count >= maxWagons)
+        if (attachedTrainConsist == null || wagonViewPrefab == null)
             return;
 
-        var newWagon = Instantiate(wagonPrefab);
-        newWagon.Init(this, wagons.Count);
+        int required = attachedTrainConsist.WagonCount;
 
-        newWagon.transform.position = transform.position;
-        wagons.Add(newWagon);
-        CargoVisualizer wagonVisualizer = newWagon.GetComponent<CargoVisualizer>();
-        wagonVisualizers.Add(wagonVisualizer);
-        UpgradeCapacity(6);
+        while (attachedWagonViews.Count < required)
+        {
+            TrainWagonView wagonView = Instantiate(wagonViewPrefab);
+            wagonView.Initialize(this, attachedWagonViews.Count);
+            attachedWagonViews.Add(wagonView);
+        }
+
+        while (attachedWagonViews.Count > required)
+        {
+            int last = attachedWagonViews.Count - 1;
+            if (attachedWagonViews[last] != null)
+                Destroy(attachedWagonViews[last].gameObject);
+
+            attachedWagonViews.RemoveAt(last);
+        }
+
+        for (int i = 0; i < attachedWagonViews.Count; i++)
+        {
+            if (attachedWagonViews[i] != null)
+                attachedWagonViews[i].HandleFollowMovement(snapImmediately);
+        }
+
+        RefreshCargoVisuals();
     }
 
-    public ResourceAmount[] Manifest() => cargo;
+    public bool TryAddWagon()
+    {
+        if (attachedTrainConsist == null)
+            return false;
+
+        bool added = attachedTrainConsist.TryAddWagon();
+        if (!added)
+            return false;
+
+        SyncWagonViews(true);
+        return true;
+    }
+
+    public void GetPoseAtDistanceBehindHead(float distanceBehindHead, out Vector3 position, out Vector3 forward)
+    {
+        float sampleDistance = headDistance - distanceBehindHead * dir;
+
+        if (dir > 0)
+            sampleDistance = Mathf.Clamp(sampleDistance, 0f, totalRouteLength);
+        else
+            sampleDistance = Mathf.Clamp(sampleDistance, 0f, totalRouteLength);
+
+        EvaluatePoseAtDistance(sampleDistance, out position, out forward);
+    }
 
     public void SetSelectedVisual(bool isSelected)
     {
-        if (bodyRenderer != null)
-            bodyRenderer.color = isSelected ? selectedColor : normalColor;
+        if (spriteRenderer != null)
+            spriteRenderer.color = isSelected ? selectedColor : normalColor;
     }
 
-    public Vector3 GetWagonPosition(int wagonIndex, float distance)
+    private void TryArriveAtEndpoint()
     {
-        float trainDistance = distance * (wagonIndex + 1);
+        SyncWagonViews(false);
 
-        if (positionHistory.Count < 2)
-            return transform.position;
-
-        int idx = Mathf.Clamp(Mathf.RoundToInt(trainDistance / (speedUnitsPerSec * TimeManager.Instance.CustomDeltaTime)), 0, positionHistory.Count - 1);
-        return positionHistory[idx];
-    }
-
-    public Vector3 GetWagonDirection(int wagonIndex, float distance)
-    {
-        float trainDistance = distance * (wagonIndex + 1);
-        if (positionHistory.Count < 2)
-            return transform.up;
-
-        int idx = Mathf.Clamp(Mathf.RoundToInt(trainDistance / (speedUnitsPerSec * TimeManager.Instance.CustomDeltaTime)), 1, positionHistory.Count - 1);
-        return (positionHistory[idx - 1] - positionHistory[idx]).normalized;
-    }
-    private void OnDestroy()
-    {
-        Debug.Log("Train destroyed");
-    }
-
-    private void EnsureCargoInitialized()
-    {
-        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
-
-        if (cargo == null || cargo.Length != resourceTypes.Length)
-            cargo = new ResourceAmount[resourceTypes.Length];
-
-        for (int index = 0; index < resourceTypes.Length; index++)
+        if (routeTiles == null || routeTiles.Count == 0)
         {
-            if (cargo[index].Type != resourceTypes[index])
-                cargo[index] = new ResourceAmount(resourceTypes[index], Mathf.Max(0, cargo[index].Amount));
+            dir *= -1;
+            return;
         }
+
+        Vector3Int endpointCell = dir > 0 ? routeTiles[^1] : routeTiles[0];
+
+        if (StationRegistry.TryGet(endpointCell, out Station station))
+            StartCoroutine(ArriveAtStation(station));
+        else
+            dir *= -1;
     }
 
-    private void UpdateCargoVisualizers()
+    private void RefreshCargoVisuals()
     {
-        if (visualizer != null)
-            visualizer.ShowCargo(BuildCargoSlice(0, trainHeadCapacity));
+        if (attachedTrainConsist == null)
+            return;
 
-        for (int wagonIndex = 0; wagonIndex < wagonVisualizers.Count; wagonIndex++)
+        int headCapacity = attachedTrainConsist.GetHeadCapacity();
+
+        if (cargoVisualizer != null)
+            cargoVisualizer.VisualizeCargo(attachedTrainConsist.BuildCargoSlice(0, headCapacity));
+
+        for (int i = 0; i < attachedWagonViews.Count; i++)
         {
-            CargoVisualizer wagonVisualizer = wagonVisualizers[wagonIndex];
-            if (wagonVisualizer == null)
+            if (attachedWagonViews[i] == null || attachedWagonViews[i].CargoVisualizer == null)
                 continue;
 
-            int sliceStart = trainHeadCapacity + wagonIndex * 6;
-            wagonVisualizer.ShowCargo(BuildCargoSlice(sliceStart, 6));
+            int start = headCapacity;
+            for (int w = 0; w < i; w++)
+                start += attachedTrainConsist.GetUnitCapacity(w);
+
+            int capacity = attachedTrainConsist.GetUnitCapacity(i);
+            attachedWagonViews[i].CargoVisualizer.VisualizeCargo(attachedTrainConsist.BuildCargoSlice(start, capacity));
         }
     }
 
-    private ResourceAmount[] BuildCargoSlice(int startIndex, int capacity)
+    private void RebuildRouteCache()
     {
-        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
-        ResourceAmount[] slice = new ResourceAmount[resourceTypes.Length];
+        int segmentCount = Mathf.Max(0, routeCoords.Count - 1);
+        segmentLengths = new float[segmentCount];
+        totalRouteLength = 0f;
 
-        for (int index = 0; index < resourceTypes.Length; index++)
-            slice[index] = new ResourceAmount(resourceTypes[index]);
-
-        int remainingToSkip = Mathf.Max(0, startIndex);
-        int remainingToTake = Mathf.Max(0, capacity);
-
-        foreach (ResourceType resourceType in resourceTypes)
+        for (int i = 0; i < segmentCount; i++)
         {
-            int cargoAmount = cargo[(int)resourceType].Amount;
+            float length = Vector3.Distance(routeCoords[i], routeCoords[i + 1]);
+            segmentLengths[i] = length;
+            totalRouteLength += length;
+        }
+    }
 
-            if (remainingToSkip >= cargoAmount)
+    private void EvaluatePoseAtDistance(float distance, out Vector3 position, out Vector3 forward)
+    {
+        distance = Mathf.Clamp(distance, 0f, totalRouteLength);
+
+        float walked = 0f;
+
+        for (int i = 0; i < segmentLengths.Length; i++)
+        {
+            float segLength = segmentLengths[i];
+            if (segLength <= 0.0001f)
+                continue;
+
+            if (walked + segLength >= distance)
             {
-                remainingToSkip -= cargoAmount;
-                continue;
+                float t = (distance - walked) / segLength;
+                position = Vector3.Lerp(routeCoords[i], routeCoords[i + 1], t);
+
+                Vector3 segmentForward = (routeCoords[i + 1] - routeCoords[i]).normalized;
+                forward = dir >= 0 ? segmentForward : -segmentForward;
+                return;
             }
 
-            int visibleAmount = Mathf.Min(cargoAmount - remainingToSkip, remainingToTake);
-            slice[(int)resourceType].Amount = visibleAmount;
-            remainingToTake -= visibleAmount;
-            remainingToSkip = 0;
-
-            if (remainingToTake <= 0)
-                break;
+            walked += segLength;
         }
 
-        return slice;
+        position = routeCoords[^1];
+
+        Vector3 lastSegmentForward = (routeCoords[^1] - routeCoords[^2]).normalized;
+        forward = dir >= 0 ? lastSegmentForward : -lastSegmentForward;
     }
+
+    private void UpdateCurrentTileIndexFromDistance()
+    {
+        if (routeCoords == null || routeCoords.Count < 2)
+            return;
+
+        float walked = 0f;
+
+        for (int i = 0; i < segmentLengths.Length; i++)
+        {
+            float next = walked + segmentLengths[i];
+            if (headDistance <= next)
+            {
+                currentTileIndex = Mathf.Clamp(i, 0, routeTiles.Count - 1);
+                return;
+            }
+
+            walked = next;
+        }
+
+        currentTileIndex = routeTiles.Count - 1;
+    }
+    
+
 }

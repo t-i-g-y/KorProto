@@ -25,12 +25,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987130209061601497}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0375, y: -0.035, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.037500024, y: -0.035000026, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5590811348661102191
 SpriteRenderer:
@@ -116,12 +116,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2924309110667289385}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0375, y: -0.035, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.037500024, y: -0.035000026, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7675038811440192304
 SpriteRenderer:
@@ -192,10 +192,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6769538538369454199}
   - component: {fileID: 2503731766221777518}
-  - component: {fileID: 7379100791626278401}
-  - component: {fileID: -6920083212412014989}
+  - component: {fileID: 5702792900398289949}
   m_Layer: 7
-  m_Name: TrainMock
+  m_Name: Wagon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -214,12 +213,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8117323229010320456}
-  - {fileID: 2392761354548666364}
-  - {fileID: 6116347375906958706}
-  - {fileID: 8012602948838914532}
-  - {fileID: 6851288684581565329}
-  - {fileID: 5976576156781939776}
+  - {fileID: 6092617279239086728}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2503731766221777518
@@ -271,7 +265,7 @@ SpriteRenderer:
   m_SortingLayer: 2
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 5ccce601ad2728640b89810534ea7db5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e8209b0041f512f479a7583d03fc4b1c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -281,7 +275,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &7379100791626278401
+--- !u!114 &5702792900398289949
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -290,54 +284,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 4528254923031863790}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e94f2c417f6ddfc4fa3ff70e3adc13ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 2e979f00c1e9f0048957f2265b19ebcf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train
-  speedUnitsPerSec: 0.6
-  arriveSnap: 0.2
-  rotationSpeed: 10
-  trainHeadCapacity: 6
-  totalCapacity: 6
-  onlyLoadRequested: 0
-  config: {fileID: 11400000, guid: cf71a7f4ffad4d348aef33fe6b1b0e95, type: 2}
-  maintenanceCost: 10
-  worldPts: []
-  cells: []
-  bodyRenderer: {fileID: 2503731766221777518}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  visualizer: {fileID: -6920083212412014989}
-  wagonPrefab: {fileID: 7941607353031930761, guid: ddea352756a260e4f8e9a02843e6429c, type: 3}
-  maxWagons: 1
-  cargo:
-  - _type: 0
-    _amount: 0
-  - _type: 1
-    _amount: 0
-  - _type: 2
-    _amount: 0
---- !u!114 &-6920083212412014989
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4528254923031863790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b20df77af1809d240bedc434d31b8104, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CargoVisualizer
-  slots:
-  - {fileID: 2168312930554625570}
-  - {fileID: 8259614396308140476}
-  - {fileID: 5590811348661102191}
-  - {fileID: 7675038811440192304}
-  - {fileID: 208640465633434581}
-  - {fileID: 240689404812303889}
-  circleSprite: {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
-  triangleSprite: {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
-  squareSprite: {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  m_EditorClassIdentifier: Assembly-CSharp::TrainWagonView
+  spriteRenderer: {fileID: 2503731766221777518}
+  cargoVisualizer: {fileID: 1964913805280480309}
+  wagonSpacing: 0.2
 --- !u!1 &5248008652041386375
 GameObject:
   m_ObjectHideFlags: 0
@@ -363,12 +315,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5248008652041386375}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0375, y: -0.085, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.037500024, y: -0.08499998, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &240689404812303889
 SpriteRenderer:
@@ -429,6 +381,71 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
+--- !u!1 &5962734459116494668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6092617279239086728}
+  - component: {fileID: 1964913805280480309}
+  m_Layer: 7
+  m_Name: Cargo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6092617279239086728
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5962734459116494668}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.01, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8117323229010320456}
+  - {fileID: 2392761354548666364}
+  - {fileID: 6116347375906958706}
+  - {fileID: 8012602948838914532}
+  - {fileID: 6851288684581565329}
+  - {fileID: 5976576156781939776}
+  m_Father: {fileID: 6769538538369454199}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1964913805280480309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5962734459116494668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b20df77af1809d240bedc434d31b8104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CargoVisualizer
+  resourceSlots:
+  - {fileID: 2168312930554625570}
+  - {fileID: 8259614396308140476}
+  - {fileID: 5590811348661102191}
+  - {fileID: 7675038811440192304}
+  - {fileID: 208640465633434581}
+  - {fileID: 240689404812303889}
+  resourceSprites:
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
 --- !u!1 &8252636555856329808
 GameObject:
   m_ObjectHideFlags: 0
@@ -454,12 +471,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8252636555856329808}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0375, y: -0.085, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.037500024, y: -0.08499998, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &208640465633434581
 SpriteRenderer:
@@ -545,12 +562,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8334318835029090697}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0375, y: 0.015, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.037500024, y: 0.014999986, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8259614396308140476
 SpriteRenderer:
@@ -636,12 +653,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8365257879546183673}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0375, y: 0.015, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.037500024, y: 0.014999986, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6769538538369454199}
+  m_Father: {fileID: 6092617279239086728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2168312930554625570
 SpriteRenderer:
