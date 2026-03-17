@@ -41,11 +41,11 @@ public class UITrainListController : MonoBehaviour
         if (listEntryPrefab == null || listContent == null || train == null)
             return;
 
-        var entryObj = Instantiate(listEntryPrefab, listContent);
-        var entry = entryObj.GetComponent<UITrainLineEntry>();
+        GameObject entryObj = Instantiate(listEntryPrefab, listContent);
+        UITrainLineEntry entry = entryObj.GetComponent<UITrainLineEntry>();
         if (entry == null)
         {
-            Debug.LogError("No UITrainLineEntry on prefab");
+            Debug.LogError("No UITraiLineEntry on prefab");
             return;
         }
 
@@ -60,8 +60,10 @@ public class UITrainListController : MonoBehaviour
 
     private void OnTrainRemoved(Train train)
     {
-        if (train == null) return;
-        if (entries.TryGetValue(train, out var entry))
+        if (train == null)
+            return;
+
+        if (entries.TryGetValue(train, out UITrainLineEntry entry))
         {
             entry.OnSelectClicked -= HandleSelectClicked;
             entry.OnDeleteClicked -= HandleDeleteClicked;
@@ -74,52 +76,55 @@ public class UITrainListController : MonoBehaviour
 
     private void OnTrainSelected(Train train)
     {
-        if (entries.TryGetValue(train, out var entry))
+        if (entries.TryGetValue(train, out UITrainLineEntry entry))
             entry.SetSelected(true);
     }
 
     private void OnTrainDeselected(Train train)
     {
-        if (entries.TryGetValue(train, out var entry))
+        if (entries.TryGetValue(train, out UITrainLineEntry entry))
             entry.SetSelected(false);
     }
 
     private void HandleSelectClicked(UITrainLineEntry entry)
     {
-        if (entry == null || entry.ReferenceTrain == null) 
+        if (entry == null || entry.ReferenceTrain == null)
             return;
+
         TrainManager.Instance.ToggleSelection(entry.ReferenceTrain);
     }
 
     private void HandleDeleteClicked(UITrainLineEntry entry)
     {
-        if (entry == null || entry.ReferenceTrain == null) 
-            return;
-        TrainManager.Instance.RemoveTrain(entry.ReferenceTrain);
-    }
-    private void HandleSpeedClicked(UITrainLineEntry entry)
-    {
-        var train = entry.ReferenceTrain;
-        if (train == null) 
+        if (entry == null || entry.ReferenceTrain == null)
             return;
 
-        train.SpeedLevel++;
-        train.SetSpeedLevel(train.SpeedLevel);
+        TrainManager.Instance.RemoveTrain(entry.ReferenceTrain);
+    }
+
+    private void HandleSpeedClicked(UITrainLineEntry entry)
+    {
+        Train train = entry.ReferenceTrain;
+        if (train == null)
+            return;
+
+        train.SetSpeedLevel(train.SpeedLevel + 1);
         entry.UpdateSpeedText();
     }
 
     private void HandleCapacityClicked(UITrainLineEntry entry)
     {
-        var train = entry.ReferenceTrain;
-        if (train == null) 
+        Train train = entry.ReferenceTrain;
+        if (train == null)
             return;
 
         train.TryAddWagon();
         entry.UpdateCapacityText();
     }
+
     private void TogglePanel(GameObject panel)
     {
-        panel.SetActive(!panel.activeSelf);
+        if (panel != null)
+            panel.SetActive(!panel.activeSelf);
     }
 }
-

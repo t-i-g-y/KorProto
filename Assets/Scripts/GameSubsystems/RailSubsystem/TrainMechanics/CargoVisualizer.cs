@@ -3,53 +3,54 @@ using System.Collections.Generic;
 
 public class CargoVisualizer : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer[] slots;
-    [SerializeField] private Sprite coalSprite;
-    [SerializeField] private Sprite ironSprite;
-    [SerializeField] private Sprite milkSprite;
-    [SerializeField] private Sprite waterSprite;
-    [SerializeField] private Sprite milletSprite;
-    [SerializeField] private Sprite plasticSprite;
+    [SerializeField] private SpriteRenderer[] resourceSlots;
+    [SerializeField] private Sprite[] resourceSprites;
 
-    public int MaxDisplay => slots.Length;
+    public int MaxDisplay => resourceSlots != null ? resourceSlots.Length : 0;
 
-    public void ShowCargo(ResourceAmount[] cargo)
+    public void VisualizeCargo(ResourceAmount[] resources)
     {
-        List<ResourceType> list = new();
+        if (resourceSlots == null)
+            return;
 
-        foreach (ResourceType resourceType in System.Enum.GetValues(typeof(ResourceType)))
+        List<ResourceType> expanded = new();
+
+        if (resources != null)
         {
-            int amount = cargo[(int)resourceType].Amount;
-            for (int index = 0; index < amount; index++)
-                list.Add(resourceType);
+            foreach (ResourceType type in System.Enum.GetValues(typeof(ResourceType)))
+            {
+                int index = (int)type;
+                if (index < 0 || index >= resources.Length)
+                    continue;
+
+                int amount = Mathf.Max(0, resources[index].Amount);
+                for (int i = 0; i < amount; i++)
+                    expanded.Add(type);
+            }
         }
 
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < resourceSlots.Length; i++)
         {
-            if (i < list.Count)
+            if (i < expanded.Count)
             {
-                slots[i].enabled = true;
-                slots[i].sprite = SpriteFor(list[i]);
+                resourceSlots[i].enabled = true;
+                resourceSlots[i].sprite = SpriteFor(expanded[i]);
             }
             else
             {
-                slots[i].enabled = false;
+                resourceSlots[i].enabled = false;
+                resourceSlots[i].sprite = null;
             }
         }
     }
 
-    private Sprite SpriteFor(ResourceType resource)
+    private Sprite SpriteFor(ResourceType resourceType)
     {
-        return resource switch
-        {
-            ResourceType.Coal => coalSprite,
-            ResourceType.Iron => ironSprite,
-            ResourceType.Milk => milkSprite,
-            ResourceType.Water => waterSprite,
-            ResourceType.Millet => milletSprite,
-            ResourceType.Plastic => plasticSprite,
-            _ => null
-        };
+        int index = (int)resourceType;
+        if (resourceSprites == null || index < 0 || index >= resourceSprites.Length)
+            return null;
+
+        return resourceSprites[index];
     }
 }
 
