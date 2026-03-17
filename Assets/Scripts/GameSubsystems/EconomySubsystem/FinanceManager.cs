@@ -131,17 +131,6 @@ public class FinanceManager : MonoBehaviour
         AdjustBalance(-maintenanceCost);
     }
 
-    public void SellResource(ResourceType resource)
-    {
-        foreach (var entry in resourcePriceConfig.ResourcePriceList)
-        {
-            if (entry.Resource == resource)
-            {
-                AdjustBalance(entry.Price);
-                return;
-            }
-        }
-        Debug.LogWarning($"No price configured for resource: {resource}");
-    }
+    public void SellResource(ResourceType resource) => AdjustBalance(resourcePriceConfig.ResourcePriceList[(int)resource].Price);
 }
 
