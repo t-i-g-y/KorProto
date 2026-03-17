@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class RailSystem : MonoBehaviour
+public class HexRailNetwork : MonoBehaviour
 {
-    public static RailSystem Instance { get; private set; }
+    public static HexRailNetwork Instance { get; private set; }
     [SerializeField] private int minX, minY;
     [SerializeField] private int maxX, maxY;
     private HexRailData[,] mapRailData;

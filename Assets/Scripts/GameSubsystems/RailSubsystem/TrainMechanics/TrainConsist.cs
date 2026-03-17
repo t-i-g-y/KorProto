@@ -28,10 +28,10 @@ public class TrainConsist : MonoBehaviour
         RecalculateCapacity();
     }
     
-    public bool TryUnloadOne(Station station)
+    public CargoSaleResult TryUnloadOne(Station station)
     {
         if (station == null)
-            return false;
+            return CargoSaleResult.None;
 
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
         {
@@ -47,12 +47,18 @@ public class TrainConsist : MonoBehaviour
 
             cargo[resourceIndex].Amount--;
             usedCapacity--;
+
+            float soldValue = FinanceSystem.Instance != null
+                ? FinanceSystem.Instance.SellResource(resource)
+                : 0f;
+
             station.TrySatisfyDemand(resource, 1);
-            FinanceManager.Instance.SellResource(resource);
-            return true;
+            GlobalDemandSystem.Instance?.FulfillDemand(station.StationID, resource, 1);
+
+            return new CargoSaleResult(true, resource, soldValue);
         }
 
-        return false;
+        return CargoSaleResult.None;
     }
 
     public bool TryLoadOne(Station station, bool onlyLoadRequested)
@@ -68,7 +74,7 @@ public class TrainConsist : MonoBehaviour
             if (!station.Produces(resource))
                 continue;
 
-            if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
+            if (onlyLoadRequested && !GlobalDemandSystem.Instance.HasOutstandingDemand(resource))
                 continue;
 
             if (station.GetSupplyAmount(resource) <= 0)

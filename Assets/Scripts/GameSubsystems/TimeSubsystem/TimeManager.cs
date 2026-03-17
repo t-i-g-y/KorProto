@@ -30,8 +30,8 @@ public class TimeManager : MonoBehaviour
             if (value != dayCounter)
             {
                 dayCounter = value > 0 ? value : 0;
-                FinanceManager.Instance.CurrentDay = dayCounter;
-                FinanceManager.Instance.DayBalance = 0;
+                FinanceSystem.Instance.CurrentDay = dayCounter;
+                FinanceSystem.Instance.DayBalance = 0;
             }
             
         }
