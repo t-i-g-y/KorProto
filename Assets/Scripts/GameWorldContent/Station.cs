@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Station : MonoBehaviour
 {
+    private int stationID;
     [Header("Grid / Tile")]
     [SerializeField] private Grid grid;
     [SerializeField] private Vector3Int cell;
@@ -29,6 +30,7 @@ public class Station : MonoBehaviour
     private float spawnTimer;
     private float demandTimer;
 
+    public int StationID { get; set; }
     public Vector3Int Cell => cell;
     public int Population => population;
     public IReadOnlyList<StationAttribute> Attributes => attributes;
@@ -210,7 +212,7 @@ public class Station : MonoBehaviour
             int index = (int)consumedResource.Type;
             int demandAmount = amount * consumedResource.Amount;
             demand[index].Amount += demandAmount;
-            GlobalDemand.Outstanding[index].Amount += demandAmount;
+            GlobalDemandSystem.Instance.OutstandingTotals[index].Amount += demandAmount;
         }
     }
 
@@ -253,7 +255,7 @@ public class Station : MonoBehaviour
 
         int index = (int)resourceType;
         demand[index].Amount += amount;
-        GlobalDemand.Outstanding[index].Amount += amount;
+        GlobalDemandSystem.Instance.OutstandingTotals[index].Amount += amount;
     }
 
     public bool TryTakeSupply(ResourceType resourceType, int amount)
@@ -280,7 +282,7 @@ public class Station : MonoBehaviour
 
         int delivered = Mathf.Min(demand[index].Amount, amount);
         demand[index].Amount -= delivered;
-        GlobalDemand.Outstanding[index].Amount = Mathf.Max(0, GlobalDemand.Outstanding[index].Amount - delivered);
+        GlobalDemandSystem.Instance.OutstandingTotals[index].Amount = Mathf.Max(0, GlobalDemandSystem.Instance.OutstandingTotals[index].Amount - delivered);
         return delivered > 0;
     }
 

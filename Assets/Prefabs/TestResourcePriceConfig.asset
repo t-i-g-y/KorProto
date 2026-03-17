@@ -19,3 +19,9 @@ MonoBehaviour:
     Price: 80
   - Resource: 2
     Price: 100
+  - Resource: 3
+    Price: 100
+  - Resource: 4
+    Price: 100
+  - Resource: 5
+    Price: 100

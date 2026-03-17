@@ -8,8 +8,7 @@ public enum ResourceType
     Milk,
     Water,
     Millet,
-    Plastic,
-    Circle
+    Plastic
 }
 
 [Serializable]
