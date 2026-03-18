@@ -66,13 +66,11 @@ public class StationAttribute
             case StationAttributeType.City:
                 AddProduced(ResourceType.Water, 2);
                 AddConsumed(ResourceType.Milk, 2);
-                AddConsumed(ResourceType.Millet, 3);
-                AddConsumed(ResourceType.Plastic, 2);
                 break;
 
             case StationAttributeType.Village:
                 AddProduced(ResourceType.Milk, 2);
-                AddConsumed(ResourceType.Water, 1);
+                AddConsumed(ResourceType.Water, 2);
                 break;
 
             case StationAttributeType.Factory:
