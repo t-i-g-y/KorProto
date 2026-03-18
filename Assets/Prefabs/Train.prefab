@@ -293,6 +293,7 @@ MonoBehaviour:
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   cargoVisualizer: {fileID: 1964913805280480309}
+  incomePopupOffset: {x: 0, y: 0.1, z: 0}
   speed: 0.6
   arriveDistance: 0.02
   stationDwellSeconds: 0.5
@@ -301,6 +302,7 @@ MonoBehaviour:
   dir: 1
   currentTileIndex: 0
   atStation: 0
+  isOperational: 1
   attachedTrainConsist: {fileID: 0}
   wagonViewPrefab: {fileID: 5702792900398289949, guid: 892873a4111ae8f40a08a57ecce3875e, type: 3}
   attachedWagonViews: []
@@ -332,6 +334,7 @@ MonoBehaviour:
   defaultHeadMaintenance: 1
   defaultWagonMaintenance: 1
   cargo: []
+  debugCargo: 1
 --- !u!1 &5248008652041386375
 GameObject:
   m_ObjectHideFlags: 0

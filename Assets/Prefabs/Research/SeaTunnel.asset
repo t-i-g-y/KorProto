@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: SeaTunnel
   m_EditorClassIdentifier: Assembly-CSharp::TechData
   ID: 5
-  techName: Sea Tunnel
-  techDescription: "Sea Tunnel \u041C\u043E\u0440\u0441\u043A\u043E\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techName: "\u041C\u043E\u0440\u0441\u043A\u043E\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techDescription: "\u041C\u043E\u0440\u0441\u043A\u043E\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techImage: {fileID: 0}
   researchCost: 2000
   prerequisites: 03000000
   technologyTreePos: {x: 600, y: -150}

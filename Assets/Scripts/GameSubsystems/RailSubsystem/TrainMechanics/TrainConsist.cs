@@ -15,7 +15,8 @@ public class TrainConsist : MonoBehaviour
     [SerializeField] private float defaultHeadMaintenance = 1f;
     [SerializeField] private float defaultWagonMaintenance = 1f;
     [SerializeField] private ResourceAmount[] cargo;
-
+    private Queue<int>[] cargoDestinations;
+    [SerializeField] private bool debugCargo;
     public int WagonCount => wagons.Count;
     public ResourceAmount[] Cargo => cargo;
 
@@ -25,13 +26,156 @@ public class TrainConsist : MonoBehaviour
             headLocomotive = new TrainConsistUnit(defaultHeadCapacity, defaultHeadMaintenance);
 
         EnsureCargoInitialized();
+        EnsureDestinationQueuesInitialized();
         RecalculateCapacity();
     }
     
-    public bool TryUnloadOne(Station station)
+
+    public bool TryLoadOne(Station station, bool onlyLoadRequested)
     {
         if (station == null)
             return false;
+
+        if (usedCapacity >= totalCapacity)
+            return false;
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            if (!station.Produces(resource))
+                continue;
+
+            if (onlyLoadRequested && !GlobalDemandSystem.Instance.HasOutstandingDemand(resource))
+                continue;
+
+            if (station.GetSupplyAmount(resource) <= 0)
+                continue;
+
+            if (!station.TryTakeSupply(resource, 1))
+                continue;
+
+            cargo[(int)resource].Amount++;
+            usedCapacity++;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryLoadOneFromStation(Station station, ResourceType resource)
+    {
+        if (station == null || usedCapacity >= totalCapacity)
+            return false;
+
+        if (!station.Produces(resource))
+            return false;
+
+        if (station.GetSupplyAmount(resource) <= 0)
+            return false;
+
+        if (!station.TryTakeSupply(resource, 1))
+            return false;
+
+        cargo[(int)resource].Amount++;
+        usedCapacity++;
+        return true;
+    }
+
+    public bool TryLoadOneFromStation(Station station, ResourceType resource, int destinationStationID)
+    {
+        if (station == null || usedCapacity >= totalCapacity)
+            return false;
+
+        EnsureDestinationQueuesInitialized();
+
+        if (!station.Produces(resource))
+            return false;
+
+        if (station.GetSupplyAmount(resource) <= 0)
+            return false;
+
+        if (!station.TryTakeSupply(resource, 1))
+            return false;
+
+        cargo[(int)resource].Amount++;
+        cargoDestinations[(int)resource].Enqueue(destinationStationID);
+        usedCapacity++;
+
+        if (debugCargo)
+                Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID}");
+                
+        return true;
+    }
+
+    public bool TryLoadOneFromRelay(RelayStop relay, ResourceType resource)
+    {
+        if (relay == null || usedCapacity >= totalCapacity)
+            return false;
+
+        int taken = relay.Take(resource, 1);
+        if (taken <= 0)
+            return false;
+
+        cargo[(int)resource].Amount += taken;
+        usedCapacity += taken;
+        return true;
+    }
+
+    public bool TryLoadOneFromRelay(RelayStop relay, ResourceType resource, int destinationStationID)
+    {
+        if (relay == null || usedCapacity >= totalCapacity)
+            return false;
+
+        EnsureDestinationQueuesInitialized();
+
+        if (!relay.PeekNextDestination(resource, out int peekedDestination))
+            return false;
+
+        if (peekedDestination != destinationStationID)
+            return false;
+
+        if (!relay.TakeOne(resource, out int actualDestination))
+            return false;
+
+        cargo[(int)resource].Amount++;
+        cargoDestinations[(int)resource].Enqueue(actualDestination);
+        usedCapacity++;
+
+        if (debugCargo)
+                Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID} at relayID={relay.ID}");
+
+        return true;
+    }
+
+    public bool TryLoadOneFromStationTransit(Station station, ResourceType resource, int destinationStationId)
+    {
+        if (station == null || usedCapacity >= totalCapacity)
+            return false;
+
+        EnsureDestinationQueuesInitialized();
+
+        if (!GlobalDemandSystem.Instance.PeekStationTransitDestination(station.StationID, resource, out int peekedDestination))
+            return false;
+
+        if (peekedDestination != destinationStationId)
+            return false;
+
+        if (!GlobalDemandSystem.Instance.TakeStationTransitOne(station.StationID, resource, out int actualDestination))
+            return false;
+
+        cargo[(int)resource].Amount++;
+        cargoDestinations[(int)resource].Enqueue(actualDestination);
+        usedCapacity++;
+
+        if (debugCargo)
+            Debug.Log($"[TrainConsist] load resource={resource} at stationID={station.StationID} for destination={actualDestination}");
+
+        return true;
+    }
+
+    public CargoSaleResult TryUnloadOne(Station station)
+    {
+        if (station == null)
+            return CargoSaleResult.None;
 
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
         {
@@ -47,38 +191,121 @@ public class TrainConsist : MonoBehaviour
 
             cargo[resourceIndex].Amount--;
             usedCapacity--;
+
+            float soldValue = FinanceSystem.Instance != null ? FinanceSystem.Instance.SellResource(resource) : 0f;
+
             station.TrySatisfyDemand(resource, 1);
-            FinanceManager.Instance.SellResource(resource);
+            GlobalDemandSystem.Instance?.FulfillDemand(station.StationID, resource, 1);
+
+            return new CargoSaleResult(true, resource, soldValue);
+        }
+
+        return CargoSaleResult.None;
+    }
+
+    public CargoSaleResult TryUnloadOneToStation(Station station)
+    {
+        if (station == null)
+            return CargoSaleResult.None;
+
+        EnsureDestinationQueuesInitialized();
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int resourceIndex = (int)resource;
+            if (cargo[resourceIndex].Amount <= 0)
+                continue;
+
+            if (cargoDestinations[resourceIndex].Count <= 0)
+                continue;
+
+            int destinationStationID = cargoDestinations[resourceIndex].Peek();
+            if (destinationStationID != station.StationID)
+                continue;
+
+            if (!station.Consumes(resource))
+                continue;
+
+            if (station.GetDemandAmount(resource) <= 0)
+                continue;
+
+            cargoDestinations[resourceIndex].Dequeue();
+            cargo[resourceIndex].Amount--;
+            usedCapacity--;
+
+            float soldValue = FinanceSystem.Instance != null ? FinanceSystem.Instance.SellResource(resource) : 0f;
+
+            station.TrySatisfyDemand(resource, 1);
+            GlobalDemandSystem.Instance?.FulfillDemand(station.StationID, resource, 1);
+
+            if (debugCargo)
+                Debug.Log($"[TrainConsist] unloaded resource={resource} for stationID={destinationStationID}");
+
+            return new CargoSaleResult(true, resource, soldValue);
+        }
+
+        return CargoSaleResult.None;
+    }
+
+    public bool TryUnloadOneToRelay(RelayStop relay)
+    {
+        if (relay == null)
+            return false;
+
+        EnsureDestinationQueuesInitialized();
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int index = (int)resource;
+            if (cargo[index].Amount <= 0)
+                continue;
+
+            if (cargoDestinations[index].Count <= 0)
+                continue;
+
+            int destinationStationID = cargoDestinations[index].Dequeue();
+            cargo[index].Amount--;
+            usedCapacity--;
+
+            relay.Add(resource, 1, destinationStationID);
+            if (debugCargo)
+                Debug.Log($"[TrainConsist] unloaded resource={resource} for stationID={destinationStationID} at relayID={relay.ID}");
             return true;
         }
 
         return false;
     }
 
-    public bool TryLoadOne(Station station, bool onlyLoadRequested)
+    public bool TryUnloadOneToStationTransit(Station station)
     {
         if (station == null)
             return false;
 
-        if (usedCapacity >= totalCapacity)
-            return false;
+        EnsureDestinationQueuesInitialized();
 
-        foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
         {
-            if (!station.Produces(resource))
+            int index = (int)resource;
+            if (cargo[index].Amount <= 0)
                 continue;
 
-            if (onlyLoadRequested && GlobalDemand.Outstanding[(int)resource].Amount <= 0)
+            if (cargoDestinations[index].Count <= 0)
                 continue;
 
-            if (station.GetSupplyAmount(resource) <= 0)
+            int destinationStationID = cargoDestinations[index].Peek();
+
+            if (destinationStationID == station.StationID)
                 continue;
 
-            if (!station.TryTakeSupply(resource, 1))
-                continue;
+            cargoDestinations[index].Dequeue();
+            cargo[index].Amount--;
+            usedCapacity--;
 
-            cargo[(int)resource].Amount++;
-            usedCapacity++;
+            GlobalDemandSystem.Instance?.AddStationTransit(station.StationID, resource, 1, destinationStationID);
+
+            if (debugCargo)
+                Debug.Log($"[TrainConsist] stored resource{resource} at stationID={station.StationID} for destination={destinationStationID}");
+
             return true;
         }
 
@@ -242,6 +469,30 @@ public class TrainConsist : MonoBehaviour
         {
             if (cargo[i].Type != resourceTypes[i])
                 cargo[i] = new ResourceAmount(resourceTypes[i], Mathf.Max(0, cargo[i].Amount));
+        }
+
+        if (cargoDestinations == null || cargoDestinations.Length != resourceTypes.Length)
+        {
+            cargoDestinations = new Queue<int>[resourceTypes.Length];
+            for (int i = 0; i < resourceTypes.Length; i++)
+                cargoDestinations[i] = new Queue<int>();
+        }
+    }
+
+    private void EnsureDestinationQueuesInitialized()
+    {
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+
+        if (cargoDestinations == null || cargoDestinations.Length != resourceTypes.Length)
+        {
+            cargoDestinations = new Queue<int>[resourceTypes.Length];
+            for (int i = 0; i < resourceTypes.Length; i++)
+                cargoDestinations[i] = new Queue<int>();
+        }
+
+        for (int i = 0; i < resourceTypes.Length; i++)
+        {
+            cargoDestinations[i] ??= new Queue<int>();
         }
     }
 }

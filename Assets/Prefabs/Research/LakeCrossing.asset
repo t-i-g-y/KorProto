@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: LakeCrossing
   m_EditorClassIdentifier: Assembly-CSharp::TechData
   ID: 3
-  techName: River/Lake Crossing
-  techDescription: "River/Lake Crossing \u041C\u043E\u0441\u0442 \u0447\u0435\u0440\u0435\u0437
-    \u0440\u0435\u043A\u0443/\u043E\u0437\u0435\u0440\u043E "
+  techName: "\u041C\u043E\u0441\u0442 \u0447\u0435\u0440\u0435\u0437 \u0440\u0435\u043A\u0443/\u043E\u0437\u0435\u0440\u043E"
+  techDescription: "\u041C\u043E\u0441\u0442 \u0447\u0435\u0440\u0435\u0437 \u0440\u0435\u043A\u0443/\u043E\u0437\u0435\u0440\u043E "
+  techImage: {fileID: 0}
   researchCost: 500
   prerequisites: 
   technologyTreePos: {x: 150, y: 0}

@@ -161,7 +161,7 @@ public class StationAttribute
                 break;
 
             case StationAttributeType.CoalIndustry:
-                AddProduced(ResourceType.Coal, 3);
+                AddProduced(ResourceType.Coal, 1);
                 break;
 
             case StationAttributeType.OilIndustry:

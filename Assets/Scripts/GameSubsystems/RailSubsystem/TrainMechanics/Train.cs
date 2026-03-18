@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,7 @@ public class Train : MonoBehaviour
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private CargoVisualizer cargoVisualizer;
+    [SerializeField] private Vector3 incomePopupOffset = new Vector3(0f, 0.6f, 0f);
 
     [Header("Movement")]
     [SerializeField] private RailLine assignedLine;
@@ -24,6 +26,7 @@ public class Train : MonoBehaviour
     [SerializeField] private int dir = 1;
     [SerializeField] private int currentTileIndex = 0;
     [SerializeField] private bool atStation = false;
+    [SerializeField] private bool isOperational = true;
 
     [Header("Consist")]
     [SerializeField] private TrainConsist attachedTrainConsist;
@@ -39,15 +42,10 @@ public class Train : MonoBehaviour
     private float headDistance;
     private bool isDwelling;
     private int speedLevel = 1;
+
     public RailLine AssignedLine => assignedLine;
-    public List<Vector3Int> RouteTiles => routeTiles;
-    public List<Vector3> RouteCoords => routeCoords;
-    public int Dir => dir;
-    public int CurrentTileIndex => currentTileIndex;
-    public bool AtStation => atStation;
-    public CargoVisualizer CargoVisualizer => cargoVisualizer;
+    public bool IsOperational => isOperational;
     public TrainConsist AttachedTrainConsist => attachedTrainConsist;
-    public List<TrainWagonView> AttachedWagonViews => attachedWagonViews;
     public int SpeedLevel => speedLevel;
     public float Speed => speed;
 
@@ -57,9 +55,34 @@ public class Train : MonoBehaviour
             attachedTrainConsist = GetComponent<TrainConsist>();
     }
 
+    private void OnEnable()
+    {
+        RailManager.ActiveNetworkChanged += RefreshOperationalState;
+    }
+
+    private void OnDisable()
+    {
+        RailManager.ActiveNetworkChanged -= RefreshOperationalState;
+    }
+
     private void Update()
     {
         HandleTrainMovement();
+    }
+
+    private void OnDestroy()
+    {
+        CleanupWagonViews();
+    }
+    private void CleanupWagonViews()
+    {
+        for (int i = 0; i < attachedWagonViews.Count; i++)
+        {
+            if (attachedWagonViews[i] != null)
+                Destroy(attachedWagonViews[i].gameObject);
+        }
+
+        attachedWagonViews.Clear();
     }
 
     public void Initialize(RailLine line, int trainId, TrainConfig trainConfig)
@@ -67,6 +90,7 @@ public class Train : MonoBehaviour
         assignedLine = line;
         id = trainId;
         config = trainConfig;
+        RefreshOperationalState();
     }
 
     public void SetPath(List<Vector3Int> tiles, List<Vector3> coords)
@@ -90,8 +114,8 @@ public class Train : MonoBehaviour
         headDistance = 0f;
 
         transform.position = routeCoords[0];
-
         EvaluatePoseAtDistance(0f, out _, out Vector3 forward);
+
         if (forward.sqrMagnitude > 0.0001f)
             transform.rotation = Quaternion.LookRotation(Vector3.forward, forward);
 
@@ -99,9 +123,14 @@ public class Train : MonoBehaviour
         RefreshCargoVisuals();
     }
 
+    public void RefreshOperationalState()
+    {
+        isOperational = assignedLine != null && RailManager.Instance != null && RailManager.Instance.IsLineActive(assignedLine);
+    }
+
     public void HandleTrainMovement()
     {
-        if (isDwelling || routeCoords == null || routeCoords.Count < 2)
+        if (!isOperational || isDwelling || routeCoords == null || routeCoords.Count < 2)
             return;
 
         float delta = speed * TimeManager.Instance.CustomDeltaTime * dir;
@@ -123,11 +152,9 @@ public class Train : MonoBehaviour
             return;
         }
 
-        Vector3 pos;
-        Vector3 forwardDir;
-        EvaluatePoseAtDistance(headDistance, out pos, out forwardDir);
-
+        EvaluatePoseAtDistance(headDistance, out Vector3 pos, out Vector3 forwardDir);
         transform.position = pos;
+
         if (forwardDir.sqrMagnitude > 0.0001f)
             transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
 
@@ -135,40 +162,160 @@ public class Train : MonoBehaviour
         SyncWagonViews(false);
     }
 
-    public IEnumerator ArriveAtStation(Station station)
+    public IEnumerator ArriveAtStation(Station station, bool justCreated = false)
+    {
+        isDwelling = true;
+        atStation = true;
+
+        Vector3 popupBasePosition = transform.position + incomePopupOffset;
+        int popupStackIndex = 0;
+
+        if (!justCreated && assignedLine != null && RailEconomySystem.Instance != null)
+        {
+            float earnedIncome = RailEconomySystem.Instance.ApplyLineIncome(assignedLine);
+
+            if (earnedIncome > 0f)
+            {
+                IncomePopupSpawner.Instance?.QueueRailIncome(transform, popupBasePosition, earnedIncome);
+                popupStackIndex++;
+            }
+        }
+
+        yield return new WaitForSeconds(stationDwellSeconds);
+
+        if (attachedTrainConsist != null)
+        {
+            while (true)
+            {
+                CargoSaleResult sale = attachedTrainConsist.TryUnloadOneToStation(station);
+                if (!sale.Sold)
+                    break;
+
+                RefreshCargoVisuals();
+
+                IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
+
+                popupStackIndex++;
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
+            }
+
+            while (attachedTrainConsist.TryUnloadOneToStationTransit(station))
+            {
+                RefreshCargoVisuals();
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
+            }
+
+            if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
+            {
+                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
+
+                foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+                {
+                    while (freeCapacity > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
+                    {
+                        if (!GlobalDemandSystem.Instance.PeekStationTransitDestination(station.StationID, resource, out int destinationStationId))
+                            break;
+
+                        if (!StationRegistry.TryGet(destinationStationId, out Station destination) || destination == null)
+                            break;
+
+                        if (!RailManager.Instance.TryGetShortestPathFirstHop(station.Cell, destination.Cell, out Vector3Int firstHop, out float _))
+                            break;
+
+                        if (firstHop != twinnedCell)
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromStationTransit(station, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                    while (freeCapacity > 0 && station.GetSupplyAmount(resource) > 0)
+                    {
+                        if (!GlobalDemandSystem.Instance.TryGetBestDestinationForResource(station.Cell, twinnedCell, resource, out int destinationStationId))
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromStation(station, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                }
+            }
+        }
+
+        if (justCreated)
+        {
+            atStation = false;
+            isDwelling = false;
+            SyncWagonViews(true);
+        }
+        else
+        {
+            ReverseAndResume();
+        }
+    }
+
+    public IEnumerator ArriveAtRelay(RelayStop relay, bool justCreated = false)
     {
         isDwelling = true;
         atStation = true;
 
         yield return new WaitForSeconds(stationDwellSeconds);
 
-        if (attachedTrainConsist != null)
+        if (attachedTrainConsist != null && relay != null)
         {
-            while (attachedTrainConsist.TryUnloadOne(station))
+            while (attachedTrainConsist.TryUnloadOneToRelay(relay))
             {
                 RefreshCargoVisuals();
-                yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
             }
 
-            while (attachedTrainConsist.TryLoadOne(station, onlyLoadRequested))
+            if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
             {
-                RefreshCargoVisuals();
-                yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
+                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
+
+                foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+                {
+                    while (freeCapacity > 0 && relay.GetAmount(resource) > 0)
+                    {
+                        if (!relay.PeekNextDestination(resource, out int destinationStationId))
+                            break;
+
+                        if (!StationRegistry.TryGet(destinationStationId, out Station destination) || destination == null)
+                            break;
+
+                        if (!RailManager.Instance.TryGetShortestPathFirstHop(relay.Cell, destination.Cell, out Vector3Int firstHop, out float _))
+                            break;
+
+                        if (firstHop != twinnedCell)
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromRelay(relay, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                }
             }
         }
 
-        dir *= -1;
-
-        EvaluatePoseAtDistance(headDistance, out Vector3 pos, out Vector3 forwardDir);
-        transform.position = pos;
-
-        if (forwardDir.sqrMagnitude > 0.0001f)
-            transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
-
-        SyncWagonViews(true);
-        
-        atStation = false;
-        isDwelling = false;
+        if (justCreated)
+        {
+            atStation = false;
+            isDwelling = false;
+            SyncWagonViews(true);
+        }
+        else
+        {
+            ReverseAndResume();
+        }
     }
 
     public void ChangeSpeed(float multiplier)
@@ -182,8 +329,8 @@ public class Train : MonoBehaviour
 
         switch (speedLevel)
         {
-            case 0:
-                speed = 0f;
+            case 0: 
+                speed = 0f; 
                 break;
             case 1: 
                 speed = 0.6f; 
@@ -227,6 +374,7 @@ public class Train : MonoBehaviour
         }
 
         RefreshCargoVisuals();
+        SetSelectedVisual(TrainManager.Instance.SelectedTrain == this);
     }
 
     public bool TryAddWagon()
@@ -245,12 +393,7 @@ public class Train : MonoBehaviour
     public void GetPoseAtDistanceBehindHead(float distanceBehindHead, out Vector3 position, out Vector3 forward)
     {
         float sampleDistance = headDistance - distanceBehindHead * dir;
-
-        if (dir > 0)
-            sampleDistance = Mathf.Clamp(sampleDistance, 0f, totalRouteLength);
-        else
-            sampleDistance = Mathf.Clamp(sampleDistance, 0f, totalRouteLength);
-
+        sampleDistance = Mathf.Clamp(sampleDistance, 0f, totalRouteLength);
         EvaluatePoseAtDistance(sampleDistance, out position, out forward);
     }
 
@@ -258,6 +401,33 @@ public class Train : MonoBehaviour
     {
         if (spriteRenderer != null)
             spriteRenderer.color = isSelected ? selectedColor : normalColor;
+        
+        for (int i = 0; i < attachedWagonViews.Count; i++)
+        {
+            if (attachedWagonViews[i] == null)
+                continue;
+
+            attachedWagonViews[i].SetSelectedVisual(isSelected);
+        }
+    }
+
+    public void TryHandleInitialEndpointLoad()
+    {
+        if (routeTiles == null || routeTiles.Count == 0)
+            return;
+
+        Vector3Int startCell = routeTiles[0];
+
+        if (StationRegistry.TryGet(startCell, out Station station))
+        {
+            StartCoroutine(ArriveAtStation(station, true));
+            return;
+        }
+
+        if (RelayStopRegistry.Instance != null && RelayStopRegistry.Instance.TryGet(startCell, out RelayStop relay))
+        {
+            StartCoroutine(ArriveAtRelay(relay, true));
+        }
     }
 
     private void TryArriveAtEndpoint()
@@ -273,9 +443,45 @@ public class Train : MonoBehaviour
         Vector3Int endpointCell = dir > 0 ? routeTiles[^1] : routeTiles[0];
 
         if (StationRegistry.TryGet(endpointCell, out Station station))
+        {
             StartCoroutine(ArriveAtStation(station));
-        else
-            dir *= -1;
+            return;
+        }
+
+        if (RelayStopRegistry.Instance != null && RelayStopRegistry.Instance.TryGet(endpointCell, out RelayStop relay))
+        {
+            StartCoroutine(ArriveAtRelay(relay));
+            return;
+        }
+
+        dir *= -1;
+    }
+
+    private bool TryGetCurrentAndTwinnedCells(Vector3Int currentCell, out Vector3Int twinnedCell)
+    {
+        twinnedCell = default;
+
+        if (assignedLine == null || RailManager.Instance == null)
+            return false;
+
+        return RailManager.Instance.TryGetTwinnedEndpoint(assignedLine, currentCell, out twinnedCell);
+    }
+
+
+    private void ReverseAndResume()
+    {
+        dir *= -1;
+
+        EvaluatePoseAtDistance(headDistance, out Vector3 pos, out Vector3 forwardDir);
+        transform.position = pos;
+
+        if (forwardDir.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
+
+        SyncWagonViews(true);
+
+        atStation = false;
+        isDwelling = false;
     }
 
     private void RefreshCargoVisuals()
@@ -342,7 +548,6 @@ public class Train : MonoBehaviour
         }
 
         position = routeCoords[^1];
-
         Vector3 lastSegmentForward = (routeCoords[^1] - routeCoords[^2]).normalized;
         forward = dir >= 0 ? lastSegmentForward : -lastSegmentForward;
     }
@@ -368,6 +573,4 @@ public class Train : MonoBehaviour
 
         currentTileIndex = routeTiles.Count - 1;
     }
-    
-
 }

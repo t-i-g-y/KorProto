@@ -8,8 +8,8 @@ public class FinanceBalanceUI : MonoBehaviour
 
     private void Update()
     {
-        balanceText.text = $"Balance: {FinanceManager.Instance.Balance}";
-        dayBalanceText.text = GetBalanceChangeString(FinanceManager.Instance.DayBalance);
+        balanceText.text = $"Баланс: {FinanceSystem.Instance.Balance}";
+        dayBalanceText.text = GetBalanceChangeString(FinanceSystem.Instance.DayBalance);
     }
 
     private string GetBalanceChangeString(float change) => change > 0 ? $"+{change}" : $"{change}"; 

@@ -15,7 +15,7 @@ public class RailPainter : MonoBehaviour
     [SerializeField] private RailVisualSet ghostVisuals;
 
     [Header("Scene")]
-    [SerializeField] private RailSystem system;
+    [SerializeField] private HexRailNetwork system;
 
     private void Awake()
     {

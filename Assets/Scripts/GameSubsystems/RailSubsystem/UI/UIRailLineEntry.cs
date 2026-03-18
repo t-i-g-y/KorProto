@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIRailLineEntry : MonoBehaviour
+public class RailLineUIEntry : MonoBehaviour
 {
     [SerializeField] private TMP_Text lineName;
     [SerializeField] private Button selectButton;
@@ -18,8 +18,8 @@ public class UIRailLineEntry : MonoBehaviour
 
     public RailLine ReferenceLine { get; private set; }
     public bool IsSelected { get; private set; }
-    public event Action<UIRailLineEntry> OnSelectClicked;
-    public event Action<UIRailLineEntry> OnDeleteClicked;
+    public event Action<RailLineUIEntry> OnSelectClicked;
+    public event Action<RailLineUIEntry> OnDeleteClicked;
 
     public void Init(RailLine line)
     {

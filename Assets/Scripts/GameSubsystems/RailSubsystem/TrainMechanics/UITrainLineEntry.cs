@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UITrainLineEntry : MonoBehaviour
+public class TrainEntryUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text trainText;
     [SerializeField] private TMP_Text lineText;
@@ -25,10 +25,10 @@ public class UITrainLineEntry : MonoBehaviour
     public RailLine ReferenceLine { get; private set; }
     public bool IsSelected { get; private set; }
 
-    public event Action<UITrainLineEntry> OnSpeedClicked;
-    public event Action<UITrainLineEntry> OnCapacityClicked;
-    public event Action<UITrainLineEntry> OnSelectClicked;
-    public event Action<UITrainLineEntry> OnDeleteClicked;
+    public event Action<TrainEntryUI> OnSpeedClicked;
+    public event Action<TrainEntryUI> OnCapacityClicked;
+    public event Action<TrainEntryUI> OnSelectClicked;
+    public event Action<TrainEntryUI> OnDeleteClicked;
 
     public void Init(Train train, RailLine line)
     {

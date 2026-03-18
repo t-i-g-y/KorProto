@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
 
 public class RailBuilderController : MonoBehaviour
 {
@@ -14,23 +15,29 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private Tilemap water;
     [SerializeField] private Tilemap ghost;
     [SerializeField] private RailPainter painter;
-    [SerializeField] private RailSystem system;
+    [SerializeField] private HexRailNetwork system;
     [SerializeField] private GameConfig config;
-    
+
     [Header("Tiles")]
     [SerializeField] private TileBase railTile;
     [SerializeField] private TileBase ghostTile;
-    
+
     [Header("Trains")]
     [SerializeField] private Train trainPrefab;
+
+    [Header("Build Limits")]
+    [SerializeField] private int maxLineLength = 8;
 
     [Header("UI")]
     [SerializeField] private GameObject confirmHolder;
     [SerializeField] private Button confirmButton;
     [SerializeField] private Button cancelButton;
     [SerializeField] private float verticalOffset;
+    [SerializeField] private GameObject lengthPanel;
+    [SerializeField] private TMP_Text lengthText;
+    [SerializeField] private Vector3 lengthPanelOffset = new Vector3(0f, 40f, 0f);
 
-    private List<Vector3Int> ghostPath = new();
+    private readonly List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
     private bool awaitingConfirm = false;
     private bool canBuildLakeCrossing = false;
@@ -40,6 +47,8 @@ public class RailBuilderController : MonoBehaviour
     private void Awake()
     {
         confirmHolder.SetActive(false);
+        if (lengthPanel != null)
+            lengthPanel.SetActive(false);
         confirmButton.onClick.AddListener(ConfirmBuild);
         cancelButton.onClick.AddListener(CancelBuild);
     }
@@ -53,6 +62,7 @@ public class RailBuilderController : MonoBehaviour
         var mouse = Mouse.current;
         if (mouse == null)
             return Vector3Int.zero;
+
         Vector2 screenPos = mouse.position.ReadValue();
         Vector3 world = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, cam.transform.position.z * -1f));
         return parentGrid.WorldToCell(world);
@@ -62,15 +72,14 @@ public class RailBuilderController : MonoBehaviour
     {
         foreach (var cell in ghostPath)
             ghost.SetTile(cell, null);
+
         ghostPath.Clear();
         painter.ClearGhost();
     }
 
     private void Update()
     {
-        if (awaitingConfirm)
-            return;
-        if (IsPointerOverUI())
+        if (awaitingConfirm || IsPointerOverUI())
             return;
 
         var mouse = Mouse.current;
@@ -79,31 +88,23 @@ public class RailBuilderController : MonoBehaviour
 
         if (mouse.rightButton.wasPressedThisFrame)
             Debug.Log(MouseToCell());
-    
+
         if (!isBuilding && mouse.leftButton.wasPressedThisFrame)
         {
             var start = MouseToCell();
             if (!IsLand(start))
                 return;
-            
-            TerrainType terrain = RailSystem.Instance.GetTerrainType(start);
-            if ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel))
+
+            if (!RailManager.Instance.CanStartBuildFrom(start))
             {
-                Debug.Log("Can't start on water tile!");
+                Debug.Log("Build must start from an anchor or connected railway");
                 return;
             }
 
-            if ((terrain == TerrainType.Lake && !canBuildLakeCrossing) || (terrain == TerrainType.Sea && !canBuildSeaTunnel))
-            {
-                Debug.Log("Can't build on water tile!");
-                return;
-            }
+            TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(start);
 
-            if (terrain == TerrainType.Mountain && !canBuildMountainTunnel)
-            {
-                Debug.Log("Can't build on Mountain!");
+            if ((terrain == TerrainType.Lake && !canBuildLakeCrossing) || (terrain == TerrainType.Sea && !canBuildSeaTunnel) || (terrain == TerrainType.Mountain && !canBuildMountainTunnel))
                 return;
-            }
 
             isBuilding = true;
             ClearHighlight();
@@ -118,81 +119,91 @@ public class RailBuilderController : MonoBehaviour
             if (cur == ghostPath[^1])
                 return;
 
-            TerrainType terrain = RailSystem.Instance.GetTerrainType(cur);
+            if (ghostPath.Count >= 2 && cur == ghostPath[^2])
+            {
+                ghost.SetTile(ghostPath[^1], null);
+                ghostPath.RemoveAt(ghostPath.Count - 1);
+                painter.PaintGhostPath(ghostPath);
+                UpdateLengthUI();
+                return;
+            }
 
+            if (ghostPath.Count >= maxLineLength)
+                return;
+
+            TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(cur);
             if (terrain == TerrainType.Ocean)
                 return;
 
-            if (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel) && HexCoords.AreNeighbors(ghostPath[^1], cur))
-            {
-                if (ghostPath.Count >= 2 && cur == ghostPath[^2])
-                {
-                    ghost.SetTile(ghostPath[^1], null);
-                    ghostPath.RemoveAt(ghostPath.Count - 1);
-                }
-                else if (!ghostPath.Contains(cur))
-                {
-                    ghostPath.Add(cur);
-                    ghost.SetTile(cur, ghostTile);
-                }
-                painter.PaintGhostPath(ghostPath);
-            }
-            else if (IsWater(cur) && HexCoords.AreNeighbors(ghostPath[^1], cur))
-            {
-                TerrainType prevTerrain = RailSystem.Instance.GetTerrainType(ghostPath[^1]);
+            if (!HexCoords.AreNeighbors(ghostPath[^1], cur))
+                return;
 
-                if (prevTerrain == TerrainType.Lake || prevTerrain == TerrainType.Sea)
-                    return;
-                
-                if (terrain == TerrainType.Lake && !canBuildLakeCrossing)
-                    return;
-                
-                if (terrain == TerrainType.Sea && !canBuildSeaTunnel)
-                    return;
-                
-                if (ghostPath.Count >= 2 && cur == ghostPath[^2])
-                {
-                    ghost.SetTile(ghostPath[^1], null);
-                    ghostPath.RemoveAt(ghostPath.Count - 1);
-                }
-                else if (!ghostPath.Contains(cur))
-                {
-                    ghostPath.Add(cur);
-                    ghost.SetTile(cur, ghostTile);
-                }
+            bool canStep =
+                (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) ||
+                (IsWater(cur) &&
+                ((terrain == TerrainType.Lake && canBuildLakeCrossing) ||
+                (terrain == TerrainType.Sea && canBuildSeaTunnel)));
+
+            if (!canStep)
+                return;
+
+            if (!ghostPath.Contains(cur))
+            {
+                ghostPath.Add(cur);
+                ghost.SetTile(cur, ghostTile);
                 painter.PaintGhostPath(ghostPath);
+                UpdateLengthUI();
             }
+
             return;
         }
 
         if (isBuilding && mouse.leftButton.wasReleasedThisFrame)
         {
             isBuilding = false;
-            if (ghostPath.Count >= 2)
-            {
-                if (RailSystem.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Lake || RailSystem.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Sea)
-                {
-                    Debug.Log("Can't create line: Water tile cannot be the last tile.");
-                    ClearHighlight();
-                }
-                else if (RailSystem.Instance.IsLineDuplicate(ghostPath))
-                {
-                    ClearHighlight();
-                    Debug.Log("Can't create duplicate!");
-                }
-                else
-                {
-                    awaitingConfirm = true;
-                    Vector3 offset = new Vector3(0, verticalOffset, 0);
-                    confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
-                    confirmHolder.SetActive(true);
-                }
-            }
-            else
+
+            if (ghostPath.Count < 2)
             {
                 ClearHighlight();
+                return;
             }
+
+            if (ghostPath.Count > maxLineLength)
+            {
+                Debug.Log("Line too long");
+                ClearHighlight();
+                return;
+            }
+
+            if (HexRailNetwork.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Lake || HexRailNetwork.Instance.GetTerrainType(ghostPath[^1]) == TerrainType.Sea)
+            {
+                Debug.Log("Water tile cannot be endpoint");
+                ClearHighlight();
+                return;
+            }
+
+            if (!RailManager.Instance.CanAttachPath(ghostPath))
+            {
+                Debug.Log("New line must connect to the existing network");
+                ClearHighlight();
+                return;
+            }
+
+            if (HexRailNetwork.Instance.IsLineDuplicate(ghostPath))
+            {
+                Debug.Log("Can't create duplicate line");
+                ClearHighlight();
+                return;
+            }
+
+            awaitingConfirm = true;
+            Vector3 offset = new Vector3(0, verticalOffset, 0);
+            confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
+            confirmHolder.SetActive(true);
         }
+
+        if (isBuilding || awaitingConfirm)
+            UpdateLengthUI();
     }
 
     private void ConfirmBuild()
@@ -200,16 +211,29 @@ public class RailBuilderController : MonoBehaviour
         RailLine line = RailManager.Instance.CreateLine(ghostPath);
         painter.PaintRails(line, false);
 
+        CreateRelayIfNeeded(line.End);
+
         if (trainPrefab)
         {
             var train = Instantiate(trainPrefab);
-            
             TrainManager.Instance.RegisterTrain(train, line);
         }
 
         ClearHighlight();
         confirmHolder.SetActive(false);
+        lengthPanel.SetActive(false);
         awaitingConfirm = false;
+    }
+
+    private void CreateRelayIfNeeded(Vector3Int endpoint)
+    {
+        if (StationRegistry.TryGet(endpoint, out _))
+            return;
+
+        if (RailAnchorRegistry.Instance != null && RailAnchorRegistry.Instance.IsAnchorCell(endpoint))
+            return;
+
+        RelayStopRegistry.Instance?.GetOrCreate(endpoint, parentGrid.GetCellCenterWorld(endpoint));
     }
 
     private void CancelBuild()
@@ -217,9 +241,40 @@ public class RailBuilderController : MonoBehaviour
         ClearHighlight();
         confirmHolder.SetActive(false);
         awaitingConfirm = false;
+        lengthPanel.SetActive(false);
     }
 
     public void AllowLakeCrossing(bool allowed) => canBuildLakeCrossing = allowed;
     public void AllowMountainTunnel(bool allowed) => canBuildMountainTunnel = allowed;
     public void AllowSeaTunnel(bool allowed) => canBuildSeaTunnel = allowed;
+
+    private void UpdateLengthUI()
+    {
+        if (lengthPanel == null || lengthText == null)
+            return;
+
+        bool show = isBuilding || awaitingConfirm;
+        lengthPanel.SetActive(show);
+
+        if (!show)
+            return;
+
+        int used = ghostPath.Count;
+        int remaining = Mathf.Max(0, maxLineLength - used);
+
+        if (remaining > 4 && remaining <= maxLineLength)
+            lengthText.color = Color.green;
+        else if (remaining > 0)
+            lengthText.color = Color.yellow;
+        else
+            lengthText.color = Color.red;
+
+        lengthText.text = $"{remaining}";
+        Vector3 worldPos = land.GetCellCenterWorld(ghostPath[^1]);
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
+        lengthPanel.transform.position = screenPos + lengthPanelOffset;
+
+    }
+
+    public void ChangeMaxLineLength(int delta) => maxLineLength += delta;
 }

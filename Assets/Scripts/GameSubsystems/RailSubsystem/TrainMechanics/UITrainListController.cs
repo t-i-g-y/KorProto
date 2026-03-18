@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UITrainListController : MonoBehaviour
+public class TrainListUIController : MonoBehaviour
 {
     [SerializeField] private Button viewListButton;
     [SerializeField] private GameObject listPanel;
     [SerializeField] private GameObject listEntryPrefab;
     [SerializeField] private Transform listContent;
 
-    private readonly Dictionary<Train, UITrainLineEntry> entries = new();
+    private readonly Dictionary<Train, TrainEntryUI> entries = new();
 
     private void Awake()
     {
@@ -42,7 +42,7 @@ public class UITrainListController : MonoBehaviour
             return;
 
         GameObject entryObj = Instantiate(listEntryPrefab, listContent);
-        UITrainLineEntry entry = entryObj.GetComponent<UITrainLineEntry>();
+        TrainEntryUI entry = entryObj.GetComponent<TrainEntryUI>();
         if (entry == null)
         {
             Debug.LogError("No UITraiLineEntry on prefab");
@@ -63,7 +63,7 @@ public class UITrainListController : MonoBehaviour
         if (train == null)
             return;
 
-        if (entries.TryGetValue(train, out UITrainLineEntry entry))
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
         {
             entry.OnSelectClicked -= HandleSelectClicked;
             entry.OnDeleteClicked -= HandleDeleteClicked;
@@ -76,17 +76,17 @@ public class UITrainListController : MonoBehaviour
 
     private void OnTrainSelected(Train train)
     {
-        if (entries.TryGetValue(train, out UITrainLineEntry entry))
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
             entry.SetSelected(true);
     }
 
     private void OnTrainDeselected(Train train)
     {
-        if (entries.TryGetValue(train, out UITrainLineEntry entry))
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
             entry.SetSelected(false);
     }
 
-    private void HandleSelectClicked(UITrainLineEntry entry)
+    private void HandleSelectClicked(TrainEntryUI entry)
     {
         if (entry == null || entry.ReferenceTrain == null)
             return;
@@ -94,7 +94,7 @@ public class UITrainListController : MonoBehaviour
         TrainManager.Instance.ToggleSelection(entry.ReferenceTrain);
     }
 
-    private void HandleDeleteClicked(UITrainLineEntry entry)
+    private void HandleDeleteClicked(TrainEntryUI entry)
     {
         if (entry == null || entry.ReferenceTrain == null)
             return;
@@ -102,7 +102,7 @@ public class UITrainListController : MonoBehaviour
         TrainManager.Instance.RemoveTrain(entry.ReferenceTrain);
     }
 
-    private void HandleSpeedClicked(UITrainLineEntry entry)
+    private void HandleSpeedClicked(TrainEntryUI entry)
     {
         Train train = entry.ReferenceTrain;
         if (train == null)
@@ -112,7 +112,7 @@ public class UITrainListController : MonoBehaviour
         entry.UpdateSpeedText();
     }
 
-    private void HandleCapacityClicked(UITrainLineEntry entry)
+    private void HandleCapacityClicked(TrainEntryUI entry)
     {
         Train train = entry.ReferenceTrain;
         if (train == null)

@@ -30,8 +30,8 @@ public class TimeManager : MonoBehaviour
             if (value != dayCounter)
             {
                 dayCounter = value > 0 ? value : 0;
-                FinanceManager.Instance.CurrentDay = dayCounter;
-                FinanceManager.Instance.DayBalance = 0;
+                FinanceSystem.Instance.CurrentDay = dayCounter;
+                FinanceSystem.Instance.DayBalance = 0;
             }
             
         }
@@ -59,7 +59,7 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    public string DayHourString => hourCounter > 9 ? $"Day {dayCounter} {hourCounter}:00" : $"Day {dayCounter} 0{hourCounter}:00";
+    public string DayHourString => hourCounter > 9 ? $"День {dayCounter} {hourCounter}:00" : $"День {dayCounter} 0{hourCounter}:00";
 
     private void Awake()
     {

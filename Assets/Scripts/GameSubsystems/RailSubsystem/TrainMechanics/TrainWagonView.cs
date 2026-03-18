@@ -5,6 +5,8 @@ public class TrainWagonView : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private CargoVisualizer cargoVisualizer;
     [SerializeField] private float wagonSpacing = 0.9f;
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color selectedColor = Color.yellow;
 
     private Train assignedTrain;
     private int wagonIndex;
@@ -37,5 +39,11 @@ public class TrainWagonView : MonoBehaviour
 
         if (forward.sqrMagnitude > 0.0001f)
             transform.rotation = Quaternion.LookRotation(Vector3.forward, forward);
+    }
+
+    public void SetSelectedVisual(bool isSelected)
+    {
+        if (spriteRenderer != null)
+            spriteRenderer.color = isSelected ? selectedColor : normalColor;
     }
 }
