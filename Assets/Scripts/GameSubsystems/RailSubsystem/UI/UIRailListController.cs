@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIRailListController : MonoBehaviour
+public class RailListUIController : MonoBehaviour
 {
     [SerializeField] private Button viewListButton;
     [SerializeField] private GameObject listPanel;
     [SerializeField] private GameObject listEntryPrefab;
     [SerializeField] private Transform listContent;
 
-    private readonly Dictionary<int, UIRailLineEntry> entries = new();
+    private readonly Dictionary<int, RailLineUIEntry> entries = new();
 
     void Awake()
     {
@@ -42,7 +42,7 @@ public class UIRailListController : MonoBehaviour
             return;
 
         GameObject entryObject = Instantiate(listEntryPrefab, listContent);
-        var entry = entryObject.GetComponent<UIRailLineEntry>();
+        var entry = entryObject.GetComponent<RailLineUIEntry>();
 
         if (entry == null)
         {
@@ -89,7 +89,7 @@ public class UIRailListController : MonoBehaviour
             entry.SetSelected(false);
     }
 
-    private void HandleSelectClicked(UIRailLineEntry entry)
+    private void HandleSelectClicked(RailLineUIEntry entry)
     {
         if (entry == null || entry.ReferenceLine == null) 
             return;
@@ -97,7 +97,7 @@ public class UIRailListController : MonoBehaviour
         RailManager.Instance.ToggleSelection(entry.ReferenceLine);
     }
 
-    private void HandleDeleteClicked(UIRailLineEntry entry)
+    private void HandleDeleteClicked(RailLineUIEntry entry)
     {
         if (entry == null || entry.ReferenceLine == null) 
             return;

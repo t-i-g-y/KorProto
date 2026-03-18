@@ -39,6 +39,10 @@ public class StationEconomySystem : MonoBehaviour
         RefreshStationData();
     }
 
+    public void ApplyStationEconomyTick()
+    {
+        RefreshStationData();
+    }
     public void RefreshStationData()
     {
         connectedStations.Clear();

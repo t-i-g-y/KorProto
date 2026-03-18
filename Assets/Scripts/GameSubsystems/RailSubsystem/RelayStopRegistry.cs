@@ -15,14 +15,15 @@ public class RelayStopRegistry : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
         {
             Destroy(gameObject);
-            return;
         }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
         RebuildRegistry();
     }
 
@@ -66,5 +67,15 @@ public class RelayStopRegistry : MonoBehaviour
     public bool IsRelayCell(Vector3Int cell)
     {
         return relaysByCell.ContainsKey(cell);
+    }
+
+    public bool RemoveIfExists(Vector3Int cell)
+    {
+        if (!relaysByCell.TryGetValue(cell, out RelayStop relay) || relay == null)
+            return false;
+
+        relaysByCell.Remove(cell);
+        Destroy(relay.gameObject);
+        return true;
     }
 }

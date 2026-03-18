@@ -10,6 +10,7 @@ public class RailManager : MonoBehaviour
         public int ID;
         public HashSet<Vector3Int> Nodes = new();
         public HashSet<RailLine> Lines = new();
+        public Dictionary<Vector3Int, List<RailEdge>> Adjacency = new();
         public bool HasAnchor;
         public float DisconnectTime;
         public bool IsCollapsed;
@@ -30,6 +31,7 @@ public class RailManager : MonoBehaviour
     private HashSet<RailLine> activeLines = new();
     private Dictionary<RailLine, int> lineToIsland = new();
     private Dictionary<int, NetworkIsland> islands = new();
+    private Dictionary<Vector3Int, int> nodeToIsland = new();
     [SerializeField] private List<NetworkIsland> inspectorIslands = new();
 
     public HashSet<RailLine> ActiveLines => activeLines;
@@ -81,6 +83,9 @@ public class RailManager : MonoBehaviour
         if (line == null)
             return;
 
+        Vector3Int start = line.Start;
+        Vector3Int end = line.End;
+
         if (SelectedLine == line)
         {
             InternalDeselect(line);
@@ -88,15 +93,17 @@ public class RailManager : MonoBehaviour
         }
 
         TrainManager.Instance.RemoveTrain(line.AssignedTrain);
-
         if (!Lines.Remove(line))
             Lines.RemoveAll(l => l.ID == line.ID);
+
 
         LineRemoved?.Invoke(line);
 
         RebuildConnectivity();
         TopologyChanged?.Invoke();
         ActiveNetworkChanged?.Invoke();
+        CheckRemoveRelay(start);
+        CheckRemoveRelay(end);
     }
 
     public bool CanStartBuildFrom(Vector3Int cell)
@@ -190,7 +197,132 @@ public class RailManager : MonoBehaviour
         InternalDeselect(line);
         LineDeselected?.Invoke(line);
     }
+    public bool TryGetShortestPathFirstHop(Vector3Int from, Vector3Int to, out Vector3Int firstHop, out float totalCost)
+    {
+        firstHop = default;
+        totalCost = 0f;
 
+        if (from == to)
+            return false;
+
+        if (!TryGetIslandForNode(from, out NetworkIsland islandFrom))
+            return false;
+
+        if (!TryGetIslandForNode(to, out NetworkIsland islandTo))
+            return false;
+
+        if (islandFrom.ID != islandTo.ID)
+            return false;
+
+        if (!IsIslandActive(islandFrom))
+            return false;
+
+        if (!islandFrom.Adjacency.ContainsKey(from) || !islandFrom.Nodes.Contains(to))
+            return false;
+
+        Dictionary<Vector3Int, float> dist = new();
+        Dictionary<Vector3Int, Vector3Int> prev = new();
+        HashSet<Vector3Int> visited = new();
+
+        List<(Vector3Int node, float cost)> queue = new()
+        {
+            (from, 0f)
+        };
+        dist[from] = 0f;
+        while (queue.Count > 0)
+        {
+            queue.Sort((a, b) => a.cost.CompareTo(b.cost));
+
+            var current = queue[0];
+            queue.RemoveAt(0);
+
+            Vector3Int currentNode = current.node;
+
+            if (!visited.Add(currentNode))
+                continue;
+
+            if (currentNode == to)
+                break;
+
+            if (!islandFrom.Adjacency.TryGetValue(currentNode, out var edges))
+                continue;
+
+            foreach (RailEdge edge in edges)
+            {
+                if (visited.Contains(edge.To))
+                    continue;
+
+                Train train = edge.Line.AssignedTrain;
+
+                float speed = train == null ? 0f : edge.Line.AssignedTrain.Speed;
+                
+                float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
+
+                if (!dist.TryGetValue(edge.To, out float oldCost) || nextCost < oldCost)
+                {
+                    dist[edge.To] = nextCost;
+                    prev[edge.To] = currentNode;
+
+                    queue.Add((edge.To, nextCost));
+                }
+            }
+        }
+
+        if (!dist.TryGetValue(to, out totalCost))
+            return false;
+
+        Vector3Int walk = to;
+        while (prev.TryGetValue(walk, out Vector3Int previous))
+        {
+            if (previous == from)
+            {
+                firstHop = walk;
+                return true;
+            }
+
+            walk = previous;
+        }
+
+        return false;
+    }
+
+    public bool IsFirstHopOnCurrentLine(RailLine line, Vector3Int currentCell, Vector3Int destinationCell, out float totalCost)
+    {
+        totalCost = 0;
+
+        if (line == null)
+            return false;
+
+        if (!TryGetTwinnedEndpoint(line, currentCell, out Vector3Int twinnedCell))
+            return false;
+
+        if (!TryGetShortestPathFirstHop(currentCell, destinationCell, out Vector3Int firstHop, out totalCost))
+            return false;
+
+        return firstHop == twinnedCell;
+    }
+
+    public bool TryGetTwinnedEndpoint(RailLine line, Vector3Int current, out Vector3Int other)
+    {
+        other = default;
+
+        if (line == null)
+            return false;
+
+        if (line.Start == current)
+        {
+            other = line.End;
+            return true;
+        }
+
+        if (line.End == current)
+        {
+            other = line.Start;
+            return true;
+        }
+
+        return false;
+    }
     private void InternalDeselect(RailLine line)
     {
         if (painter == null || line == null)
@@ -200,13 +332,31 @@ public class RailManager : MonoBehaviour
         painter.PaintRails(line, false);
     }
 
+    private bool TryGetIslandForNode(Vector3Int node, out NetworkIsland island)
+    {
+        island = null;
+
+        if (!nodeToIsland.TryGetValue(node, out int islandID))
+            return false;
+
+        return islands.TryGetValue(islandID, out island);
+    }
+
+    private bool IsIslandActive(NetworkIsland island)
+    {
+        return island != null && island.HasAnchor && !island.IsCollapsed;
+    }
+
     private void RebuildConnectivity()
     {
+        nextIslandID = 0;
         buildConnectedCells.Clear();
         activeLines.Clear();
         lineToIsland.Clear();
         islands.Clear();
+        nodeToIsland.Clear();
         inspectorIslands.Clear();
+        
 
         Dictionary<Vector3Int, List<RailLine>> nodeToLines = BuildNodeToLines();
 
@@ -219,7 +369,7 @@ public class RailManager : MonoBehaviour
 
             NetworkIsland island = new NetworkIsland
             {
-                ID = (islands.Values.Count > 1 ? nextIslandID++ : 0)
+                ID = nextIslandID++
             };
 
             Queue<RailLine> queue = new();
@@ -247,7 +397,7 @@ public class RailManager : MonoBehaviour
                         queue.Enqueue(next);
                 }
             }
-
+            BuildIslandAdjacency(island);
             island.HasAnchor = IslandHasAnchor(island);
             islands[island.ID] = island;
             inspectorIslands.Add(island);
@@ -257,17 +407,42 @@ public class RailManager : MonoBehaviour
         {
             bool active = island.HasAnchor && !island.IsCollapsed;
 
-            foreach (var node in island.Nodes)
-                buildConnectedCells.Add(node);
+            
 
             if (active)
             {
+                foreach (var node in island.Nodes)
+                    buildConnectedCells.Add(node);
                 foreach (var line in island.Lines)
                     activeLines.Add(line);
             }
         }
     }
 
+    private void BuildIslandAdjacency(NetworkIsland island)
+    {
+        island.Adjacency.Clear();
+
+        foreach (RailLine line in island.Lines)
+        {
+            if (line == null)
+                continue;
+
+            AddIslandEdge(island, line.Start, line.End, line, line.Length);
+            AddIslandEdge(island, line.End, line.Start, line, line.Length);
+        }
+    }
+
+    private void AddIslandEdge(NetworkIsland island, Vector3Int from, Vector3Int to, RailLine line, int cost)
+    {
+        if (!island.Adjacency.TryGetValue(from, out var edges))
+        {
+            edges = new List<RailEdge>();
+            island.Adjacency[from] = edges;
+        }
+
+        edges.Add(new RailEdge(to, line, cost));
+    }
     private Dictionary<Vector3Int, List<RailLine>> BuildNodeToLines()
     {
         Dictionary<Vector3Int, List<RailLine>> result = new();
@@ -310,6 +485,7 @@ public class RailManager : MonoBehaviour
     private void AddNode(Vector3Int node, NetworkIsland island)
     {
         island.Nodes.Add(node);
+        nodeToIsland[node] = island.ID;
     }
 
     private bool IslandHasAnchor(NetworkIsland island)
@@ -372,5 +548,33 @@ public class RailManager : MonoBehaviour
             foreach (var line in island.Lines)
                 activeLines.Add(line);
         }
+    }
+
+    private void CheckRemoveRelay(Vector3Int cell)
+    {
+        if (RelayStopRegistry.Instance == null)
+            return;
+
+        if (!RelayStopRegistry.Instance.IsRelayCell(cell))
+            return;
+
+        if (IsCellInActiveNetwork(cell))
+            return;
+
+        RelayStopRegistry.Instance.RemoveIfExists(cell);
+    }
+}
+
+public struct RailEdge
+{
+    public Vector3Int To;
+    public RailLine Line;
+    public int Cost;
+
+    public RailEdge(Vector3Int to, RailLine line, int cost)
+    {
+        To = to;
+        Line = line;
+        Cost = cost;
     }
 }

@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d26ca93a79bd7364ebfa4e2a9cc7a0b7, type: 3}
   m_Name: LakeCrossingTech
   m_EditorClassIdentifier: Assembly-CSharp::TechData
+  ID: 0
   techName: Lake Crossing
-  rpCost: 25
-  researchTime: 0
-  prerequisite: {fileID: 0}
-  effect: 0
+  techDescription: 
+  techImage: {fileID: 0}
+  researchCost: 0
+  prerequisites: 
+  technologyTreePos: {x: 0, y: 0}

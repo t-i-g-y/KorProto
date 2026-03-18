@@ -41,10 +41,10 @@ public class EconomyManager : MonoBehaviour
     public void TickEconomy()
     {
         if (stationEconomySystem != null)
-            stationEconomySystem.RefreshStationData();
+            stationEconomySystem.ApplyStationEconomyTick();
 
         if (globalDemandSystem != null && stationEconomySystem != null)
-            globalDemandSystem.SyncDemandRequests(stationEconomySystem.Stations);
+            globalDemandSystem.ApplyGlobalDemandSystemTick(stationEconomySystem.Stations);
 
         if (railEconomySystem != null)
             railEconomySystem.ApplyRailEconomyTick();

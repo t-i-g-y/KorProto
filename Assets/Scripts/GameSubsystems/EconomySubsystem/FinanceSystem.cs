@@ -74,11 +74,17 @@ public class FinanceSystem : MonoBehaviour
 
     public float SellResource(ResourceType resource)
     {
+        float value = GetCargoValue(resource);
+        AdjustBalance(value);
+        return value;
+    }
+
+    public float GetCargoValue(ResourceType resource)
+    {
         if (economyConfig == null)
             return 0f;
 
         float value = economyConfig.GetCargoValue(resource);
-        AdjustBalance(value);
         return value;
     }
     

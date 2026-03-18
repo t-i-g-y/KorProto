@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: MountainTunnel
   m_EditorClassIdentifier: Assembly-CSharp::TechData
   ID: 4
-  techName: Mountain Tunnel
-  techDescription: "Mountain Tunnel \u0413\u043E\u0440\u043D\u044B\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techName: "\u0413\u043E\u0440\u043D\u044B\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techDescription: "\u0413\u043E\u0440\u043D\u044B\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  techImage: {fileID: 0}
   researchCost: 1000
   prerequisites: 03000000
   technologyTreePos: {x: 600, y: 150}

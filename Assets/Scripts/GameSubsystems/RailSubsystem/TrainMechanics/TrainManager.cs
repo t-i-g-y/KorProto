@@ -46,10 +46,11 @@ public class TrainManager : MonoBehaviour
 
         train.Initialize(line, nextID, trainConfig);
         train.SetPath(tiles, coords);
-        train.RefreshOperationalState();
-
         Trains.Add(train);
         line.AssignedTrain = train;
+        
+        train.RefreshOperationalState();
+        train.TryHandleInitialEndpointLoad();
 
         TrainCreated?.Invoke(train, line);
         nextID++;

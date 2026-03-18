@@ -7,9 +7,16 @@ public class GlobalDemandSystem : MonoBehaviour
     public static GlobalDemandSystem Instance { get; private set; }
 
     private Dictionary<ResourceType, List<DemandRequest>> demandRequests = new();
+    private Dictionary<int, int>[] stationTransitAmounts;
+    private Dictionary<int, Queue<int>>[] stationTransitDestinations;
     [SerializeField] private ResourceAmount[] outstandingTotals;
+    [SerializeField] private ResourceAmount[] stationTransitTotals;
+    [SerializeField] private bool debugRouting;
+    [SerializeField] private bool debugTransit;
+
     public Dictionary<ResourceType, List<DemandRequest>> DemandRequests => demandRequests;
     public ResourceAmount[] OutstandingTotals => outstandingTotals;
+    
 
     private void Awake()
     {
@@ -37,16 +44,24 @@ public class GlobalDemandSystem : MonoBehaviour
         }
     }
 
+    public void ApplyGlobalDemandSystemTick(List<Station> stations)
+    {
+        SyncDemandRequests(stations);
+    }
+
     public void SyncDemandRequests(List<Station> stations)
     {
         ClearAll();
 
-        if (stations == null)
+        if (stations == null || RailManager.Instance == null)
             return;
 
         foreach (Station station in stations)
         {
             if (station == null)
+                continue;
+
+            if (!RailManager.Instance.IsCellInActiveNetwork(station.Cell))
                 continue;
 
             foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
@@ -56,9 +71,7 @@ public class GlobalDemandSystem : MonoBehaviour
                     continue;
 
                 outstandingTotals[(int)resource].Amount += amount;
-                demandRequests[resource].Add(
-                    new DemandRequest(station.StationID, resource, amount)
-                );
+                demandRequests[resource].Add(new DemandRequest(station.StationID, resource, amount));
             }
         }
     }
@@ -85,8 +98,7 @@ public class GlobalDemandSystem : MonoBehaviour
             return;
 
         if (outstandingTotals != null)
-            outstandingTotals[(int)resource].Amount =
-                Mathf.Max(0, outstandingTotals[(int)resource].Amount - amount);
+            outstandingTotals[(int)resource].Amount = Mathf.Max(0, outstandingTotals[(int)resource].Amount - amount);
 
         if (!demandRequests.TryGetValue(resource, out var list))
             return;
@@ -111,6 +123,136 @@ public class GlobalDemandSystem : MonoBehaviour
         }
     }
 
+    public bool TryGetForwardableCargo(
+    Vector3Int currentCell,
+    Vector3Int twinnedCell,
+    int freeCapacity,
+    Func<ResourceType, int> getAvailableAmount,
+    Func<ResourceType, float> getUnitValue,
+    out Dictionary<ResourceType, int> cargoToLoad)
+    {
+        cargoToLoad = new Dictionary<ResourceType, int>();
+
+        if (freeCapacity <= 0 || RailManager.Instance == null)
+            return false;
+
+        List<CargoCandidate> candidates = new();
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int available = getAvailableAmount(resource);
+            if (available <= 0)
+                continue;
+
+            if (!demandRequests.TryGetValue(resource, out var requests) || requests.Count == 0)
+                continue;
+
+            foreach (DemandRequest request in requests)
+            {
+
+                StationRegistry.TryGet(request.StationID, out Station destination);
+                if (destination == null)
+                    continue;
+
+                if (!RailManager.Instance.TryGetShortestPathFirstHop(currentCell, destination.Cell, out Vector3Int firstHop, out float routeCost))
+                    continue;
+
+                if (firstHop != twinnedCell)
+                    continue;
+
+                int takeable = Mathf.Min(available, request.Amount);
+                if (takeable <= 0)
+                    continue;
+
+                candidates.Add(new CargoCandidate
+                {
+                    Resource = resource,
+                    DestinationStationID = request.StationID,
+                    Amount = takeable,
+                    RouteCost = routeCost,
+                    UnitValue = getUnitValue(resource)
+                });
+            }
+        }
+
+        candidates.Sort((a, b) =>
+        {
+            int costCompare = a.RouteCost.CompareTo(b.RouteCost);
+            if (costCompare != 0) return costCompare;
+            return b.UnitValue.CompareTo(a.UnitValue);
+        });
+
+        Dictionary<ResourceType, int> reservedByResource = new();
+        int remainingCapacity = freeCapacity;
+
+        foreach (CargoCandidate candidate in candidates)
+        {
+            if (remainingCapacity <= 0)
+                break;
+
+            int alreadyReserved = reservedByResource.TryGetValue(candidate.Resource, out int reserved) ? reserved : 0;
+
+            int stillAvailable = getAvailableAmount(candidate.Resource) - alreadyReserved;
+            if (stillAvailable <= 0)
+                continue;
+
+            int take = Mathf.Min(candidate.Amount, stillAvailable, remainingCapacity);
+            if (take <= 0)
+                continue;
+
+            reservedByResource[candidate.Resource] = alreadyReserved + take;
+            cargoToLoad[candidate.Resource] = cargoToLoad.TryGetValue(candidate.Resource, out int current) ? current + take : take;
+
+            remainingCapacity -= take;
+        }
+
+        return cargoToLoad.Count > 0;
+    }
+
+    public bool TryGetBestDestinationForResource(Vector3Int currentCell, Vector3Int twinnedCell, ResourceType resource, out int destinationStationID)
+    {
+        destinationStationID = -1;
+
+        if (RailManager.Instance == null)
+            return false;
+
+        if (!demandRequests.TryGetValue(resource, out var requests) || requests.Count == 0)
+            return false;
+
+        bool found = false;
+        float bestCost = float.MaxValue;
+        float bestValue = float.MinValue;
+
+        foreach (DemandRequest request in requests)
+        {
+            if (request.Amount <= 0)
+                continue;
+
+            if (!StationRegistry.TryGet(request.StationID, out Station destination) || destination == null)
+                continue;
+
+            if (!RailManager.Instance.TryGetShortestPathFirstHop(currentCell, destination.Cell, out Vector3Int firstHop, out float routeCost))
+                continue;
+
+            if (firstHop != twinnedCell)
+                continue;
+
+            float unitValue = FinanceSystem.Instance != null ? FinanceSystem.Instance.GetCargoValue(resource) : 0f;
+
+            if (!found || routeCost < bestCost || (Mathf.Approximately(routeCost, bestCost) && unitValue > bestValue))
+            {
+                found = true;
+                bestCost = routeCost;
+                bestValue = unitValue;
+                destinationStationID = request.StationID;
+            }
+
+            if (debugRouting)
+                Debug.Log($"[Demandrequest] resource={resource} current={currentCell} twinned={twinnedCell} candidateStation={request.StationID}");
+        }
+        
+        return found;
+    }
     private void ClearAll()
     {
         foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
@@ -119,4 +261,106 @@ public class GlobalDemandSystem : MonoBehaviour
             demandRequests[resource].Clear();
         }
     }
+
+    private void EnsureTransitInitialized()
+    {
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+
+        if (stationTransitAmounts == null || stationTransitAmounts.Length != resourceTypes.Length)
+        {
+            stationTransitAmounts = new Dictionary<int, int>[resourceTypes.Length];
+            stationTransitDestinations = new Dictionary<int, Queue<int>>[resourceTypes.Length];
+
+            for (int i = 0; i < resourceTypes.Length; i++)
+            {
+                stationTransitAmounts[i] = new Dictionary<int, int>();
+                stationTransitDestinations[i] = new Dictionary<int, Queue<int>>();
+            }
+        }
+    }
+
+    public void AddStationTransit(int stationID, ResourceType resource, int amount, int destinationStationID)
+    {
+        if (amount <= 0)
+            return;
+
+        EnsureTransitInitialized();
+
+        int index = (int)resource;
+
+        if (!stationTransitAmounts[index].ContainsKey(stationID))
+            stationTransitAmounts[index][stationID] = 0;
+
+        if (!stationTransitDestinations[index].TryGetValue(stationID, out Queue<int> queue))
+        {
+            queue = new Queue<int>();
+            stationTransitDestinations[index][stationID] = queue;
+        }
+
+        stationTransitAmounts[index][stationID] += amount;
+        for (int i = 0; i < amount; i++)
+            queue.Enqueue(destinationStationID);
+
+        if (debugTransit)
+            Debug.Log($"[TransitStation] stored resource={resource} at stationID={stationID} for destinationstationID={destinationStationID}");
+    }
+
+    public int GetStationTransitAmount(int stationID, ResourceType resource)
+    {
+        EnsureTransitInitialized();
+
+        int index = (int)resource;
+        return stationTransitAmounts[index].TryGetValue(stationID, out int amount) ? amount : 0;
+    }
+
+    public bool PeekStationTransitDestination(int stationID, ResourceType resource, out int destinationStationID)
+    {
+        EnsureTransitInitialized();
+
+        int index = (int)resource;
+        if (stationTransitDestinations[index].TryGetValue(stationID, out Queue<int> queue) && queue.Count > 0)
+        {
+            destinationStationID = queue.Peek();
+            return true;
+        }
+
+        destinationStationID = -1;
+        return false;
+    }
+
+    public bool TakeStationTransitOne(int stationID, ResourceType resource, out int destinationStationID)
+    {
+        EnsureTransitInitialized();
+
+        int index = (int)resource;
+
+        if (!stationTransitAmounts[index].TryGetValue(stationID, out int amount) || amount <= 0)
+        {
+            destinationStationID = -1;
+            return false;
+        }
+
+        if (!stationTransitDestinations[index].TryGetValue(stationID, out Queue<int> queue) || queue.Count <= 0)
+        {
+            destinationStationID = -1;
+            return false;
+        }
+
+        stationTransitAmounts[index][stationID] = amount - 1;
+        destinationStationID = queue.Dequeue();
+
+        if (debugTransit)
+            Debug.Log($"[TransitStation] gave resource={resource} at stationID={stationID} for destinationstationID={destinationStationID}");
+
+        return true;
+    }
+}
+
+public struct CargoCandidate
+{
+    public ResourceType Resource;
+    public int DestinationStationID;
+    public int Amount;
+    public float RouteCost;
+    public float UnitValue;
 }

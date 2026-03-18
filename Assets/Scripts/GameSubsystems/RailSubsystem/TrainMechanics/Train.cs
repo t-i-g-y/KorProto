@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -46,6 +47,7 @@ public class Train : MonoBehaviour
     public bool IsOperational => isOperational;
     public TrainConsist AttachedTrainConsist => attachedTrainConsist;
     public int SpeedLevel => speedLevel;
+    public float Speed => speed;
 
     private void Awake()
     {
@@ -66,6 +68,21 @@ public class Train : MonoBehaviour
     private void Update()
     {
         HandleTrainMovement();
+    }
+
+    private void OnDestroy()
+    {
+        CleanupWagonViews();
+    }
+    private void CleanupWagonViews()
+    {
+        for (int i = 0; i < attachedWagonViews.Count; i++)
+        {
+            if (attachedWagonViews[i] != null)
+                Destroy(attachedWagonViews[i].gameObject);
+        }
+
+        attachedWagonViews.Clear();
     }
 
     public void Initialize(RailLine line, int trainId, TrainConfig trainConfig)
@@ -145,7 +162,7 @@ public class Train : MonoBehaviour
         SyncWagonViews(false);
     }
 
-    public IEnumerator ArriveAtStation(Station station)
+    public IEnumerator ArriveAtStation(Station station, bool justCreated = false)
     {
         isDwelling = true;
         atStation = true;
@@ -153,7 +170,7 @@ public class Train : MonoBehaviour
         Vector3 popupBasePosition = transform.position + incomePopupOffset;
         int popupStackIndex = 0;
 
-        if (assignedLine != null && RailEconomySystem.Instance != null)
+        if (!justCreated && assignedLine != null && RailEconomySystem.Instance != null)
         {
             float earnedIncome = RailEconomySystem.Instance.ApplyLineIncome(assignedLine);
 
@@ -170,42 +187,135 @@ public class Train : MonoBehaviour
         {
             while (true)
             {
-                CargoSaleResult sale = attachedTrainConsist.TryUnloadOne(station);
+                CargoSaleResult sale = attachedTrainConsist.TryUnloadOneToStation(station);
                 if (!sale.Sold)
                     break;
 
                 RefreshCargoVisuals();
 
-                IncomePopupSpawner.Instance?.QueueCargoSale(
-                    transform,
-                    popupBasePosition,
-                    sale.Resource,
-                    sale.Value,
-                    popupStackIndex
-                );
+                IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
 
                 popupStackIndex++;
-                yield return new WaitForSeconds(config.TimePerUnloadSec / TimeManager.Instance.TimeMultiplier);
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
             }
 
-            while (attachedTrainConsist.TryLoadOne(station, onlyLoadRequested))
+            while (attachedTrainConsist.TryUnloadOneToStationTransit(station))
             {
                 RefreshCargoVisuals();
-                yield return new WaitForSeconds(config.TimePerLoadSec / TimeManager.Instance.TimeMultiplier);
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
+            }
+
+            if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
+            {
+                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
+
+                foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+                {
+                    while (freeCapacity > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
+                    {
+                        if (!GlobalDemandSystem.Instance.PeekStationTransitDestination(station.StationID, resource, out int destinationStationId))
+                            break;
+
+                        if (!StationRegistry.TryGet(destinationStationId, out Station destination) || destination == null)
+                            break;
+
+                        if (!RailManager.Instance.TryGetShortestPathFirstHop(station.Cell, destination.Cell, out Vector3Int firstHop, out float _))
+                            break;
+
+                        if (firstHop != twinnedCell)
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromStationTransit(station, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                    while (freeCapacity > 0 && station.GetSupplyAmount(resource) > 0)
+                    {
+                        if (!GlobalDemandSystem.Instance.TryGetBestDestinationForResource(station.Cell, twinnedCell, resource, out int destinationStationId))
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromStation(station, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                }
             }
         }
 
-        ReverseAndResume();
+        if (justCreated)
+        {
+            atStation = false;
+            isDwelling = false;
+            SyncWagonViews(true);
+        }
+        else
+        {
+            ReverseAndResume();
+        }
     }
 
-    public IEnumerator ArriveAtRelay(RelayStop relay)
+    public IEnumerator ArriveAtRelay(RelayStop relay, bool justCreated = false)
     {
         isDwelling = true;
         atStation = true;
 
         yield return new WaitForSeconds(stationDwellSeconds);
 
-        ReverseAndResume();
+        if (attachedTrainConsist != null && relay != null)
+        {
+            while (attachedTrainConsist.TryUnloadOneToRelay(relay))
+            {
+                RefreshCargoVisuals();
+                yield return new WaitForSeconds(config.TimePerUnloadSec);
+            }
+
+            if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
+            {
+                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
+
+                foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+                {
+                    while (freeCapacity > 0 && relay.GetAmount(resource) > 0)
+                    {
+                        if (!relay.PeekNextDestination(resource, out int destinationStationId))
+                            break;
+
+                        if (!StationRegistry.TryGet(destinationStationId, out Station destination) || destination == null)
+                            break;
+
+                        if (!RailManager.Instance.TryGetShortestPathFirstHop(relay.Cell, destination.Cell, out Vector3Int firstHop, out float _))
+                            break;
+
+                        if (firstHop != twinnedCell)
+                            break;
+
+                        if (!attachedTrainConsist.TryLoadOneFromRelay(relay, resource, destinationStationId))
+                            break;
+
+                        freeCapacity--;
+                        RefreshCargoVisuals();
+                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                    }
+                }
+            }
+        }
+
+        if (justCreated)
+        {
+            atStation = false;
+            isDwelling = false;
+            SyncWagonViews(true);
+        }
+        else
+        {
+            ReverseAndResume();
+        }
     }
 
     public void ChangeSpeed(float multiplier)
@@ -264,6 +374,7 @@ public class Train : MonoBehaviour
         }
 
         RefreshCargoVisuals();
+        SetSelectedVisual(TrainManager.Instance.SelectedTrain == this);
     }
 
     public bool TryAddWagon()
@@ -290,6 +401,33 @@ public class Train : MonoBehaviour
     {
         if (spriteRenderer != null)
             spriteRenderer.color = isSelected ? selectedColor : normalColor;
+        
+        for (int i = 0; i < attachedWagonViews.Count; i++)
+        {
+            if (attachedWagonViews[i] == null)
+                continue;
+
+            attachedWagonViews[i].SetSelectedVisual(isSelected);
+        }
+    }
+
+    public void TryHandleInitialEndpointLoad()
+    {
+        if (routeTiles == null || routeTiles.Count == 0)
+            return;
+
+        Vector3Int startCell = routeTiles[0];
+
+        if (StationRegistry.TryGet(startCell, out Station station))
+        {
+            StartCoroutine(ArriveAtStation(station, true));
+            return;
+        }
+
+        if (RelayStopRegistry.Instance != null && RelayStopRegistry.Instance.TryGet(startCell, out RelayStop relay))
+        {
+            StartCoroutine(ArriveAtRelay(relay, true));
+        }
     }
 
     private void TryArriveAtEndpoint()
@@ -318,6 +456,17 @@ public class Train : MonoBehaviour
 
         dir *= -1;
     }
+
+    private bool TryGetCurrentAndTwinnedCells(Vector3Int currentCell, out Vector3Int twinnedCell)
+    {
+        twinnedCell = default;
+
+        if (assignedLine == null || RailManager.Instance == null)
+            return false;
+
+        return RailManager.Instance.TryGetTwinnedEndpoint(assignedLine, currentCell, out twinnedCell);
+    }
+
 
     private void ReverseAndResume()
     {

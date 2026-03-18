@@ -182,11 +182,9 @@ public float MissingMaintenanceModifier = 1f;
         List<List<string>> table = ParseCsv(TerrainModifierCsv.text);
         TerrainType[] terrainTypes = (TerrainType[])Enum.GetValues(typeof(TerrainType));
 
-        List<string> constructionRow =
-            TerrainModifierConstructionRow < table.Count ? table[TerrainModifierConstructionRow] : null;
+        List<string> constructionRow = TerrainModifierConstructionRow < table.Count ? table[TerrainModifierConstructionRow] : null;
 
-        List<string> maintenanceRow =
-            TerrainModifierMaintenanceRow < table.Count ? table[TerrainModifierMaintenanceRow] : null;
+        List<string> maintenanceRow = TerrainModifierMaintenanceRow < table.Count ? table[TerrainModifierMaintenanceRow] : null;
 
         for (int index = 0; index < terrainTypes.Length; index++)
         {

@@ -59,7 +59,7 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    public string DayHourString => hourCounter > 9 ? $"Day {dayCounter} {hourCounter}:00" : $"Day {dayCounter} 0{hourCounter}:00";
+    public string DayHourString => hourCounter > 9 ? $"День {dayCounter} {hourCounter}:00" : $"День {dayCounter} 0{hourCounter}:00";
 
     private void Awake()
     {
