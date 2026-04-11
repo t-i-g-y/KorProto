@@ -5,7 +5,11 @@ public class RailAnchorRegistry : MonoBehaviour
 {
     public static RailAnchorRegistry Instance { get; private set; }
     [SerializeField] private List<RailAnchor> anchors = new();
+    private Dictionary<Vector3Int, RailAnchor> anchorsByCell = new();
+    [SerializeField] private RailAnchor anchorPrefab;
+    [SerializeField] private Grid parentGrid;
     public List<RailAnchor> Anchors => anchors;
+    
 
     private void Awake()
     {
@@ -61,4 +65,57 @@ public class RailAnchorRegistry : MonoBehaviour
 
         return cells;
     }
+
+    #region save subsystem
+    public RailAnchorRegistrySaveData GetSaveData()
+    {
+        var data = new RailAnchorRegistrySaveData();
+
+        foreach (var anchor in anchorsByCell.Values)
+        {
+            if (anchor == null)
+                continue;
+
+            data.anchors.Add(anchor.GetSaveData());
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(RailAnchorRegistrySaveData data)
+    {
+        ClearAll();
+
+        if (data == null)
+            return;
+
+        if (anchorPrefab == null)
+        {
+            Debug.LogError("anchorPrefab not assigned in RailAnchorRegistry");
+            return;
+        }
+
+        foreach (var anchorData in data.anchors)
+        {
+            Vector3Int cell = anchorData.cell;
+
+            Vector3 worldPos = parentGrid.GetCellCenterWorld(cell);
+
+            RailAnchor anchor = Instantiate(anchorPrefab, worldPos, Quaternion.identity);
+            anchor.LoadFromSaveData(anchorData);
+
+            anchorsByCell[cell] = anchor;
+        }
+    }
+    public void ClearAll()
+    {
+        foreach (var anchor in anchorsByCell.Values)
+        {
+            if (anchor != null)
+                Destroy(anchor.gameObject);
+        }
+
+        anchorsByCell.Clear();
+    }
+    #endregion
 }

@@ -61,4 +61,24 @@ public class EconomyManager : MonoBehaviour
         stationEconomySystem.RefreshStationData();
         globalDemandSystem.SyncDemandRequests(stationEconomySystem.Stations);
     }
+
+
+    #region save subsystem
+    public EconomyManagerSaveData GetSaveData()
+    {
+        return new EconomyManagerSaveData
+        {
+            lastProcessedDay = lastProcessedDay
+        };
+    }
+
+    public void LoadFromSaveData(EconomyManagerSaveData data)
+    {
+        if (data == null)
+            return;
+
+        lastProcessedDay = data.lastProcessedDay;
+        ForceResync();
+    }
+    #endregion
 }

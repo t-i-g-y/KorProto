@@ -59,4 +59,19 @@ public class Technology
         if (Data != null)
             Progress = Data.researchCost;
     }
+
+    #region save subsystem
+    public void LoadFromSaveData(float savedProgress, bool savedUnlocked, bool savedResearching)
+    {
+        Progress = savedProgress < 0f ? 0f : savedProgress;
+        IsUnlocked = savedUnlocked;
+        IsResearching = savedResearching;
+
+        if (Data != null && Progress > Data.researchCost)
+            Progress = Data.researchCost;
+
+        if (IsUnlocked && Data != null)
+            Progress = Data.researchCost;
+    }
+    #endregion
 }

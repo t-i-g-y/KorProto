@@ -168,4 +168,72 @@ public class ResearchSystem : MonoBehaviour
                 break;
         }
     }
+
+    private void ReapplyUnlockedEffects()
+    {
+        foreach (var pair in technologies)
+        {
+            Technology tech = pair.Value;
+
+            if (tech != null && tech.IsUnlocked && tech.Data != null)
+                ApplyUnlockEffect(tech.Data.ID);
+        }
+    }
+
+    #region save subsystem
+    public ResearchSystemSaveData GetSaveData()
+    {
+        var data = new ResearchSystemSaveData();
+
+        if (currentResearch != null && currentResearch.Data != null)
+            data.currentResearchID = (int)currentResearch.Data.ID;
+
+        foreach (var pair in technologies)
+        {
+            Technology tech = pair.Value;
+            if (tech == null || tech.Data == null)
+                continue;
+
+            data.technologies.Add(new TechnologySaveData
+            {
+                techID = (int)tech.Data.ID,
+                progress = tech.Progress,
+                isUnlocked = tech.IsUnlocked,
+                isResearching = tech.IsResearching
+            });
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(ResearchSystemSaveData data)
+    {
+        if (data == null)
+            return;
+
+        BuildRuntimeTechnologies();
+
+        currentResearch = null;
+
+        foreach (var savedTech in data.technologies)
+        {
+            TechID ID = (TechID)savedTech.techID;
+
+            Technology tech = GetTechnology(ID);
+            if (tech == null)
+                continue;
+
+            tech.LoadFromSaveData(savedTech.progress, savedTech.isUnlocked, savedTech.isResearching);
+        }
+
+        if (data.currentResearchID.HasValue)
+        {
+            TechID currentID = (TechID)data.currentResearchID.Value;
+            currentResearch = GetTechnology(currentID);
+        }
+
+        ReapplyUnlockedEffects();
+        OnResearchStateChanged?.Invoke();
+    }
+    #endregion
 }

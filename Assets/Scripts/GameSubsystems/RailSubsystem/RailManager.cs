@@ -563,6 +563,67 @@ public class RailManager : MonoBehaviour
 
         RelayStopRegistry.Instance.RemoveIfExists(cell);
     }
+    private void ClearAll()
+    {
+        foreach (var line in Lines)
+            if (line != null)
+                painter.UnpaintRails(line);
+
+        Lines.Clear();
+        SelectedLine = null;
+
+        buildConnectedCells.Clear();
+        activeLines.Clear();
+        lineToIsland.Clear();
+        islands.Clear();
+        nodeToIsland.Clear();
+    }
+
+    #region save subsystem
+    public RailManagerSaveData GetSaveData()
+    {
+        var data = new RailManagerSaveData { nextID = nextID };
+
+        if (SelectedLine != null)
+            data.selectedLineID = SelectedLine.ID;
+
+        foreach (var line in Lines)
+            data.lines.Add(line.GetSaveData());
+
+        return data;
+    }
+
+    public void LoadFromSaveData(RailManagerSaveData data)
+    {
+        ClearAll();
+
+        nextID = data.nextID;
+
+        foreach (var lineData in data.lines)
+        {
+            var line = new RailLine(lineData.ID, lineData.cells);
+            Lines.Add(line);
+
+            LineCreated?.Invoke(line);
+            painter.PaintRails(line, false);
+        }
+
+        RebuildConnectivity();
+        TopologyChanged?.Invoke();
+        ActiveNetworkChanged?.Invoke();
+
+        if (data.selectedLineID.HasValue)
+        {
+            var selected = Lines.Find(l => l.ID == data.selectedLineID.Value);
+            if (selected != null)
+            {
+                SelectedLine = selected;
+                painter.PaintRails(selected, true);
+                LineSelected?.Invoke(selected);
+            }
+        }
+    }
+    #endregion
 }
 
 public struct RailEdge
