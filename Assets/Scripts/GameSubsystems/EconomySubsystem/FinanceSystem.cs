@@ -88,5 +88,28 @@ public class FinanceSystem : MonoBehaviour
         return value;
     }
     
+    #region save subsystem
+    public FinanceSystemSaveData GetSaveData()
+    {
+        return new FinanceSystemSaveData
+        {
+            balance = balance,
+            lastBalanceChange = lastBalanceChange,
+            dayBalance = dayBalance,
+            currentDay = currentDay
+        };
+    }
+
+    public void LoadFromSaveData(FinanceSystemSaveData data)
+    {
+        if (data == null)
+            return;
+
+        balance = data.balance;
+        lastBalanceChange = data.lastBalanceChange;
+        dayBalance = data.dayBalance;
+        currentDay = data.currentDay;
+    }
+    #endregion
 }
 

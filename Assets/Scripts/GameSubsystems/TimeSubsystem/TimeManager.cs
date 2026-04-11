@@ -30,8 +30,11 @@ public class TimeManager : MonoBehaviour
             if (value != dayCounter)
             {
                 dayCounter = value > 0 ? value : 0;
-                FinanceSystem.Instance.CurrentDay = dayCounter;
-                FinanceSystem.Instance.DayBalance = 0;
+                if (FinanceSystem.Instance != null)
+                {
+                    FinanceSystem.Instance.CurrentDay = dayCounter;
+                    FinanceSystem.Instance.DayBalance = 0;
+                }
             }
             
         }
@@ -73,10 +76,11 @@ public class TimeManager : MonoBehaviour
             Destroy(gameObject);
         }
         
+        RefreshUI();
     }
 
     public void Pause() => timeMultiplier = 0f;
-    public void Unpause() => timeMultiplier = 1f;
+    public void Unpause() => timeMultiplier = previousTimeMultiplier > 0f ? previousTimeMultiplier : 1f;
     public void SetSpeed(float speed)
     {
         previousTimeMultiplier = timeMultiplier;
@@ -132,5 +136,43 @@ public class TimeManager : MonoBehaviour
             SetSpeed(5f);
         */
     }
+
+    private void RefreshUI()
+    {
+        if (dayHourText != null)
+            dayHourText.text = DayHourString;
+    }
+
+    #region save subsystem
+    public TimeManagerSaveData GetSaveData()
+    {
+        return new TimeManagerSaveData
+        {
+            timeMultiplier = timeMultiplier,
+            previousTimeMultiplier = previousTimeMultiplier,
+            secondsPerHour = secondsPerHour,
+            accumulatedSeconds = accumulatedSeconds,
+            dayCounter = dayCounter,
+            hourCounter = hourCounter
+        };
+    }
+
+    public void LoadFromSaveData(TimeManagerSaveData data)
+    {
+        if (data == null)
+            return;
+
+        timeMultiplier = Mathf.Max(0f, data.timeMultiplier);
+        previousTimeMultiplier = Mathf.Max(0f, data.previousTimeMultiplier);
+        secondsPerHour = Mathf.Max(0.0001f, data.secondsPerHour);
+        accumulatedSeconds = Mathf.Max(0f, data.accumulatedSeconds);
+
+        DayCounter = data.dayCounter;
+        HourCounter = data.hourCounter;
+        Pause();
+        RefreshUI();
+    }
+
+    #endregion
 }
 

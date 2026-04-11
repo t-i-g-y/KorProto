@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 public class TrainManager : MonoBehaviour
 {
     public static TrainManager Instance { get; private set; }
-
+    [SerializeField] private Train trainPrefab;
     [SerializeField] private TrainConfig trainConfig;
     [SerializeField] private Tilemap land;
 
@@ -109,5 +109,96 @@ public class TrainManager : MonoBehaviour
         if (SelectedTrain == train)
             SelectedTrain = null;
     }
+
+    #region 
+    public TrainManagerSaveData GetSaveData()
+    {
+        var data = new TrainManagerSaveData { nextID = nextID };
+
+        if (SelectedTrain != null)
+            data.selectedTrainID = SelectedTrain.ID;
+
+        foreach (var train in Trains)
+        {
+            if (train == null)
+                continue;
+
+            data.trains.Add(train.GetSaveData());
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(TrainManagerSaveData data)
+    {
+        ClearAll();
+
+        if (data == null)
+            return;
+
+        nextID = data.nextID;
+
+        foreach (var trainData in data.trains)
+        {
+            RailLine line = RailManager.Instance.Lines.Find(l => l.ID == trainData.assignedLineID);
+            if (line == null)
+                continue;
+
+            Train train = Instantiate(trainPrefab);
+
+            List<Vector3Int> tiles = new(line.Cells);
+            List<Vector3> coords = new(tiles.Count);
+
+            foreach (Vector3Int cell in tiles)
+                coords.Add(land.GetCellCenterWorld(cell));
+
+            train.Initialize(line, trainData.ID, trainConfig);
+            train.SetPath(tiles, coords);
+            train.LoadFromSaveData(trainData);
+
+            Trains.Add(train);
+            line.AssignedTrain = train;
+
+            train.RefreshOperationalState();
+
+            TrainCreated?.Invoke(train, line);
+        }
+
+        if (data.selectedTrainID.HasValue)
+        {
+            Train selected = Trains.Find(t => t != null && t.ID == data.selectedTrainID.Value);
+            if (selected != null)
+            {
+                SelectedTrain = selected;
+                selected.SetSelectedVisual(true);
+                TrainSelected?.Invoke(selected);
+            }
+        }
+    }
+    public void ClearAll()
+    {
+        if (SelectedTrain != null)
+        {
+            InternalDeselect(SelectedTrain);
+            TrainDeselected?.Invoke(SelectedTrain);
+        }
+
+        for (int i = Trains.Count - 1; i >= 0; i--)
+        {
+            Train train = Trains[i];
+            if (train == null)
+                continue;
+
+            if (train.AssignedLine != null)
+                train.AssignedLine.AssignedTrain = null;
+
+            TrainRemoved?.Invoke(train);
+            Destroy(train.gameObject);
+        }
+
+        Trains.Clear();
+        SelectedTrain = null;
+    }
+    #endregion
 }
 

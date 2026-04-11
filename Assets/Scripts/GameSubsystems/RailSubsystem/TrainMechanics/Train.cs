@@ -573,4 +573,48 @@ public class Train : MonoBehaviour
 
         currentTileIndex = routeTiles.Count - 1;
     }
+
+    #region save subsytem
+    public TrainSaveData GetSaveData()
+    {
+        return new TrainSaveData
+        {
+            ID = id,
+            assignedLineID = assignedLine != null ? assignedLine.ID : -1,
+            speedLevel = speedLevel,
+            dir = dir,
+            currentTileIndex = currentTileIndex,
+            headDistance = headDistance,
+            atStation = atStation,
+            isOperational = isOperational,
+            consist = attachedTrainConsist != null ? attachedTrainConsist.GetSaveData() : null
+        };
+    }
+
+    public void LoadFromSaveData(TrainSaveData data)
+    {
+        if (data == null)
+            return;
+
+        id = data.ID;
+        dir = data.dir;
+        currentTileIndex = data.currentTileIndex;
+        headDistance = data.headDistance;
+        atStation = data.atStation;
+        isOperational = data.isOperational;
+
+        SetSpeedLevel(data.speedLevel);
+
+        if (attachedTrainConsist != null && data.consist != null)
+            attachedTrainConsist.LoadFromSaveData(data.consist);
+
+        EvaluatePoseAtDistance(headDistance, out Vector3 pos, out Vector3 forwardDir);
+        transform.position = pos;
+
+        if (forwardDir.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(Vector3.forward, forwardDir);
+
+        SyncWagonViews(true);
+    }
+    #endregion
 }

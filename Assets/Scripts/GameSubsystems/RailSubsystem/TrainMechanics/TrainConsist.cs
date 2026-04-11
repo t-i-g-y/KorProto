@@ -495,4 +495,91 @@ public class TrainConsist : MonoBehaviour
             cargoDestinations[i] ??= new Queue<int>();
         }
     }
+
+    #region save subsystem
+    public TrainConsistSaveData GetSaveData()
+    {
+        EnsureCargoInitialized();
+        EnsureDestinationQueuesInitialized();
+
+        var data = new TrainConsistSaveData();
+
+        data.headLocomotive = new TrainConsistUnitSaveData
+        {
+            capacity = headLocomotive != null ? headLocomotive.capacity : 0,
+            maintenance = headLocomotive != null ? headLocomotive.maintenance : 0f
+        };
+
+        foreach (var wagon in wagons)
+        {
+            if (wagon == null)
+                continue;
+
+            data.wagons.Add(new TrainConsistUnitSaveData { capacity = wagon.capacity, maintenance = wagon.maintenance });
+        }
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int index = (int)resource;
+
+            data.cargo.Add(new ResourceAmountSaveData { resourceType = index, amount = cargo != null && index < cargo.Length ? cargo[index].Amount : 0 });
+
+            var queueData = new ResourceDestinationQueueSaveData { resourceType = index };
+
+            if (cargoDestinations != null && index < cargoDestinations.Length && cargoDestinations[index] != null)
+                queueData.destinationStationIDs.AddRange(cargoDestinations[index]);
+
+            data.cargoDestinations.Add(queueData);
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(TrainConsistSaveData data)
+    {
+        if (data == null)
+            return;
+
+        headLocomotive = new TrainConsistUnit(data.headLocomotive != null ? data.headLocomotive.capacity : 0, data.headLocomotive != null ? data.headLocomotive.maintenance : 0f);
+
+        wagons.Clear();
+        if (data.wagons != null)
+            foreach (var wagonData in data.wagons)
+                wagons.Add(new TrainConsistUnit(wagonData.capacity, wagonData.maintenance));
+
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+
+        cargo = new ResourceAmount[resourceTypes.Length];
+        for (int i = 0; i < resourceTypes.Length; i++)
+            cargo[i] = new ResourceAmount(resourceTypes[i], 0);
+
+        if (data.cargo != null)
+        {
+            foreach (var cargoData in data.cargo)
+            {
+                if (cargoData.resourceType < 0 || cargoData.resourceType >= cargo.Length)
+                    continue;
+
+                cargo[cargoData.resourceType] = new ResourceAmount((ResourceType)cargoData.resourceType, cargoData.amount);
+            }
+        }
+
+        cargoDestinations = new Queue<int>[resourceTypes.Length];
+        for (int i = 0; i < resourceTypes.Length; i++)
+            cargoDestinations[i] = new Queue<int>();
+
+        if (data.cargoDestinations != null)
+        {
+            foreach (var queueData in data.cargoDestinations)
+            {
+                if (queueData.resourceType < 0 || queueData.resourceType >= cargoDestinations.Length)
+                    continue;
+
+                cargoDestinations[queueData.resourceType] = new Queue<int>(queueData.destinationStationIDs ?? new List<int>());
+            }
+        }
+
+        RecalculateCapacity();
+    }
+    #endregion
 }
