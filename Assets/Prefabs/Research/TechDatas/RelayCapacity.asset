@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d26ca93a79bd7364ebfa4e2a9cc7a0b7, type: 3}
-  m_Name: TrainSpeed
+  m_Name: RelayCapacity
   m_EditorClassIdentifier: Assembly-CSharp::TechData
-  ID: 1
-  techName: Train Speed 1
-  techDescription: "Train Speed 1 \u0423\u043B\u0443\u0447\u0448\u0435\u043D\u0438\u0435
-    \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0438"
-  researchCost: 500
-  prerequisites: 
-  technologyTreePos: {x: 0, y: 0}
+  ID: 11
+  techName: Relay Capacity
+  techDescription: 
+  techImage: {fileID: 0}
+  researchCost: 250
+  prerequisites: 0e0000000a000000
+  technologyTreePos: {x: 1000, y: -340}

@@ -12,7 +12,7 @@ public class ResearchDebugInput : MonoBehaviour
         {
             if (kb.rKey.wasPressedThisFrame)
             {
-                ResearchSystem.Instance.AddResearchPoints(pointsPerClick);
+                ResearchIncomeSystem.Instance.AddGlobalResearchPerHour(2);
             }
         }
 

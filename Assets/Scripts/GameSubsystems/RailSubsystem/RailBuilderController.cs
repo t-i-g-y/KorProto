@@ -103,7 +103,7 @@ public class RailBuilderController : MonoBehaviour
 
             TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(start);
 
-            if ((terrain == TerrainType.Lake && !canBuildLakeCrossing) || (terrain == TerrainType.Sea && !canBuildSeaTunnel) || (terrain == TerrainType.Mountain && !canBuildMountainTunnel))
+            if (!ResearchModifierSystem.Instance.CanBuildOn(terrain))
                 return;
 
             isBuilding = true;
@@ -138,12 +138,8 @@ public class RailBuilderController : MonoBehaviour
             if (!HexCoords.AreNeighbors(ghostPath[^1], cur))
                 return;
 
-            bool canStep =
-                (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) ||
-                (IsWater(cur) &&
-                ((terrain == TerrainType.Lake && canBuildLakeCrossing) ||
-                (terrain == TerrainType.Sea && canBuildSeaTunnel)));
-
+            //bool canStep = (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) || (IsWater(cur) && ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel)));
+            bool canStep = ResearchModifierSystem.Instance.CanBuildOn(terrain);
             if (!canStep)
                 return;
 
@@ -243,10 +239,6 @@ public class RailBuilderController : MonoBehaviour
         awaitingConfirm = false;
         lengthPanel.SetActive(false);
     }
-
-    public void AllowLakeCrossing(bool allowed) => canBuildLakeCrossing = allowed;
-    public void AllowMountainTunnel(bool allowed) => canBuildMountainTunnel = allowed;
-    public void AllowSeaTunnel(bool allowed) => canBuildSeaTunnel = allowed;
 
     private void UpdateLengthUI()
     {

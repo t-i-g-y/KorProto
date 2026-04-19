@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d26ca93a79bd7364ebfa4e2a9cc7a0b7, type: 3}
-  m_Name: LakeCrossing
+  m_Name: TrainWagonMaintenance
   m_EditorClassIdentifier: Assembly-CSharp::TechData
-  ID: 3
-  techName: "\u041C\u043E\u0441\u0442 \u0447\u0435\u0440\u0435\u0437 \u0440\u0435\u043A\u0443/\u043E\u0437\u0435\u0440\u043E"
-  techDescription: "\u041C\u043E\u0441\u0442 \u0447\u0435\u0440\u0435\u0437 \u0440\u0435\u043A\u0443/\u043E\u0437\u0435\u0440\u043E "
+  ID: 6
+  techName: Train Wagon Maintenance
+  techDescription: 
   techImage: {fileID: 0}
-  researchCost: 500
+  researchCost: 200
   prerequisites: 
-  technologyTreePos: {x: 150, y: 0}
+  technologyTreePos: {x: 200, y: -170}

@@ -31,6 +31,10 @@ public class RailEconomySystem : MonoBehaviour
         {
             TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(cell);
             float modifier = config.GetConstructionModifier(terrain);
+
+            if (ResearchModifierSystem.Instance != null)
+                modifier *= ResearchModifierSystem.Instance.GetTerrainConstructionMultiplier(terrain);
+
             total += config.BaseConstructionCostPerCell * modifier;
         }
 
@@ -69,6 +73,9 @@ public class RailEconomySystem : MonoBehaviour
             }
         }
 
+        if (ResearchModifierSystem.Instance != null)
+            total *= ResearchModifierSystem.Instance.RailConnectionIncomeResearchMultiplier;
+
         Debug.Log($"Rail profit for {line.ID}: {total}");
         return total;
     }
@@ -97,6 +104,10 @@ public class RailEconomySystem : MonoBehaviour
         {
             TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(cell);
             float modifier = config.GetMaintenanceModifier(terrain);
+
+            if (ResearchModifierSystem.Instance != null)
+                modifier *= ResearchModifierSystem.Instance.GetTerrainRailMaintenanceMultiplier(terrain);
+
             total += config.BaseLineMaintenancePerCell * modifier;
         }
 
@@ -108,7 +119,11 @@ public class RailEconomySystem : MonoBehaviour
         if (train == null || config == null)
             return 0f;
 
-        return config.BaseTrainMaintenanceFlat;
+        float trainMaintenance = config.BaseTrainMaintenanceFlat;
+        if (ResearchModifierSystem.Instance != null)
+            trainMaintenance *= ResearchModifierSystem.Instance.TrainMaintenanceResearchMultiplier;
+
+        return trainMaintenance;
     }
 
     public float CalculateTotalMaintenance()

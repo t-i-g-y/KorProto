@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -22,6 +23,8 @@ public class TimeManager : MonoBehaviour
     private int hourCounter = 0;
     public float TimeMultiplier => timeMultiplier;
     public float CustomDeltaTime => Time.deltaTime * timeMultiplier;
+    public event Action<int, int> OnHourChanged;
+    public event Action<int> OnDayChanged;
     public int DayCounter
     {
         get => dayCounter;
@@ -30,11 +33,6 @@ public class TimeManager : MonoBehaviour
             if (value != dayCounter)
             {
                 dayCounter = value > 0 ? value : 0;
-                if (FinanceSystem.Instance != null)
-                {
-                    FinanceSystem.Instance.CurrentDay = dayCounter;
-                    FinanceSystem.Instance.DayBalance = 0;
-                }
             }
             
         }
@@ -115,28 +113,26 @@ public class TimeManager : MonoBehaviour
 
         if (accumulatedSeconds >= secondsPerHour)
         {
-            int hours = Mathf.FloorToInt(accumulatedSeconds / secondsPerHour);
-            accumulatedSeconds -= hours * secondsPerHour;
-            HourCounter += hours;
-            dayHourText.text = DayHourString;
+            int hoursPassed = Mathf.FloorToInt(accumulatedSeconds / secondsPerHour);
+            accumulatedSeconds -= hoursPassed * secondsPerHour;
+
+            for (int i = 0; i < hoursPassed; i++)
+                AdvanceOneHour();
         }
-        /*
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (timeMultiplier == 0f) 
-                Unpause();
-            else 
-                Pause();
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha1)) 
-            SetSpeed(1f);
-        if (Input.GetKeyDown(KeyCode.Alpha2)) 
-            SetSpeed(2f);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) 
-            SetSpeed(5f);
-        */
     }
 
+    private void AdvanceOneHour()
+    {
+        int oldDay = dayCounter;
+
+        HourCounter += 1;
+        RefreshUI();
+
+        OnHourChanged?.Invoke(dayCounter, hourCounter);
+
+        if (dayCounter != oldDay)
+            OnDayChanged?.Invoke(dayCounter);
+    }
     private void RefreshUI()
     {
         if (dayHourText != null)

@@ -63,24 +63,30 @@ public class ResearchSystem : MonoBehaviour
         return tech != null && tech.IsUnlocked;
     }
 
-    public bool CanResearch(TechID id)
+public bool CanResearch(TechID id)
+{
+    Technology tech = GetTechnology(id);
+
+    if (tech == null)
     {
-        Technology tech = GetTechnology(id);
-
-        if (tech == null)
-            return false;
-
-        if (tech.IsUnlocked)
-            return false;
-
-        foreach (TechID prereqId in tech.Data.prerequisites)
-        {
-            if (!IsUnlocked(prereqId))
-                return false;
-        }
-
-        return true;
+        Debug.Log($"CanResearch fail: {id} tech missing");
+        return false;
     }
+
+    if (tech.IsUnlocked)
+        return false;
+
+    foreach (TechID prereqId in tech.Data.prerequisites)
+    {
+        if (!IsUnlocked(prereqId))
+        {
+            Debug.Log($"{id} blocked by prereq {prereqId}");
+            return false;
+        }
+    }
+
+    return true;
+}
 
     public bool StartResearch(TechID id)
     {
@@ -150,23 +156,10 @@ public class ResearchSystem : MonoBehaviour
 
     private void ApplyUnlockEffect(TechID id)
     {
-        if (railBuilder == null)
+        if (ResearchModifierSystem.Instance == null)
             return;
 
-        switch (id)
-        {
-            case TechID.LakeCrossingUnlock:
-                railBuilder.AllowLakeCrossing(true);
-                break;
-
-            case TechID.MountainTunnelUnlock:
-                railBuilder.AllowMountainTunnel(true);
-                break;
-
-            case TechID.SeaTunnelUnlock:
-                railBuilder.AllowSeaTunnel(true);
-                break;
-        }
+        ResearchModifierSystem.Instance.ApplyTechnology(id);
     }
 
     private void ReapplyUnlockedEffects()
@@ -180,6 +173,8 @@ public class ResearchSystem : MonoBehaviour
         }
     }
 
+
+
     #region save subsystem
     public ResearchSystemSaveData GetSaveData()
     {
@@ -188,9 +183,9 @@ public class ResearchSystem : MonoBehaviour
         if (currentResearch != null && currentResearch.Data != null)
             data.currentResearchID = (int)currentResearch.Data.ID;
 
-        foreach (var pair in technologies)
+        foreach (var technology in technologies)
         {
-            Technology tech = pair.Value;
+            Technology tech = technology.Value;
             if (tech == null || tech.Data == null)
                 continue;
 

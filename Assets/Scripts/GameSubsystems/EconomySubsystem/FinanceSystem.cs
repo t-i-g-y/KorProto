@@ -85,6 +85,10 @@ public class FinanceSystem : MonoBehaviour
             return 0f;
 
         float value = economyConfig.GetCargoValue(resource);
+
+        if (ResearchModifierSystem.Instance != null)
+            value *= ResearchModifierSystem.Instance.CargoSaleIncomeResearchMultiplier;
+
         return value;
     }
     
