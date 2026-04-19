@@ -27,6 +27,7 @@ public class EconomyManager : MonoBehaviour
 
     private void Update()
     {
+        /*
         if (TimeManager.Instance == null)
             return;
 
@@ -36,8 +37,37 @@ public class EconomyManager : MonoBehaviour
 
         lastProcessedDay = currentDay;
         TickEconomy();
+        */
     }
 
+    private void Start()
+    {
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.OnDayChanged += HandleDayChanged;
+    }
+
+    private void OnDestroy()
+    {
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.OnDayChanged -= HandleDayChanged;
+    }
+    private void OnEnable()
+    {
+        
+    }
+
+    private void OnDisable()
+    {
+        
+    }
+
+    private void HandleDayChanged(int newDay)
+    {
+        if (newDay == lastProcessedDay)
+            return;
+        lastProcessedDay = newDay;
+        TickEconomy();
+    }
     public void TickEconomy()
     {
         if (stationEconomySystem != null)
@@ -61,4 +91,24 @@ public class EconomyManager : MonoBehaviour
         stationEconomySystem.RefreshStationData();
         globalDemandSystem.SyncDemandRequests(stationEconomySystem.Stations);
     }
+
+
+    #region save subsystem
+    public EconomyManagerSaveData GetSaveData()
+    {
+        return new EconomyManagerSaveData
+        {
+            lastProcessedDay = lastProcessedDay
+        };
+    }
+
+    public void LoadFromSaveData(EconomyManagerSaveData data)
+    {
+        if (data == null)
+            return;
+
+        lastProcessedDay = data.lastProcessedDay;
+        ForceResync();
+    }
+    #endregion
 }

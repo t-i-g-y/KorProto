@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d26ca93a79bd7364ebfa4e2a9cc7a0b7, type: 3}
-  m_Name: MountainTunnel
+  m_Name: LoadUnloadSpeed
   m_EditorClassIdentifier: Assembly-CSharp::TechData
-  ID: 4
-  techName: "\u0413\u043E\u0440\u043D\u044B\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
-  techDescription: "\u0413\u043E\u0440\u043D\u044B\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C"
+  ID: 10
+  techName: Load Unload Speed
+  techDescription: 
   techImage: {fileID: 0}
-  researchCost: 1000
-  prerequisites: 03000000
-  technologyTreePos: {x: 600, y: 150}
+  researchCost: 250
+  prerequisites: 06000000
+  technologyTreePos: {x: 600, y: -170}

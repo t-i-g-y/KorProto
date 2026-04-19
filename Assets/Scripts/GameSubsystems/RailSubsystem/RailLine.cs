@@ -34,4 +34,11 @@ public class RailLine
         AssignedTrain.gameObject.SetActive(false);
         AssignedTrain.ChangeSpeed(0f);
     }
+
+    #region save subsystem
+    public RailLineSaveData GetSaveData()
+    {
+        return new RailLineSaveData { ID = ID, cells = new List<Vector3Int>(Cells)};
+    }
+    #endregion
 }

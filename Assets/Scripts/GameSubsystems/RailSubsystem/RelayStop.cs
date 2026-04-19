@@ -128,4 +128,78 @@ public class RelayStop : MonoBehaviour
                 storedCargo[i] = new ResourceAmount(resourceTypes[i], Mathf.Max(0, storedCargo[i].Amount));
         }
     }
+
+    #region save subsystem
+    public RelayStopSaveData GetSaveData()
+    {
+        EnsureStorage();
+
+        var data = new RelayStopSaveData
+        {
+            ID = id,
+            cell = cell,
+            maintenancePerDay = maintenancePerDay
+        };
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int index = (int)resource;
+
+            data.storedCargo.Add(new ResourceAmountSaveData
+            {
+                resourceType = index,
+                amount = storedCargo != null && index < storedCargo.Length ? storedCargo[index].Amount : 0
+            });
+
+            var queueData = new ResourceDestinationQueueSaveData { resourceType = index };
+
+            if (cargoDestinations != null && index < cargoDestinations.Length && cargoDestinations[index] != null)
+                queueData.destinationStationIDs.AddRange(cargoDestinations[index]);
+
+            data.cargoDestinations.Add(queueData);
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(RelayStopSaveData data)
+    {
+        if (data == null)
+            return;
+
+        Initialize(data.ID, data.cell, data.maintenancePerDay);
+
+        ResourceType[] resourceTypes = (ResourceType[])Enum.GetValues(typeof(ResourceType));
+
+        storedCargo = new ResourceAmount[resourceTypes.Length];
+        for (int i = 0; i < resourceTypes.Length; i++)
+            storedCargo[i] = new ResourceAmount(resourceTypes[i], 0);
+
+        if (data.storedCargo != null)
+        {
+            foreach (var cargoData in data.storedCargo)
+            {
+                if (cargoData.resourceType < 0 || cargoData.resourceType >= storedCargo.Length)
+                    continue;
+
+                storedCargo[cargoData.resourceType] = new ResourceAmount((ResourceType)cargoData.resourceType, cargoData.amount);
+            }
+        }
+
+        cargoDestinations = new Queue<int>[resourceTypes.Length];
+        for (int i = 0; i < resourceTypes.Length; i++)
+            cargoDestinations[i] = new Queue<int>();
+
+        if (data.cargoDestinations != null)
+        {
+            foreach (var queueData in data.cargoDestinations)
+            {
+                if (queueData.resourceType < 0 || queueData.resourceType >= cargoDestinations.Length)
+                    continue;
+
+                cargoDestinations[queueData.resourceType] = new Queue<int>(queueData.destinationStationIDs ?? new List<int>());
+            }
+        }
+    }
+    #endregion
 }

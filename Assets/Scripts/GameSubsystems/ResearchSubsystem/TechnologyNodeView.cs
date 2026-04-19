@@ -7,13 +7,17 @@ public class TechnologyNodeView : MonoBehaviour
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text costText;
     [SerializeField] private Image techImage;
+    [SerializeField] private Image backgroundImage;
     [SerializeField] private Image progressFill;
     [SerializeField] private Button selectButton;
     [SerializeField] private GameObject lockedPrereqMarker;
     [SerializeField] private GameObject unlockedCheckmark;
     [SerializeField] private GameObject researchingHighlight;
-    private bool isCompactMode;
+    [SerializeField] private GameObject availableGlow;
+    [SerializeField] private GameObject researchingPulse;
+    [SerializeField] private CanvasGroup nodeCanvasGroup;
 
+    private bool isCompactMode;
     private Technology boundTechnology;
     public Technology BoundTechnology => boundTechnology;
 
@@ -57,7 +61,7 @@ public class TechnologyNodeView : MonoBehaviour
     {
         if (boundTechnology == null)
             return;
-
+        
         titleText.text = boundTechnology.Data.techName;
         costText.text = $"{boundTechnology.Progress}/{boundTechnology.Data.researchCost}";
         progressFill.fillAmount = boundTechnology.ProgressNormalized;
@@ -70,10 +74,30 @@ public class TechnologyNodeView : MonoBehaviour
         
         bool canResearch = ResearchSystem.Instance.CanResearch(boundTechnology.Data.ID);
 
-        selectButton.interactable = canResearch && !boundTechnology.IsUnlocked;
-        lockedPrereqMarker.SetActive(!canResearch && !boundTechnology.IsUnlocked);
-        unlockedCheckmark.SetActive(boundTechnology.IsUnlocked);
-        researchingHighlight.SetActive(boundTechnology.IsResearching);
+        bool isUnlocked = boundTechnology.IsUnlocked;
+        bool isResearching = boundTechnology.IsResearching;
+        bool isLocked = !canResearch && !isUnlocked;
+
+        if (selectButton != null)
+            selectButton.interactable = canResearch && !isUnlocked;
+
+        if (lockedPrereqMarker != null)
+            lockedPrereqMarker.SetActive(isLocked);
+
+        if (unlockedCheckmark != null)
+            unlockedCheckmark.SetActive(isUnlocked);
+
+        if (researchingHighlight != null)
+            researchingHighlight.SetActive(isResearching);
+
+        if (availableGlow != null)
+            availableGlow.SetActive(canResearch && !isUnlocked && !isResearching);
+
+        if (researchingPulse != null)
+            researchingPulse.SetActive(isResearching);
+
+        if (nodeCanvasGroup != null)
+            nodeCanvasGroup.alpha = isLocked ? 0.55f : 1f;
     }
 
     public void SetCompactMode(bool compactMode)

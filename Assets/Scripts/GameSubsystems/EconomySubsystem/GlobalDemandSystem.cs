@@ -354,6 +354,64 @@ public class GlobalDemandSystem : MonoBehaviour
 
         return true;
     }
+
+    #region 
+    public GlobalDemandSystemSaveData GetSaveData()
+    {
+        EnsureTransitInitialized();
+
+        var data = new GlobalDemandSystemSaveData();
+
+        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
+        {
+            int index = (int)resource;
+
+            foreach (var stationTransitAmount in stationTransitAmounts[index])
+            {
+                int stationID = stationTransitAmount.Key;
+                int amount = stationTransitAmount.Value;
+
+                var entry = new StationTransitSaveData
+                {
+                    stationID = stationID,
+                    resourceType = index,
+                    amount = amount
+                };
+
+                if (stationTransitDestinations[index].TryGetValue(stationID, out Queue<int> queue) && queue != null)
+                    entry.destinationStationIDs.AddRange(queue);
+
+                data.stationTransit.Add(entry);
+            }
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(GlobalDemandSystemSaveData data)
+    {
+        EnsureTransitInitialized();
+
+        for (int i = 0; i < stationTransitAmounts.Length; i++)
+        {
+            stationTransitAmounts[i].Clear();
+            stationTransitDestinations[i].Clear();
+        }
+
+        if (data == null || data.stationTransit == null)
+            return;
+
+        foreach (var entry in data.stationTransit)
+        {
+            int index = entry.resourceType;
+            if (index < 0 || index >= stationTransitAmounts.Length)
+                continue;
+
+            stationTransitAmounts[index][entry.stationID] = entry.amount;
+            stationTransitDestinations[index][entry.stationID] = new Queue<int>(entry.destinationStationIDs ?? new List<int>());
+        }
+    }
+    #endregion
 }
 
 public struct CargoCandidate

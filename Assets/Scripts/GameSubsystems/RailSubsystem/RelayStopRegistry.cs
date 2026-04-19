@@ -7,9 +7,10 @@ public class RelayStopRegistry : MonoBehaviour
 
     [SerializeField] private RelayStop relayPrefab;
     [SerializeField] private float defaultMaintenancePerDay = 1f;
+    [SerializeField] private Grid parentGrid;
 
     private readonly Dictionary<Vector3Int, RelayStop> relaysByCell = new();
-    private int nextId = 0;
+    private int nextID = 0;
 
     public IEnumerable<RelayStop> AllRelays => relaysByCell.Values;
 
@@ -38,7 +39,7 @@ public class RelayStopRegistry : MonoBehaviour
                 continue;
 
             relaysByCell[relay.Cell] = relay;
-            nextId = Mathf.Max(nextId, relay.ID + 1);
+            nextID = Mathf.Max(nextID, relay.ID + 1);
         }
     }
 
@@ -59,7 +60,7 @@ public class RelayStopRegistry : MonoBehaviour
         }
 
         RelayStop relay = Instantiate(relayPrefab, worldCoord, Quaternion.identity);
-        relay.Initialize(nextId++, cell, defaultMaintenancePerDay);
+        relay.Initialize(nextID++, cell, defaultMaintenancePerDay);
         relaysByCell[cell] = relay;
         return relay;
     }
@@ -78,4 +79,59 @@ public class RelayStopRegistry : MonoBehaviour
         Destroy(relay.gameObject);
         return true;
     }
+
+    #region save subsystem
+    public RelayStopRegistrySaveData GetSaveData()
+    {
+        var data = new RelayStopRegistrySaveData
+        {
+            nextID = nextID
+        };
+
+        foreach (var relay in relaysByCell.Values)
+        {
+            if (relay == null)
+                continue;
+
+            data.relays.Add(relay.GetSaveData());
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(RelayStopRegistrySaveData data)
+    {
+        ClearAll();
+
+        if (data == null)
+            return;
+
+        if (relayPrefab == null)
+        {
+            Debug.LogError(" relayPrefab is not assigned RelayStopRegistry");
+            return;
+        }
+
+        nextID = data.nextID;
+
+        foreach (var relayData in data.relays)
+        {
+            Vector3Int cell = relayData.cell;
+            Vector3 worldPos = parentGrid.GetCellCenterWorld(cell);
+
+            RelayStop relay = Instantiate(relayPrefab, worldPos, Quaternion.identity);
+            relay.LoadFromSaveData(relayData);
+
+            relaysByCell[cell] = relay;
+        }
+    }
+    public void ClearAll()
+    {
+        foreach (var relay in relaysByCell.Values)
+            if (relay != null)
+                Destroy(relay.gameObject);
+
+        relaysByCell.Clear();
+    }
+    #endregion
 }

@@ -16,9 +16,23 @@ public class TechData : ScriptableObject
 public enum TechID
 {
     None,
-    TrainSpeedImprovement1,
-    TrainSpeedImprovement2,
-    LakeCrossingUnlock,
-    MountainTunnelUnlock,
-    SeaTunnelUnlock
+
+    GrasslandModifier,
+    FreshwaterBridge,
+    MountainTunnel,
+    SeaTunnel,
+    RailMaintenance,
+    TrainWagonMaintenance,
+    TrainSpeed,
+    CapacityUpgrade,
+    CapacityUpgrade2,
+    LoadUnloadSpeed,
+    RelayCapacity,
+    RailConnectionIncome,
+    LoadSpeedLocalResearch,
+    CargoSaleIncome,
+    RailConnectionIncome2,
+    AllMaintenance,
+    LocalResearch,
+    GlobalResearch
 }

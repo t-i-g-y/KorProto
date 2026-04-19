@@ -63,24 +63,30 @@ public class ResearchSystem : MonoBehaviour
         return tech != null && tech.IsUnlocked;
     }
 
-    public bool CanResearch(TechID id)
+public bool CanResearch(TechID id)
+{
+    Technology tech = GetTechnology(id);
+
+    if (tech == null)
     {
-        Technology tech = GetTechnology(id);
-
-        if (tech == null)
-            return false;
-
-        if (tech.IsUnlocked)
-            return false;
-
-        foreach (TechID prereqId in tech.Data.prerequisites)
-        {
-            if (!IsUnlocked(prereqId))
-                return false;
-        }
-
-        return true;
+        Debug.Log($"CanResearch fail: {id} tech missing");
+        return false;
     }
+
+    if (tech.IsUnlocked)
+        return false;
+
+    foreach (TechID prereqId in tech.Data.prerequisites)
+    {
+        if (!IsUnlocked(prereqId))
+        {
+            Debug.Log($"{id} blocked by prereq {prereqId}");
+            return false;
+        }
+    }
+
+    return true;
+}
 
     public bool StartResearch(TechID id)
     {
@@ -150,22 +156,79 @@ public class ResearchSystem : MonoBehaviour
 
     private void ApplyUnlockEffect(TechID id)
     {
-        if (railBuilder == null)
+        if (ResearchModifierSystem.Instance == null)
             return;
 
-        switch (id)
+        ResearchModifierSystem.Instance.ApplyTechnology(id);
+    }
+
+    private void ReapplyUnlockedEffects()
+    {
+        foreach (var pair in technologies)
         {
-            case TechID.LakeCrossingUnlock:
-                railBuilder.AllowLakeCrossing(true);
-                break;
+            Technology tech = pair.Value;
 
-            case TechID.MountainTunnelUnlock:
-                railBuilder.AllowMountainTunnel(true);
-                break;
-
-            case TechID.SeaTunnelUnlock:
-                railBuilder.AllowSeaTunnel(true);
-                break;
+            if (tech != null && tech.IsUnlocked && tech.Data != null)
+                ApplyUnlockEffect(tech.Data.ID);
         }
     }
+
+
+
+    #region save subsystem
+    public ResearchSystemSaveData GetSaveData()
+    {
+        var data = new ResearchSystemSaveData();
+
+        if (currentResearch != null && currentResearch.Data != null)
+            data.currentResearchID = (int)currentResearch.Data.ID;
+
+        foreach (var technology in technologies)
+        {
+            Technology tech = technology.Value;
+            if (tech == null || tech.Data == null)
+                continue;
+
+            data.technologies.Add(new TechnologySaveData
+            {
+                techID = (int)tech.Data.ID,
+                progress = tech.Progress,
+                isUnlocked = tech.IsUnlocked,
+                isResearching = tech.IsResearching
+            });
+        }
+
+        return data;
+    }
+
+    public void LoadFromSaveData(ResearchSystemSaveData data)
+    {
+        if (data == null)
+            return;
+
+        BuildRuntimeTechnologies();
+
+        currentResearch = null;
+
+        foreach (var savedTech in data.technologies)
+        {
+            TechID ID = (TechID)savedTech.techID;
+
+            Technology tech = GetTechnology(ID);
+            if (tech == null)
+                continue;
+
+            tech.LoadFromSaveData(savedTech.progress, savedTech.isUnlocked, savedTech.isResearching);
+        }
+
+        if (data.currentResearchID.HasValue)
+        {
+            TechID currentID = (TechID)data.currentResearchID.Value;
+            currentResearch = GetTechnology(currentID);
+        }
+
+        ReapplyUnlockedEffects();
+        OnResearchStateChanged?.Invoke();
+    }
+    #endregion
 }
