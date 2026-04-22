@@ -12,6 +12,8 @@ public class EconomyConfig : ScriptableObject
     public float BaseConstructionCostPerCell = 10f;
     public float BaseLineMaintenanceFlat = 1f;
     public float BaseLineMaintenancePerCell = 0.25f;
+    public float BaseTrainPurchaseCost = 50f;
+    public float BaseTrainRepairCost = 10f;
     public float BaseTrainMaintenanceFlat = 2f;
     public float RefundRatio = 0.5f;
 
@@ -30,11 +32,11 @@ public class EconomyConfig : ScriptableObject
     public float MissingCargoValue = 5f;
 
     public TextAsset TerrainModifierCsv;
-public int TerrainModifierConstructionRow = 2;
-public int TerrainModifierMaintenanceRow = 3;
-public int TerrainModifierStartColumn = 1;
-public float MissingConstructionModifier = 1f;
-public float MissingMaintenanceModifier = 1f;
+    public int TerrainModifierConstructionRow = 2;
+    public int TerrainModifierMaintenanceRow = 3;
+    public int TerrainModifierStartColumn = 1;
+    public float MissingConstructionModifier = 1f;
+    public float MissingMaintenanceModifier = 1f;
 
     private void OnValidate()
     {

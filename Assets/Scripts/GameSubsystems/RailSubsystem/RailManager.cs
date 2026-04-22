@@ -91,8 +91,10 @@ public class RailManager : MonoBehaviour
             InternalDeselect(line);
             LineDeselected?.Invoke(line);
         }
-
-        TrainManager.Instance.RemoveTrain(line.AssignedTrain);
+        
+        for (int i = line.AssignedTrains.Count - 1; i >= 0; i--)
+            TrainManager.Instance.RemoveTrain(line.AssignedTrains[i]);
+        
         if (!Lines.Remove(line))
             Lines.RemoveAll(l => l.ID == line.ID);
 
@@ -156,6 +158,22 @@ public class RailManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    public List<RailLine> GetLinesAtCell(Vector3Int cell)
+    {
+        List<RailLine> result = new();
+
+        foreach (var line in Lines)
+        {
+            if (line == null)
+                continue;
+
+            if (line.Cells.Contains(cell))
+                result.Add(line);
+        }
+
+        return result;
     }
 
     public void PrintLines()
@@ -252,9 +270,9 @@ public class RailManager : MonoBehaviour
                 if (visited.Contains(edge.To))
                     continue;
 
-                Train train = edge.Line.AssignedTrain;
+                List<Train> trains = edge.Line.AssignedTrains;
 
-                float speed = train == null ? 0f : edge.Line.AssignedTrain.Speed;
+                float speed = trains == null ? 0f : edge.Line.GetRoutingSpeed();
                 
                 float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
 

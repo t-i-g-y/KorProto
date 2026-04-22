@@ -13,6 +13,7 @@ public class Train : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
+    [SerializeField] private Color brokenColor = Color.darkGray;
     [SerializeField] private CargoVisualizer cargoVisualizer;
     [SerializeField] private Vector3 incomePopupOffset = new Vector3(0f, 0.6f, 0f);
 
@@ -27,11 +28,16 @@ public class Train : MonoBehaviour
     [SerializeField] private int currentTileIndex = 0;
     [SerializeField] private bool atStation = false;
     [SerializeField] private bool isOperational = true;
+    [SerializeField] private bool isBroken = false;
 
     [Header("Consist")]
     [SerializeField] private TrainConsist attachedTrainConsist;
     [SerializeField] private TrainWagonView wagonViewPrefab;
     [SerializeField] private List<TrainWagonView> attachedWagonViews = new();
+
+    [Header("Breaking")]
+    [SerializeField] private float breakChancePerSecond = 0.002f;
+    [SerializeField] private int repairCost = 10;
 
     [Header("Config")]
     [SerializeField] private TrainConfig config;
@@ -42,12 +48,18 @@ public class Train : MonoBehaviour
     private float headDistance;
     private bool isDwelling;
     private int speedLevel = 1;
+    private bool hasReportedBrokenState;
 
     public RailLine AssignedLine => assignedLine;
     public bool IsOperational => isOperational;
     public TrainConsist AttachedTrainConsist => attachedTrainConsist;
     public int SpeedLevel => speedLevel;
     public float Speed => speed;
+    public bool IsBroken => isBroken;
+    public int RepairCost => repairCost;
+
+    public static event Action<Train> TrainBroken;
+    public static event Action<Train> TrainRepaired;
 
     private void Awake()
     {
@@ -74,6 +86,7 @@ public class Train : MonoBehaviour
     {
         CleanupWagonViews();
     }
+
     private void CleanupWagonViews()
     {
         for (int i = 0; i < attachedWagonViews.Count; i++)
@@ -85,10 +98,10 @@ public class Train : MonoBehaviour
         attachedWagonViews.Clear();
     }
 
-    public void Initialize(RailLine line, int trainId, TrainConfig trainConfig)
+    public void Initialize(RailLine line, int trainID, TrainConfig trainConfig)
     {
         assignedLine = line;
-        id = trainId;
+        id = trainID;
         config = trainConfig;
         RefreshOperationalState();
     }
@@ -130,9 +143,10 @@ public class Train : MonoBehaviour
 
     public void HandleTrainMovement()
     {
-        if (!isOperational || isDwelling || routeCoords == null || routeCoords.Count < 2)
+        if (!isOperational || isBroken || isDwelling || routeCoords == null || routeCoords.Count < 2)
             return;
 
+        TryBreak();
         float delta = speed * TimeManager.Instance.CustomDeltaTime * dir;
         headDistance += delta;
 
@@ -400,7 +414,7 @@ public class Train : MonoBehaviour
     public void SetSelectedVisual(bool isSelected)
     {
         if (spriteRenderer != null)
-            spriteRenderer.color = isSelected ? selectedColor : normalColor;
+            spriteRenderer.color = isSelected ? selectedColor : (isBroken ? brokenColor : normalColor);
         
         for (int i = 0; i < attachedWagonViews.Count; i++)
         {
@@ -574,6 +588,39 @@ public class Train : MonoBehaviour
         currentTileIndex = routeTiles.Count - 1;
     }
 
+    private void TryBreak()
+    {
+        if (isBroken || config == null || TimeManager.Instance == null)
+            return;
+
+        float chance = config.BreakChangePerSecond * TimeManager.Instance.CustomDeltaTime;
+
+        if (UnityEngine.Random.value < chance)
+        {
+            isBroken = true;
+            SetSelectedVisual(TrainManager.Instance != null && TrainManager.Instance.SelectedTrain == this);
+
+            if (!hasReportedBrokenState)
+            {
+                hasReportedBrokenState = true;
+                TrainBroken?.Invoke(this);
+            }
+        }
+    }
+
+    public void Repair()
+    {
+        if (!isBroken)
+            return;
+
+        isBroken = false;
+        SetSelectedVisual(false);
+
+        hasReportedBrokenState = false;
+        SetSpeedLevel(speedLevel);
+        TrainRepaired?.Invoke(this);
+    }
+    
     #region save subsytem
     public TrainSaveData GetSaveData()
     {
@@ -587,6 +634,7 @@ public class Train : MonoBehaviour
             headDistance = headDistance,
             atStation = atStation,
             isOperational = isOperational,
+            isBroken = isBroken,
             consist = attachedTrainConsist != null ? attachedTrainConsist.GetSaveData() : null
         };
     }
@@ -602,6 +650,8 @@ public class Train : MonoBehaviour
         headDistance = data.headDistance;
         atStation = data.atStation;
         isOperational = data.isOperational;
+        isBroken = data.isBroken;
+        hasReportedBrokenState = isBroken;
 
         SetSpeedLevel(data.speedLevel);
 
