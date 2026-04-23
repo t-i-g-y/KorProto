@@ -40,9 +40,8 @@ public class RailBuilderController : MonoBehaviour
     private readonly List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
     private bool awaitingConfirm = false;
-    private bool canBuildLakeCrossing = false;
-    private bool canBuildMountainTunnel = false;
-    private bool canBuildSeaTunnel = false;
+    private List<RailLine> cycledLines = new();
+    private int cycledLineIndex = 0;
 
     private void Awake()
     {
@@ -86,6 +85,8 @@ public class RailBuilderController : MonoBehaviour
         if (mouse == null)
             return;
 
+        HandleLineCycling();
+        
         if (mouse.rightButton.wasPressedThisFrame)
             Debug.Log(MouseToCell());
 
@@ -208,12 +209,7 @@ public class RailBuilderController : MonoBehaviour
         painter.PaintRails(line, false);
 
         CreateRelayIfNeeded(line.End);
-
-        if (trainPrefab)
-        {
-            var train = Instantiate(trainPrefab);
-            TrainManager.Instance.RegisterTrain(train, line);
-        }
+        TrainManager.Instance.TryCreateTrainOnLine(line);
 
         ClearHighlight();
         confirmHolder.SetActive(false);
@@ -269,4 +265,31 @@ public class RailBuilderController : MonoBehaviour
     }
 
     public void ChangeMaxLineLength(int delta) => maxLineLength += delta;
+
+    private void HandleLineCycling()
+    {
+        Vector3Int cell = MouseToCell();
+        cycledLines = RailManager.Instance.GetLinesAtCell(cell);
+
+        if (cycledLines.Count == 0)
+            return;
+
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            cycledLineIndex--;
+            if (cycledLineIndex < 0)
+                cycledLineIndex = cycledLines.Count - 1;
+
+            RailManager.Instance.ToggleSelection(cycledLines[cycledLineIndex]);
+        }
+
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            cycledLineIndex++;
+            if (cycledLineIndex >= cycledLines.Count)
+                cycledLineIndex = 0;
+
+            RailManager.Instance.ToggleSelection(cycledLines[cycledLineIndex]);
+        }
+    }
 }

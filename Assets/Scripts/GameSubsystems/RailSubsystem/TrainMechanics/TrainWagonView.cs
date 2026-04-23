@@ -7,6 +7,7 @@ public class TrainWagonView : MonoBehaviour
     [SerializeField] private float wagonSpacing = 0.9f;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
+    [SerializeField] private Color brokenColor = Color.darkGray;
 
     private Train assignedTrain;
     private int wagonIndex;
@@ -44,6 +45,6 @@ public class TrainWagonView : MonoBehaviour
     public void SetSelectedVisual(bool isSelected)
     {
         if (spriteRenderer != null)
-            spriteRenderer.color = isSelected ? selectedColor : normalColor;
+            spriteRenderer.color = isSelected ? selectedColor : (assignedTrain.IsBroken ? brokenColor : normalColor);
     }
 }

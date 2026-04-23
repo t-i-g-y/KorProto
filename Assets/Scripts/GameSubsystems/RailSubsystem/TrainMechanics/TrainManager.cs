@@ -47,7 +47,7 @@ public class TrainManager : MonoBehaviour
         train.Initialize(line, nextID, trainConfig);
         train.SetPath(tiles, coords);
         Trains.Add(train);
-        line.AssignedTrain = train;
+        line.AddTrain(train);
         
         train.RefreshOperationalState();
         train.TryHandleInitialEndpointLoad();
@@ -56,19 +56,25 @@ public class TrainManager : MonoBehaviour
         nextID++;
     }
 
+    public bool TryCreateTrainOnLine(RailLine line)
+    {
+        if (line == null || !line.CanAddTrain)
+            return false;
+
+        Train train = Instantiate(trainPrefab);
+        RegisterTrain(train, line);
+        return true;
+    }
+
     public void RemoveTrain(Train train)
     {
         if (train == null)
             return;
 
-        if (SelectedTrain == train)
-        {
-            InternalDeselect(train);
-            TrainDeselected?.Invoke(train);
-        }
+        ForceDeselect(train);
 
         if (train.AssignedLine != null)
-            train.AssignedLine.AssignedTrain = null;
+            train.AssignedLine.RemoveTrain(train);
 
         Trains.Remove(train);
         TrainRemoved?.Invoke(train);
@@ -97,6 +103,21 @@ public class TrainManager : MonoBehaviour
         SelectedTrain = train;
         train.SetSelectedVisual(true);
         TrainSelected?.Invoke(train);
+        PanToTrain(train);
+    }
+
+    public List<Train> GetBrokenTrains()
+    {
+        List<Train> brokenTrains = new();
+
+        for (int i = 0; i < Trains.Count; i++)
+        {
+            Train train = Trains[i];
+            if (train != null && train.IsBroken)
+                brokenTrains.Add(train);
+        }
+
+        return brokenTrains;
     }
 
     private void InternalDeselect(Train train)
@@ -110,7 +131,28 @@ public class TrainManager : MonoBehaviour
             SelectedTrain = null;
     }
 
-    #region 
+    public void ForceDeselect(Train train)
+    {
+        if (train == null || SelectedTrain != train)
+            return;
+
+        InternalDeselect(train);
+        TrainDeselected?.Invoke(train);
+    }
+
+    public void PanToTrain(Train train)
+    {
+        if (train == null || Camera.main == null)
+            return;
+
+        Vector3 panPosition = Camera.main.transform.position;
+        panPosition.x = train.transform.position.x;
+        panPosition.y = train.transform.position.y;
+        Camera.main.transform.position = panPosition;
+        Camera.main.orthographicSize = 2f;
+    }
+
+    #region save sbusystem
     public TrainManagerSaveData GetSaveData()
     {
         var data = new TrainManagerSaveData { nextID = nextID };
@@ -157,7 +199,7 @@ public class TrainManager : MonoBehaviour
             train.LoadFromSaveData(trainData);
 
             Trains.Add(train);
-            line.AssignedTrain = train;
+            line.AddTrain(train);
 
             train.RefreshOperationalState();
 
@@ -175,12 +217,14 @@ public class TrainManager : MonoBehaviour
             }
         }
     }
+
     public void ClearAll()
     {
         if (SelectedTrain != null)
         {
-            InternalDeselect(SelectedTrain);
-            TrainDeselected?.Invoke(SelectedTrain);
+            Train old = SelectedTrain;
+            InternalDeselect(old);
+            TrainDeselected?.Invoke(old);
         }
 
         for (int i = Trains.Count - 1; i >= 0; i--)
@@ -190,7 +234,7 @@ public class TrainManager : MonoBehaviour
                 continue;
 
             if (train.AssignedLine != null)
-                train.AssignedLine.AssignedTrain = null;
+                train.AssignedLine.RemoveTrain(train);
 
             TrainRemoved?.Invoke(train);
             Destroy(train.gameObject);
