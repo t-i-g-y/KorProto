@@ -593,7 +593,7 @@ public class Train : MonoBehaviour
         if (isBroken || config == null || TimeManager.Instance == null)
             return;
 
-        float chance = config.BreakChangePerSecond * TimeManager.Instance.CustomDeltaTime;
+        float chance = config.BreakChancePerSecond * TimeManager.Instance.CustomDeltaTime;
 
         if (UnityEngine.Random.value < chance)
         {

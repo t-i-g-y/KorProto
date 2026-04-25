@@ -56,10 +56,10 @@ public class TrainRepairPanel : MonoBehaviour
             return;
 
         if (titleText != null)
-            titleText.text = $"Train #{train.ID} needs repair";
+            titleText.text = $"Train#{train.ID} сломался!";
 
         if (costText != null)
-            costText.text = $"Repair: {train.RepairCost:0} | Sell: {50}";
+            costText.text = $"Починить: {train.RepairCost:0} | Продать: {50}";
     }
 
     public void Hide()

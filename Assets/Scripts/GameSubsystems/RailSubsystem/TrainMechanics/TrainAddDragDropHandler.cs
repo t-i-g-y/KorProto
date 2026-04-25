@@ -77,7 +77,7 @@ public class TrainAddDragDropHandler : MonoBehaviour, IBeginDragHandler, IDragHa
         dragVisual = null;
 
         if (targetLine != null)
-            TrainManager.Instance.TryCreateTrainOnLine(targetLine);
+            TrainManager.Instance.TryCreateTrain(targetLine);
 
         if (targetLine != null && RailManager.Instance.SelectedLine == targetLine)
             RailManager.Instance.ToggleSelection(targetLine);

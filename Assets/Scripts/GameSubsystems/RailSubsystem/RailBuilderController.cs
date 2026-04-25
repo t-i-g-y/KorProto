@@ -22,9 +22,6 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private TileBase railTile;
     [SerializeField] private TileBase ghostTile;
 
-    [Header("Trains")]
-    [SerializeField] private Train trainPrefab;
-
     [Header("Build Limits")]
     [SerializeField] private int maxLineLength = 8;
 
@@ -37,7 +34,7 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private TMP_Text lengthText;
     [SerializeField] private Vector3 lengthPanelOffset = new Vector3(0f, 40f, 0f);
 
-    private readonly List<Vector3Int> ghostPath = new();
+    private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
     private bool awaitingConfirm = false;
     private List<RailLine> cycledLines = new();
@@ -209,7 +206,7 @@ public class RailBuilderController : MonoBehaviour
         painter.PaintRails(line, false);
 
         CreateRelayIfNeeded(line.End);
-        TrainManager.Instance.TryCreateTrainOnLine(line);
+        TrainManager.Instance.TryCreateTrain(line);
 
         ClearHighlight();
         confirmHolder.SetActive(false);

@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public class GameSaveData
+public class SubsystemSaveData
 {
     public RailAnchorRegistrySaveData anchorData;
     public RailManagerSaveData railData;

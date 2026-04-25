@@ -10,7 +10,6 @@ public class GlobalDemandSystem : MonoBehaviour
     private Dictionary<int, int>[] stationTransitAmounts;
     private Dictionary<int, Queue<int>>[] stationTransitDestinations;
     [SerializeField] private ResourceAmount[] outstandingTotals;
-    [SerializeField] private ResourceAmount[] stationTransitTotals;
     [SerializeField] private bool debugRouting;
     [SerializeField] private bool debugTransit;
 
@@ -121,92 +120,6 @@ public class GlobalDemandSystem : MonoBehaviour
             if (amount <= 0)
                 break;
         }
-    }
-
-    public bool TryGetForwardableCargo(
-    Vector3Int currentCell,
-    Vector3Int twinnedCell,
-    int freeCapacity,
-    Func<ResourceType, int> getAvailableAmount,
-    Func<ResourceType, float> getUnitValue,
-    out Dictionary<ResourceType, int> cargoToLoad)
-    {
-        cargoToLoad = new Dictionary<ResourceType, int>();
-
-        if (freeCapacity <= 0 || RailManager.Instance == null)
-            return false;
-
-        List<CargoCandidate> candidates = new();
-
-        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
-        {
-            int available = getAvailableAmount(resource);
-            if (available <= 0)
-                continue;
-
-            if (!demandRequests.TryGetValue(resource, out var requests) || requests.Count == 0)
-                continue;
-
-            foreach (DemandRequest request in requests)
-            {
-
-                StationRegistry.TryGet(request.StationID, out Station destination);
-                if (destination == null)
-                    continue;
-
-                if (!RailManager.Instance.TryGetShortestPathFirstHop(currentCell, destination.Cell, out Vector3Int firstHop, out float routeCost))
-                    continue;
-
-                if (firstHop != twinnedCell)
-                    continue;
-
-                int takeable = Mathf.Min(available, request.Amount);
-                if (takeable <= 0)
-                    continue;
-
-                candidates.Add(new CargoCandidate
-                {
-                    Resource = resource,
-                    DestinationStationID = request.StationID,
-                    Amount = takeable,
-                    RouteCost = routeCost,
-                    UnitValue = getUnitValue(resource)
-                });
-            }
-        }
-
-        candidates.Sort((a, b) =>
-        {
-            int costCompare = a.RouteCost.CompareTo(b.RouteCost);
-            if (costCompare != 0) return costCompare;
-            return b.UnitValue.CompareTo(a.UnitValue);
-        });
-
-        Dictionary<ResourceType, int> reservedByResource = new();
-        int remainingCapacity = freeCapacity;
-
-        foreach (CargoCandidate candidate in candidates)
-        {
-            if (remainingCapacity <= 0)
-                break;
-
-            int alreadyReserved = reservedByResource.TryGetValue(candidate.Resource, out int reserved) ? reserved : 0;
-
-            int stillAvailable = getAvailableAmount(candidate.Resource) - alreadyReserved;
-            if (stillAvailable <= 0)
-                continue;
-
-            int take = Mathf.Min(candidate.Amount, stillAvailable, remainingCapacity);
-            if (take <= 0)
-                continue;
-
-            reservedByResource[candidate.Resource] = alreadyReserved + take;
-            cargoToLoad[candidate.Resource] = cargoToLoad.TryGetValue(candidate.Resource, out int current) ? current + take : take;
-
-            remainingCapacity -= take;
-        }
-
-        return cargoToLoad.Count > 0;
     }
 
     public bool TryGetBestDestinationForResource(Vector3Int currentCell, Vector3Int twinnedCell, ResourceType resource, out int destinationStationID)
@@ -412,13 +325,4 @@ public class GlobalDemandSystem : MonoBehaviour
         }
     }
     #endregion
-}
-
-public struct CargoCandidate
-{
-    public ResourceType Resource;
-    public int DestinationStationID;
-    public int Amount;
-    public float RouteCost;
-    public float UnitValue;
 }

@@ -19,11 +19,11 @@ public class ResearchModifierSystem : MonoBehaviour
     public float CargoCapacityResearchMultiplier { get; private set; } = 1f;
     public int CargoCapacityBonus { get; private set; } = 0;
     public int WagonUpgradeTiers { get; private set; } = 0;
-    private readonly HashSet<TerrainType> buildableTerrains = new();
-    private readonly Dictionary<TerrainType, float> terrainConstructionResearchMultipliers = new();
-    private readonly Dictionary<TerrainType, float> terrainRailMaintenanceResearchMultipliers = new();
-    private readonly Dictionary<TerrainType, float> terrainRelayMaintenanceResearchMultipliers = new();
-    private readonly Dictionary<TerrainType, float> terrainRelayCapacityResearchMultipliers = new();
+    private HashSet<TerrainType> buildableTerrains = new();
+    private Dictionary<TerrainType, float> terrainConstructionResearchMultipliers = new();
+    private Dictionary<TerrainType, float> terrainRailMaintenanceResearchMultipliers = new();
+    private Dictionary<TerrainType, float> terrainRelayMaintenanceResearchMultipliers = new();
+    private Dictionary<TerrainType, float> terrainRelayCapacityResearchMultipliers = new();
 
     private void Awake()
     {
@@ -85,9 +85,9 @@ public class ResearchModifierSystem : MonoBehaviour
         }
     }
 
-    public void ApplyTechnology(TechID id)
+    public void ApplyTechnology(TechID ID)
     {
-        switch (id)
+        switch (ID)
         {
             case TechID.GrasslandModifier:
                 terrainConstructionResearchMultipliers[TerrainType.Grassland] = 0.9f;

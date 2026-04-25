@@ -51,15 +51,6 @@ public class EconomyManager : MonoBehaviour
         if (TimeManager.Instance != null)
             TimeManager.Instance.OnDayChanged -= HandleDayChanged;
     }
-    private void OnEnable()
-    {
-        
-    }
-
-    private void OnDisable()
-    {
-        
-    }
 
     private void HandleDayChanged(int newDay)
     {
