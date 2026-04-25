@@ -63,30 +63,30 @@ public class ResearchSystem : MonoBehaviour
         return tech != null && tech.IsUnlocked;
     }
 
-public bool CanResearch(TechID id)
-{
-    Technology tech = GetTechnology(id);
-
-    if (tech == null)
+    public bool CanResearch(TechID id)
     {
-        Debug.Log($"CanResearch fail: {id} tech missing");
-        return false;
-    }
+        Technology tech = GetTechnology(id);
 
-    if (tech.IsUnlocked)
-        return false;
-
-    foreach (TechID prereqId in tech.Data.prerequisites)
-    {
-        if (!IsUnlocked(prereqId))
+        if (tech == null)
         {
-            Debug.Log($"{id} blocked by prereq {prereqId}");
+            Debug.Log($"CanResearch fail: {id} tech missing");
             return false;
         }
-    }
 
-    return true;
-}
+        if (tech.IsUnlocked)
+            return false;
+
+        foreach (TechID prereqId in tech.Data.prerequisites)
+        {
+            if (!IsUnlocked(prereqId))
+            {
+                Debug.Log($"{id} blocked by prereq {prereqId}");
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public bool StartResearch(TechID id)
     {
@@ -154,12 +154,12 @@ public bool CanResearch(TechID id)
         OnResearchStateChanged?.Invoke();
     }
 
-    private void ApplyUnlockEffect(TechID id)
+    private void ApplyUnlockEffect(TechID ID)
     {
         if (ResearchModifierSystem.Instance == null)
             return;
 
-        ResearchModifierSystem.Instance.ApplyTechnology(id);
+        ResearchModifierSystem.Instance.ApplyTechnology(ID);
     }
 
     private void ReapplyUnlockedEffects()

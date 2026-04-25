@@ -56,7 +56,7 @@ public class TrainManager : MonoBehaviour
         nextID++;
     }
 
-    public bool TryCreateTrainOnLine(RailLine line)
+    public bool TryCreateTrain(RailLine line)
     {
         if (line == null || !line.CanAddTrain)
             return false;

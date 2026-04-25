@@ -30,19 +30,9 @@ public class ResearchIncomeSystem : MonoBehaviour
         if (TimeManager.Instance != null)
             TimeManager.Instance.OnHourChanged -= HandleHourChanged;
     }
-    private void OnEnable()
-    {
-        
-    }
-
-    private void OnDisable()
-    {
-        
-    }
 
     private void HandleHourChanged(int day, int hour)
     {
-        Debug.Log($"Handling day {day} hour {hour} change");
         TickResearchIncome();
     }
 

@@ -109,8 +109,7 @@ public class EconomyConfig : ScriptableObject
         }
 
         List<List<string>> table = ParseCsv(AttributeRelationCsv.text);
-        StationAttributeType[] types =
-            (StationAttributeType[])Enum.GetValues(typeof(StationAttributeType));
+        StationAttributeType[] types = (StationAttributeType[])Enum.GetValues(typeof(StationAttributeType));
 
         for (int rowIndex = 0; rowIndex < types.Length; rowIndex++)
         {
@@ -219,8 +218,7 @@ public class EconomyConfig : ScriptableObject
 
     private void SyncAttributeRelationMatrix()
     {
-        StationAttributeType[] types =
-            (StationAttributeType[])Enum.GetValues(typeof(StationAttributeType));
+        StationAttributeType[] types = (StationAttributeType[])Enum.GetValues(typeof(StationAttributeType));
 
         foreach (StationAttributeType source in types)
         {

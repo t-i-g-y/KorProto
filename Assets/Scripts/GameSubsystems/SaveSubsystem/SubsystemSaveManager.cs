@@ -1,13 +1,13 @@
 using System.IO;
 using UnityEngine;
 
-public class SaveManager : MonoBehaviour
+public class SubsystemSaveManager : MonoBehaviour
 {
     private string path => Application.persistentDataPath + "/save.json";
 
     public void SaveGame()
     {
-        GameSaveData data = new GameSaveData
+        SubsystemSaveData data = new SubsystemSaveData
         {
             anchorData = RailAnchorRegistry.Instance.GetSaveData(),
             railData = RailManager.Instance.GetSaveData(),
@@ -35,7 +35,7 @@ public class SaveManager : MonoBehaviour
         }
 
         string json = File.ReadAllText(path);
-        GameSaveData data = JsonUtility.FromJson<GameSaveData>(json);
+        SubsystemSaveData data = JsonUtility.FromJson<SubsystemSaveData>(json);
 
         if (data == null)
         {

@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BrokenTrainNotifierUI : MonoBehaviour
+public class TrainBreakNotifier : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private GameObject root;

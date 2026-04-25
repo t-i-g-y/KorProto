@@ -31,55 +31,6 @@ public class TrainConsist : MonoBehaviour
     }
     
 
-    public bool TryLoadOne(Station station, bool onlyLoadRequested)
-    {
-        if (station == null)
-            return false;
-
-        if (usedCapacity >= totalCapacity)
-            return false;
-
-        foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
-        {
-            if (!station.Produces(resource))
-                continue;
-
-            if (onlyLoadRequested && !GlobalDemandSystem.Instance.HasOutstandingDemand(resource))
-                continue;
-
-            if (station.GetSupplyAmount(resource) <= 0)
-                continue;
-
-            if (!station.TryTakeSupply(resource, 1))
-                continue;
-
-            cargo[(int)resource].Amount++;
-            usedCapacity++;
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool TryLoadOneFromStation(Station station, ResourceType resource)
-    {
-        if (station == null || usedCapacity >= totalCapacity)
-            return false;
-
-        if (!station.Produces(resource))
-            return false;
-
-        if (station.GetSupplyAmount(resource) <= 0)
-            return false;
-
-        if (!station.TryTakeSupply(resource, 1))
-            return false;
-
-        cargo[(int)resource].Amount++;
-        usedCapacity++;
-        return true;
-    }
-
     public bool TryLoadOneFromStation(Station station, ResourceType resource, int destinationStationID)
     {
         if (station == null || usedCapacity >= totalCapacity)
@@ -101,22 +52,8 @@ public class TrainConsist : MonoBehaviour
         usedCapacity++;
 
         if (debugCargo)
-                Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID}");
+            Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID}");
                 
-        return true;
-    }
-
-    public bool TryLoadOneFromRelay(RelayStop relay, ResourceType resource)
-    {
-        if (relay == null || usedCapacity >= totalCapacity)
-            return false;
-
-        int taken = relay.Take(resource, 1);
-        if (taken <= 0)
-            return false;
-
-        cargo[(int)resource].Amount += taken;
-        usedCapacity += taken;
         return true;
     }
 
@@ -141,7 +78,7 @@ public class TrainConsist : MonoBehaviour
         usedCapacity++;
 
         if (debugCargo)
-                Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID} at relayID={relay.ID}");
+            Debug.Log($"[TrainConsist] loaded resource={resource} for stationID={destinationStationID} at relayID={relay.ID}");
 
         return true;
     }
@@ -170,37 +107,6 @@ public class TrainConsist : MonoBehaviour
             Debug.Log($"[TrainConsist] load resource={resource} at stationID={station.StationID} for destination={actualDestination}");
 
         return true;
-    }
-
-    public CargoSaleResult TryUnloadOne(Station station)
-    {
-        if (station == null)
-            return CargoSaleResult.None;
-
-        foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
-        {
-            if (!station.Consumes(resource))
-                continue;
-
-            int resourceIndex = (int)resource;
-            if (cargo[resourceIndex].Amount <= 0)
-                continue;
-
-            if (station.GetDemandAmount(resource) <= 0)
-                continue;
-
-            cargo[resourceIndex].Amount--;
-            usedCapacity--;
-
-            float soldValue = FinanceSystem.Instance != null ? FinanceSystem.Instance.SellResource(resource) : 0f;
-
-            station.TrySatisfyDemand(resource, 1);
-            GlobalDemandSystem.Instance?.FulfillDemand(station.StationID, resource, 1);
-
-            return new CargoSaleResult(true, resource, soldValue);
-        }
-
-        return CargoSaleResult.None;
     }
 
     public CargoSaleResult TryUnloadOneToStation(Station station)
