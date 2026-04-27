@@ -7,7 +7,6 @@ public class ResearchSystem : MonoBehaviour
     public static ResearchSystem Instance { get; private set; }
     [SerializeField] private List<TechData> techDatabase = new();
     private readonly Dictionary<TechID, Technology> technologies = new();
-    [SerializeField] private RailBuilderController railBuilder;
     private Technology currentResearch;
     public Technology CurrentResearch => currentResearch;
     public event Action OnResearchStateChanged;
@@ -24,6 +23,7 @@ public class ResearchSystem : MonoBehaviour
         }
 
         Instance = this;
+        DontDestroyOnLoad(gameObject);
         BuildRuntimeTechnologies();
     }
 
@@ -182,6 +182,8 @@ public class ResearchSystem : MonoBehaviour
 
         if (currentResearch != null && currentResearch.Data != null)
             data.currentResearchID = (int)currentResearch.Data.ID;
+        else
+            data.currentResearchID = -1;
 
         foreach (var technology in technologies)
         {
@@ -221,10 +223,17 @@ public class ResearchSystem : MonoBehaviour
             tech.LoadFromSaveData(savedTech.progress, savedTech.isUnlocked, savedTech.isResearching);
         }
 
-        if (data.currentResearchID.HasValue)
+        if (data.currentResearchID != -1)
         {
-            TechID currentID = (TechID)data.currentResearchID.Value;
-            currentResearch = GetTechnology(currentID);
+            TechID currentID = (TechID)data.currentResearchID;
+            Technology loadedCurrentResearch = GetTechnology(currentID);
+
+            if (loadedCurrentResearch != null && !loadedCurrentResearch.IsUnlocked)
+            {
+                currentResearch = loadedCurrentResearch;
+                currentResearch.StartResearch();
+                OnResearchStarted?.Invoke(currentResearch);
+            }
         }
 
         ReapplyUnlockedEffects();

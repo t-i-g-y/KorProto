@@ -195,7 +195,7 @@ public class Train : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(stationDwellSeconds);
+        yield return WaitForGameSeconds(stationDwellSeconds);
 
         if (attachedTrainConsist != null)
         {
@@ -210,13 +210,13 @@ public class Train : MonoBehaviour
                 IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
 
                 popupStackIndex++;
-                yield return new WaitForSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec);
             }
 
             while (attachedTrainConsist.TryUnloadOneToStationTransit(station))
             {
                 RefreshCargoVisuals();
-                yield return new WaitForSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
@@ -244,7 +244,7 @@ public class Train : MonoBehaviour
 
                         freeCapacity--;
                         RefreshCargoVisuals();
-                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }
                     while (freeCapacity > 0 && station.GetSupplyAmount(resource) > 0)
                     {
@@ -256,7 +256,7 @@ public class Train : MonoBehaviour
 
                         freeCapacity--;
                         RefreshCargoVisuals();
-                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }
                 }
             }
@@ -279,14 +279,14 @@ public class Train : MonoBehaviour
         isDwelling = true;
         atStation = true;
 
-        yield return new WaitForSeconds(stationDwellSeconds);
+        yield return WaitForGameSeconds(stationDwellSeconds);
 
         if (attachedTrainConsist != null && relay != null)
         {
             while (attachedTrainConsist.TryUnloadOneToRelay(relay))
             {
                 RefreshCargoVisuals();
-                yield return new WaitForSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
@@ -314,7 +314,7 @@ public class Train : MonoBehaviour
 
                         freeCapacity--;
                         RefreshCargoVisuals();
-                        yield return new WaitForSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }
                 }
             }
@@ -332,6 +332,18 @@ public class Train : MonoBehaviour
         }
     }
 
+    private IEnumerator WaitForGameSeconds(float seconds)
+    {
+        float remaining = Mathf.Max(0f, seconds);
+
+        while (remaining > 0f)
+        {
+            if (!TimeManager.Instance.IsPaused)
+                remaining -= Time.deltaTime;
+
+            yield return null;
+        }
+    }
     public void ChangeSpeed(float multiplier)
     {
         speed = Mathf.Max(0f, speed * multiplier);

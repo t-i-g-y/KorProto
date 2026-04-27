@@ -23,6 +23,7 @@ public class TimeManager : MonoBehaviour
     private int hourCounter = 0;
     public float TimeMultiplier => timeMultiplier;
     public float CustomDeltaTime => Time.deltaTime * timeMultiplier;
+    public bool IsPaused => timeMultiplier == 0f;
     public event Action<int, int> OnHourChanged;
     public event Action<int> OnDayChanged;
     public int DayCounter
@@ -87,6 +88,9 @@ public class TimeManager : MonoBehaviour
 
     private void Update()
     {
+        if (MenuPauseState.IsPaused)
+            return;
+
         var kb = Keyboard.current;
         if (kb != null)
         {
