@@ -30,6 +30,7 @@ public enum GameEventEffectType
     RepairContextTrain,
     RepairRandomBrokenTrain,
     RemoveRandomTrain,
+    RemoveContextRailLine,
     ChangeAllTrainSpeed,
     AddDemandToRandomStation,
     AddSupplyToRandomStation,
@@ -94,6 +95,9 @@ public class GameEventEffect
             case GameEventEffectType.RemoveRandomTrain:
                 TryRemoveRandomTrain();
                 break;
+            case GameEventEffectType.RemoveContextRailLine:
+                TryRemoveContextRailLine(context);
+                break;
             case GameEventEffectType.ChangeAllTrainSpeed:
                 ChangeAllTrainSpeed(floatAmount);
                 break;
@@ -121,6 +125,7 @@ public class GameEventEffect
             GameEventEffectType.RepairContextTrain => "ремонт затронутого поезда",
             GameEventEffectType.RepairRandomBrokenTrain => "ремонт случайного сломанного поезда",
             GameEventEffectType.RemoveRandomTrain => "списание случайного поезда",
+            GameEventEffectType.RemoveContextRailLine => "удаление затронутого пути и поездов на нем",
             GameEventEffectType.ChangeAllTrainSpeed => $"скорость всех поездов x{floatAmount:0.##}",
             GameEventEffectType.AddDemandToRandomStation => $"+{Mathf.Max(0, intAmount)} спроса на {resourceType}",
             GameEventEffectType.AddSupplyToRandomStation => $"+{Mathf.Max(0, intAmount)} запаса {resourceType}",
@@ -149,6 +154,14 @@ public class GameEventEffect
 
         int index = UnityEngine.Random.Range(0, TrainManager.Instance.Trains.Count);
         TrainManager.Instance.RemoveTrain(TrainManager.Instance.Trains[index]);
+    }
+
+    private static void TryRemoveContextRailLine(EventWorldContext context)
+    {
+        if (context == null || context.RailLine == null || RailManager.Instance == null)
+            return;
+
+        RailManager.Instance.RemoveLine(context.RailLine);
     }
 
     private static void ChangeAllTrainSpeed(float multiplier)

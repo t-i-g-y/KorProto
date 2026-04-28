@@ -189,6 +189,30 @@ public class EventManager : MonoBehaviour
             CreateRuntimeOption("Поставить в очередь", "Оставить поезд сломанным и не тратить бюджет прямо сейчас.", GameEventEffectType.None, 0f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
+            "builtin_route_permit_dispute_4",
+            "Спор за полосу отвода",
+            "После прокладки длинного участка владельцы земли требуют компенсацию. Можно заплатить и оставить путь или разобрать спорный участок.",
+            GameEventTriggerType.RailLineCountReached,
+            4f,
+            GameEventConsequenceMode.PlayerChoice,
+            false,
+            0,
+            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.AdjustBalance, -35f, 0),
+            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemoveContextRailLine, 0f, 0)));
+
+        runtimeDefinitions.Add(EventDefinition.CreateRuntime(
+            "builtin_route_permit_dispute_8",
+            "Повторный спор за полосу отвода",
+            "Расширение сети снова вызвало претензии владельцев земли. Можно заплатить и оставить путь или разобрать спорный участок.",
+            GameEventTriggerType.RailLineCountReached,
+            8f,
+            GameEventConsequenceMode.PlayerChoice,
+            false,
+            0,
+            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.AdjustBalance, -35f, 0),
+            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemoveContextRailLine, 0f, 0)));
+
+        runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_city_request",
             "Городской заказ",
             "Одна из станций сформировала дополнительный заказ на поставки.",
