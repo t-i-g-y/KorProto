@@ -14,16 +14,26 @@ public class EventInventoryEntryUI : MonoBehaviour
             return;
 
         if (titleText != null)
+        {
+            titleText.color = Color.black;
             titleText.text = entry.title;
+        }
 
         if (timeText != null)
+        {
+            timeText.color = Color.black;
             timeText.text = $"День {entry.day}, {entry.hour:00}:00";
+        }
 
         if (descriptionText != null)
+        {
+            descriptionText.color = Color.black;
             descriptionText.text = entry.description;
+        }
 
         if (consequenceText != null)
         {
+            consequenceText.color = Color.black;
             string consequence = string.IsNullOrWhiteSpace(entry.consequenceEffects)
                 ? entry.consequenceDescription
                 : entry.consequenceEffects;

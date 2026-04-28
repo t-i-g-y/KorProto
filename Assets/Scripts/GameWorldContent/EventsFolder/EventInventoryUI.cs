@@ -137,6 +137,7 @@ public class EventInventoryUI : MonoBehaviour
             return;
 
         text.textWrappingMode = TextWrappingModes.Normal;
+        text.color = Color.black;
         text.text = $"День {entry.day}, {entry.hour:00}:00 - {entry.title}\n{entry.consequenceTitle}: {entry.consequenceEffects}";
     }
 

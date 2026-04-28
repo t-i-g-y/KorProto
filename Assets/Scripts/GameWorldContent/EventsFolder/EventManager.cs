@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class EventManager : MonoBehaviour
 {
+    private const int MaxHistoryEntries = 3;
+
     [SerializeField] private List<EventDefinition> eventDefinitions = new();
     [SerializeField] private bool useBuiltInEventsWhenEmpty = true;
-    [SerializeField] private int maxHistoryEntries = 100;
 
     private readonly List<EventDefinition> runtimeDefinitions = new();
     private readonly List<EventHistoryEntry> history = new();
@@ -130,6 +131,7 @@ public class EventManager : MonoBehaviour
         }
 
         history.AddRange(data.history);
+        TrimHistory();
 
         foreach (string eventId in data.firedEventIds)
         {
@@ -390,11 +392,15 @@ public class EventManager : MonoBehaviour
     {
         EventHistoryEntry entry = EventHistoryEntry.FromRuntime(runtime);
         history.Add(entry);
-
-        while (history.Count > Mathf.Max(1, maxHistoryEntries))
-            history.RemoveAt(0);
+        TrimHistory();
 
         EventRecorded?.Invoke(entry);
+    }
+
+    private void TrimHistory()
+    {
+        while (history.Count > MaxHistoryEntries)
+            history.RemoveAt(0);
     }
 
     private EventWorldContext BuildContext(GameEventTriggerType triggerType)
