@@ -64,6 +64,12 @@ public class RailManager : MonoBehaviour
         UpdateIslandCollapseTimers();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+    
     public RailLine CreateLine(List<Vector3Int> cells)
     {
         var line = new RailLine(nextID++, cells);

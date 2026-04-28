@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.0723989">
+  <test-suite type="TestSuite" id="1016" name="KorProto" fullname="KorProto" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.072399" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1009" name="GameSubsystemTests.dll" fullname="C:/Users/obrie/UnityProjects/KorProto/Library/ScriptAssemblies/GameSubsystemTests.dll" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.047991" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44256" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="HexCoordTesting" fullname="HexCoordTesting" classname="HexCoordTesting" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.045832" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1006" name="AreNeighboursTest" fullname="HexCoordTesting.AreNeighboursTest" methodname="AreNeighboursTest" classname="HexCoordTesting" runstate="Runnable" seed="517714329" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.012742" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="DirIndexTest" fullname="HexCoordTesting.DirIndexTest" methodname="DirIndexTest" classname="HexCoordTesting" runstate="Runnable" seed="474359370" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.008541" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1008" name="DirIndexTestNotNeighbour" fullname="HexCoordTesting.DirIndexTestNotNeighbour" methodname="DirIndexTestNotNeighbour" classname="HexCoordTesting" runstate="Runnable" seed="246822890" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.002586" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Impossible dir=(5, 5, 0)
+]]></output>
+        </test-case>
+        <test-case id="1004" name="NeighbourTestEvenRow" fullname="HexCoordTesting.NeighbourTestEvenRow" methodname="NeighbourTestEvenRow" classname="HexCoordTesting" runstate="Runnable" seed="1506391325" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.001628" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1005" name="NeighbourTestOddRow" fullname="HexCoordTesting.NeighbourTestOddRow" methodname="NeighbourTestOddRow" classname="HexCoordTesting" runstate="Runnable" seed="1658039209" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.000342" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1002" name="OffsetAxialConversionTestEvenRow" fullname="HexCoordTesting.OffsetAxialConversionTestEvenRow" methodname="OffsetAxialConversionTestEvenRow" classname="HexCoordTesting" runstate="Runnable" seed="1037136458" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.000151" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1003" name="OffsetAxialConversionTestOddRow" fullname="HexCoordTesting.OffsetAxialConversionTestOddRow" methodname="OffsetAxialConversionTestOddRow" classname="HexCoordTesting" runstate="Runnable" seed="1620769298" result="Passed" start-time="2026-04-27 22:01:08Z" end-time="2026-04-27 22:01:08Z" duration="0.000136" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/obrie/AppData/LocalLow/DefaultCompany/KorProto\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -22,6 +22,11 @@ public class TrainConsist : MonoBehaviour
 
     private void Awake()
     {
+        Initialize();
+    }
+    
+    public void Initialize()
+    {
         if (headLocomotive == null)
             headLocomotive = new TrainConsistUnit(defaultHeadCapacity, defaultHeadMaintenance);
 
@@ -29,7 +34,6 @@ public class TrainConsist : MonoBehaviour
         EnsureDestinationQueuesInitialized();
         RecalculateCapacity();
     }
-    
 
     public bool TryLoadOneFromStation(Station station, ResourceType resource, int destinationStationID)
     {
