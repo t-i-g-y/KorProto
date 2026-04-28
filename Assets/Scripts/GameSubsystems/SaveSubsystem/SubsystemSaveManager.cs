@@ -19,7 +19,8 @@ public class SubsystemSaveManager : MonoBehaviour
             economyData = EconomyManager.Instance.GetSaveData(),
             researchData = ResearchSystem.Instance.GetSaveData(),
             eventData = EventManager.Instance != null ? EventManager.Instance.GetSaveData() : null,
-            questData = QuestManager.Instance != null ? QuestManager.Instance.GetSaveData() : null
+            questData = QuestManager.Instance != null ? QuestManager.Instance.GetSaveData() : null,
+            artifactData = ArtifactManager.Instance != null ? ArtifactManager.Instance.GetSaveData() : null
         };
 
         string json = JsonUtility.ToJson(data, true);
@@ -77,6 +78,9 @@ public class SubsystemSaveManager : MonoBehaviour
 
         if (data.questData != null && QuestManager.Instance != null)
             QuestManager.Instance.LoadFromSaveData(data.questData);
+
+        if (data.artifactData != null && ArtifactManager.Instance != null)
+            ArtifactManager.Instance.LoadFromSaveData(data.artifactData);
 
         Debug.Log("game loaded");
     }

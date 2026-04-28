@@ -14,4 +14,5 @@ public class SubsystemSaveData
     public ResearchSystemSaveData researchData;
     public EventManagerSaveData eventData;
     public QuestManagerSaveData questData;
+    public ArtifactManagerSaveData artifactData;
 }
