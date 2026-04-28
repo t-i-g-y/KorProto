@@ -13,4 +13,5 @@ public class SubsystemSaveData
     public EconomyManagerSaveData economyData;
     public ResearchSystemSaveData researchData;
     public EventManagerSaveData eventData;
+    public QuestManagerSaveData questData;
 }
