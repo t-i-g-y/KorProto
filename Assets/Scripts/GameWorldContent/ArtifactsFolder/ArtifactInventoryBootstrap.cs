@@ -44,20 +44,20 @@ public static class ArtifactInventoryBootstrap
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        Button toggleButton = CreateButton(root.transform, "ArtifactInventoryButton", "Артефакты", new Vector2(150f, 30f));
+        Button toggleButton = CreateInventoryIconButton(root.transform, "ArtifactInventoryButton", new Vector2(58f, 58f));
         RectTransform toggleRect = toggleButton.GetComponent<RectTransform>();
         toggleRect.anchorMin = new Vector2(1f, 1f);
         toggleRect.anchorMax = new Vector2(1f, 1f);
         toggleRect.pivot = new Vector2(1f, 1f);
-        toggleRect.anchoredPosition = new Vector2(-250f, -265f);
+        toggleRect.anchoredPosition = new Vector2(-420f, -80f);
 
         GameObject panel = CreatePanel(root.transform);
         Button closeButton = CreateCloseButton(panel.transform);
-        Transform grid = CreateGrid(panel.transform, out TMP_Text emptyText);
+        Transform grid = CreateGrid(panel.transform);
         GameObject detailPanel = CreateDetailPanel(panel.transform, out Image detailIcon, out TMP_Text detailTitle, out TMP_Text detailStory);
 
         inventoryInstance = root.GetComponent<ArtifactInventoryUI>();
-        inventoryInstance.Configure(toggleButton, closeButton, panel, grid, detailPanel, detailIcon, detailTitle, detailStory, emptyText);
+        inventoryInstance.Configure(toggleButton, closeButton, panel, grid, detailPanel, detailIcon, detailTitle, detailStory);
     }
 
     private static Button CreateButton(Transform parent, string name, string label, Vector2 size)
@@ -87,6 +87,37 @@ public static class ArtifactInventoryBootstrap
         text.text = label;
 
         return buttonObject.GetComponent<Button>();
+    }
+
+    private static Button CreateInventoryIconButton(Transform parent, string name, Vector2 size)
+    {
+        GameObject buttonObject = new(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonObject.transform.SetParent(parent, false);
+
+        RectTransform rect = buttonObject.GetComponent<RectTransform>();
+        rect.sizeDelta = size;
+
+        Image background = buttonObject.GetComponent<Image>();
+        background.color = Color.white;
+
+        GameObject iconObject = new("Icon", typeof(RectTransform), typeof(Image));
+        iconObject.transform.SetParent(buttonObject.transform, false);
+
+        RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+        iconRect.anchorMin = Vector2.zero;
+        iconRect.anchorMax = Vector2.one;
+        iconRect.offsetMin = new Vector2(7f, 7f);
+        iconRect.offsetMax = new Vector2(-7f, -7f);
+
+        Image icon = iconObject.GetComponent<Image>();
+        icon.sprite = Resources.Load<Sprite>("Artifacts/inventory_icon");
+        icon.preserveAspect = true;
+        icon.color = Color.black;
+        icon.raycastTarget = false;
+
+        Button button = buttonObject.GetComponent<Button>();
+        button.targetGraphic = background;
+        return button;
     }
 
     private static GameObject CreatePanel(Transform parent)
@@ -135,7 +166,7 @@ public static class ArtifactInventoryBootstrap
         return closeButton;
     }
 
-    private static Transform CreateGrid(Transform panel, out TMP_Text emptyText)
+    private static Transform CreateGrid(Transform panel)
     {
         GameObject scrollObject = new("ArtifactScroll", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
         scrollObject.transform.SetParent(panel, false);
@@ -187,21 +218,6 @@ public static class ArtifactInventoryBootstrap
         scrollRect.viewport = viewportRect;
         scrollRect.content = contentRect;
         scrollRect.horizontal = false;
-
-        GameObject emptyObject = new("EmptyText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        emptyObject.transform.SetParent(viewport.transform, false);
-
-        RectTransform emptyRect = emptyObject.GetComponent<RectTransform>();
-        emptyRect.anchorMin = Vector2.zero;
-        emptyRect.anchorMax = Vector2.one;
-        emptyRect.offsetMin = Vector2.zero;
-        emptyRect.offsetMax = Vector2.zero;
-
-        emptyText = emptyObject.GetComponent<TMP_Text>();
-        emptyText.alignment = TextAlignmentOptions.Center;
-        emptyText.color = Color.black;
-        emptyText.fontSize = 20f;
-        emptyText.text = "Артефактов пока нет";
 
         return content.transform;
     }

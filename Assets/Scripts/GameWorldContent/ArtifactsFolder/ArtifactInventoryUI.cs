@@ -14,7 +14,6 @@ public class ArtifactInventoryUI : MonoBehaviour
     [SerializeField] private Image detailIcon;
     [SerializeField] private TMP_Text detailTitleText;
     [SerializeField] private TMP_Text detailStoryText;
-    [SerializeField] private TMP_Text emptyText;
     [SerializeField] private int visibleSlotCount = 24;
     [SerializeField] private int gridColumns = 6;
 
@@ -67,8 +66,7 @@ public class ArtifactInventoryUI : MonoBehaviour
         GameObject detailsPanel,
         Image detailsIcon,
         TMP_Text detailsTitle,
-        TMP_Text detailsStory,
-        TMP_Text inventoryEmptyText)
+        TMP_Text detailsStory)
     {
         toggleButton = inventoryToggleButton;
         closeButton = inventoryCloseButton;
@@ -78,7 +76,6 @@ public class ArtifactInventoryUI : MonoBehaviour
         detailIcon = detailsIcon;
         detailTitleText = detailsTitle;
         detailStoryText = detailsStory;
-        emptyText = inventoryEmptyText;
         gridLayout = gridRoot != null ? gridRoot.GetComponent<GridLayoutGroup>() : null;
 
         if (toggleButton != null)
@@ -118,9 +115,6 @@ public class ArtifactInventoryUI : MonoBehaviour
 
         int itemCount = inventory != null ? inventory.Count : 0;
         int slotCount = Mathf.Max(visibleSlotCount, itemCount);
-
-        if (emptyText != null)
-            emptyText.gameObject.SetActive(itemCount == 0);
 
         if (gridRoot == null)
             return;
