@@ -49,7 +49,7 @@ public class QuestJournalEntryUI : MonoBehaviour
 
         if (progressText != null)
         {
-            progressText.color = Color.black;
+            progressText.color = quest.IsComplete ? new Color32(24, 128, 56, 255) : new Color32(190, 40, 40, 255);
             progressText.text = $"Прогресс: {quest.progress}/{quest.targetValue}";
         }
 

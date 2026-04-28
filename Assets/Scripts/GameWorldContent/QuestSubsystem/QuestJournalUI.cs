@@ -7,6 +7,8 @@ public class QuestJournalUI : MonoBehaviour
 {
     [SerializeField] private QuestManager questManager;
     [SerializeField] private Button toggleButton;
+    [SerializeField] private Button closeButton;
+    [SerializeField] private GameObject notificationRoot;
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject entryPrefab;
@@ -19,6 +21,11 @@ public class QuestJournalUI : MonoBehaviour
     {
         if (toggleButton != null)
             toggleButton.onClick.AddListener(TogglePanel);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(ClosePanel);
+
+        SetNotificationVisible(false);
 
         if (panelRoot != null)
             panelRoot.SetActive(false);
@@ -34,7 +41,7 @@ public class QuestJournalUI : MonoBehaviour
     {
         if (boundManager != null)
         {
-            boundManager.QuestActivated -= HandleQuestChanged;
+            boundManager.QuestActivated -= HandleQuestActivated;
             boundManager.QuestProgressChanged -= HandleQuestChanged;
             boundManager.QuestCompleted -= HandleQuestChanged;
             boundManager.QuestListChanged -= HandleQuestListChanged;
@@ -48,9 +55,11 @@ public class QuestJournalUI : MonoBehaviour
             TryBindManager();
     }
 
-    public void Configure(Button button, GameObject panel, Transform content, TMP_Text emptyLabel, GameObject prefab = null)
+    public void Configure(Button button, Button close, GameObject notification, GameObject panel, Transform content, TMP_Text emptyLabel, GameObject prefab = null)
     {
         toggleButton = button;
+        closeButton = close;
+        notificationRoot = notification;
         panelRoot = panel;
         contentRoot = content;
         emptyText = emptyLabel;
@@ -58,6 +67,11 @@ public class QuestJournalUI : MonoBehaviour
 
         if (toggleButton != null)
             toggleButton.onClick.AddListener(TogglePanel);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(ClosePanel);
+
+        SetNotificationVisible(false);
 
         if (panelRoot != null)
             panelRoot.SetActive(false);
@@ -71,7 +85,16 @@ public class QuestJournalUI : MonoBehaviour
         panelRoot.SetActive(!panelRoot.activeSelf);
 
         if (panelRoot.activeSelf)
+        {
+            SetNotificationVisible(false);
             Rebuild();
+        }
+    }
+
+    public void ClosePanel()
+    {
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
     }
 
     public void Rebuild()
@@ -87,11 +110,19 @@ public class QuestJournalUI : MonoBehaviour
         if (!hasEntries || contentRoot == null)
             return;
 
+        bool hasSpawnedEntry = false;
+
         foreach (QuestRuntime quest in boundManager.ActiveQuests)
-            SpawnEntry(quest);
+        {
+            SpawnEntryWithSeparator(quest, hasSpawnedEntry);
+            hasSpawnedEntry = true;
+        }
 
         for (int i = boundManager.CompletedQuests.Count - 1; i >= 0; i--)
-            SpawnEntry(boundManager.CompletedQuests[i]);
+        {
+            SpawnEntryWithSeparator(boundManager.CompletedQuests[i], hasSpawnedEntry);
+            hasSpawnedEntry = true;
+        }
     }
 
     private void TryBindManager()
@@ -102,18 +133,28 @@ public class QuestJournalUI : MonoBehaviour
 
         if (boundManager != null)
         {
-            boundManager.QuestActivated -= HandleQuestChanged;
+            boundManager.QuestActivated -= HandleQuestActivated;
             boundManager.QuestProgressChanged -= HandleQuestChanged;
             boundManager.QuestCompleted -= HandleQuestChanged;
             boundManager.QuestListChanged -= HandleQuestListChanged;
         }
 
         boundManager = manager;
-        boundManager.QuestActivated += HandleQuestChanged;
+        boundManager.QuestActivated += HandleQuestActivated;
         boundManager.QuestProgressChanged += HandleQuestChanged;
         boundManager.QuestCompleted += HandleQuestChanged;
         boundManager.QuestListChanged += HandleQuestListChanged;
         Rebuild();
+    }
+
+    private void HandleQuestActivated(QuestRuntime quest)
+    {
+        if (panelRoot != null && panelRoot.activeSelf)
+            Rebuild();
+        else
+            SetNotificationVisible(true);
+
+        UpdateEmptyState();
     }
 
     private void HandleQuestChanged(QuestRuntime quest)
@@ -142,6 +183,20 @@ public class QuestJournalUI : MonoBehaviour
         emptyText.gameObject.SetActive(!hasEntries);
     }
 
+    private void SetNotificationVisible(bool visible)
+    {
+        if (notificationRoot != null)
+            notificationRoot.SetActive(visible);
+    }
+
+    private void SpawnEntryWithSeparator(QuestRuntime quest, bool addSeparator)
+    {
+        if (addSeparator)
+            SpawnSeparator();
+
+        SpawnEntry(quest);
+    }
+
     private void SpawnEntry(QuestRuntime quest)
     {
         GameObject entryObject = entryPrefab != null
@@ -158,6 +213,24 @@ public class QuestJournalUI : MonoBehaviour
             SetFallbackText(entryObject, quest);
 
         spawnedEntries.Add(entryObject);
+    }
+
+    private void SpawnSeparator()
+    {
+        if (contentRoot == null)
+            return;
+
+        GameObject separator = new("QuestJournalSeparator", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+        separator.transform.SetParent(contentRoot, false);
+
+        Image image = separator.GetComponent<Image>();
+        image.color = new Color32(40, 40, 40, 90);
+
+        LayoutElement layout = separator.GetComponent<LayoutElement>();
+        layout.minHeight = 2f;
+        layout.preferredHeight = 2f;
+
+        spawnedEntries.Add(separator);
     }
 
     private GameObject CreateDefaultEntryObject()
@@ -188,13 +261,15 @@ public class QuestJournalUI : MonoBehaviour
             return;
 
         text.textWrappingMode = TextWrappingModes.Normal;
+        text.richText = true;
         text.color = Color.black;
         text.fontSize = 18f;
+        string progressColor = quest.IsComplete ? "#188038" : "#BE2828";
         text.text = $"{quest.title} ({(quest.Status == QuestStatus.Completed ? "выполнено" : "активно")})\n" +
                     $"{quest.description}\n" +
                     $"Условия: {quest.activationCondition}. Цель: {quest.objectiveSummary}\n" +
                     $"Награда: {quest.rewardSummary}\n" +
-                    $"Прогресс: {quest.progress}/{quest.targetValue}";
+                    $"<color={progressColor}>Прогресс: {quest.progress}/{quest.targetValue}</color>";
     }
 
     private void Clear()

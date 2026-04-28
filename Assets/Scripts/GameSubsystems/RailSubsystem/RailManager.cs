@@ -91,10 +91,10 @@ public class RailManager : MonoBehaviour
             InternalDeselect(line);
             LineDeselected?.Invoke(line);
         }
-        
+
         for (int i = line.AssignedTrains.Count - 1; i >= 0; i--)
             TrainManager.Instance.RemoveTrain(line.AssignedTrains[i]);
-        
+            
         if (!Lines.Remove(line))
             Lines.RemoveAll(l => l.ID == line.ID);
 
@@ -270,9 +270,7 @@ public class RailManager : MonoBehaviour
                 if (visited.Contains(edge.To))
                     continue;
 
-                List<Train> trains = edge.Line.AssignedTrains;
-
-                float speed = trains == null ? 0f : edge.Line.GetRoutingSpeed();
+                float speed = edge.Line.GetRoutingSpeed();
                 
                 float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
 
@@ -581,11 +579,14 @@ public class RailManager : MonoBehaviour
 
         RelayStopRegistry.Instance.RemoveIfExists(cell);
     }
+
     private void ClearAll()
     {
         foreach (var line in Lines)
-            if (line != null)
+        {
+            if (line != null && painter != null)
                 painter.UnpaintRails(line);
+        }
 
         Lines.Clear();
         SelectedLine = null;
@@ -595,6 +596,7 @@ public class RailManager : MonoBehaviour
         lineToIsland.Clear();
         islands.Clear();
         nodeToIsland.Clear();
+        inspectorIslands.Clear();
     }
 
     #region save subsystem
@@ -606,7 +608,10 @@ public class RailManager : MonoBehaviour
             data.selectedLineID = SelectedLine.ID;
 
         foreach (var line in Lines)
-            data.lines.Add(line.GetSaveData());
+        {
+            if (line != null)
+                data.lines.Add(line.GetSaveData());
+        }
 
         return data;
     }
@@ -614,6 +619,9 @@ public class RailManager : MonoBehaviour
     public void LoadFromSaveData(RailManagerSaveData data)
     {
         ClearAll();
+
+        if (data == null)
+            return;
 
         nextID = data.nextID;
 
@@ -623,7 +631,9 @@ public class RailManager : MonoBehaviour
             Lines.Add(line);
 
             LineCreated?.Invoke(line);
-            painter.PaintRails(line, false);
+
+            if (painter != null)
+                painter.PaintRails(line, false);
         }
 
         RebuildConnectivity();
@@ -636,14 +646,16 @@ public class RailManager : MonoBehaviour
             if (selected != null)
             {
                 SelectedLine = selected;
-                painter.PaintRails(selected, true);
+
+                if (painter != null)
+                    painter.PaintRails(selected, true);
+
                 LineSelected?.Invoke(selected);
             }
         }
     }
     #endregion
 }
-
 public struct RailEdge
 {
     public Vector3Int To;
