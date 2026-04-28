@@ -38,6 +38,11 @@ public class FinanceSystem : MonoBehaviour
             Destroy(gameObject);
         }
 
+        Initialize();
+    }
+
+    private void Initialize()
+    {
         currentDay = 0;
         balance = 100f;
         lastBalanceChange = 0f;

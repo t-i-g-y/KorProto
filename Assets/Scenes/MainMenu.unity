@@ -270,27 +270,47 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 811699803071266028, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1419958563671402478, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_AnchorMax.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1419958563671402478, guid: b85d6b2bd05d62348927657631afa947, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1419958563671402478, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1419958563671402478, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3172234679578660710, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_text
+      value: "\u041C\u0418\u041A\u0428\u0415\u0420 \u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u0418"
+      objectReference: {fileID: 0}
+    - target: {fileID: 3172234679578660710, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3172234679578660710, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_fontSize
+      value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 3172234679578660710, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_fontStyle
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3172234679578660710, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 3600399033472083529, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3600399033472083529, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3780021940666745988, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_Pivot.x
@@ -383,6 +403,18 @@ PrefabInstance:
     - target: {fileID: 8099010287255607485, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: MainMenu, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127355273551429104, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_text
+      value: "\u041F\u041E\u041B\u041D\u042B\u0419 \u042D\u041A\u0420\u0410\u041D"
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127355273551429104, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_fontSize
+      value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127355273551429104, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 32
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2287,7 +2319,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00004278198}
+  m_AnchoredPosition: {x: 0, y: 0.00056524656}
   m_SizeDelta: {x: 0, y: 420}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1788666757

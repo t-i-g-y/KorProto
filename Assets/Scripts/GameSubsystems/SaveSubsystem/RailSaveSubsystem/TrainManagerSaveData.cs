@@ -6,6 +6,6 @@ using UnityEngine;
 public class TrainManagerSaveData
 {
     public int nextID;
-    public int? selectedTrainID;
+    public int selectedTrainID;
     public List<TrainSaveData> trains = new();
 }

@@ -186,8 +186,8 @@ public class RailManagerGraphTests
 
         line.AddTrain(train);
 
-        SetPrivateField(train, "isOperational", true);
-        SetPrivateField(train, "isBroken", false);
+        TestImmitationHelper.SetPrivateField(train, "isOperational", true);
+        TestImmitationHelper.SetPrivateField(train, "isBroken", false);
 
         return train;
     }
@@ -207,8 +207,8 @@ public class RailManagerGraphTests
 
         foreach (object islandObject in islands.Values)
         {
-            SetPrivateField(islandObject, "HasAnchor", true);
-            SetPrivateField(islandObject, "IsCollapsed", false);
+            TestImmitationHelper.SetPrivateField(islandObject, "HasAnchor", true);
+            TestImmitationHelper.SetPrivateField(islandObject, "IsCollapsed", false);
 
             var linesField = islandObject.GetType().GetField("Lines");
             var nodesField = islandObject.GetType().GetField("Nodes");
@@ -222,14 +222,5 @@ public class RailManagerGraphTests
             foreach (Vector3Int node in nodes)
                 buildConnectedCells.Add(node);
         }
-    }
-
-    private static void SetPrivateField(object target, string fieldName, object value)
-    {
-        FieldInfo field = target.GetType().GetField(fieldName,BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-        Assert.IsNotNull(field, $"{fieldName} was not found on {target.GetType().Name}");
-
-        field.SetValue(target, value);
     }
 }

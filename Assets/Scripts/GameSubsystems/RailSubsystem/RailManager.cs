@@ -69,7 +69,7 @@ public class RailManager : MonoBehaviour
         if (Instance == this)
             Instance = null;
     }
-    
+
     public RailLine CreateLine(List<Vector3Int> cells)
     {
         var line = new RailLine(nextID++, cells);
@@ -610,6 +610,8 @@ public class RailManager : MonoBehaviour
 
         if (SelectedLine != null)
             data.selectedLineID = SelectedLine.ID;
+        else
+            data.selectedLineID = -1;
 
         foreach (var line in Lines)
             data.lines.Add(line.GetSaveData());
@@ -636,9 +638,9 @@ public class RailManager : MonoBehaviour
         TopologyChanged?.Invoke();
         ActiveNetworkChanged?.Invoke();
 
-        if (data.selectedLineID.HasValue)
+        if (data.selectedLineID != -1)
         {
-            var selected = Lines.Find(l => l.ID == data.selectedLineID.Value);
+            var selected = Lines.Find(l => l.ID == data.selectedLineID);
             if (selected != null)
             {
                 SelectedLine = selected;
