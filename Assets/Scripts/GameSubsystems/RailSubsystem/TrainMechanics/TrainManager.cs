@@ -156,9 +156,11 @@ public class TrainManager : MonoBehaviour
     public TrainManagerSaveData GetSaveData()
     {
         var data = new TrainManagerSaveData { nextID = nextID };
-
+        
         if (SelectedTrain != null)
             data.selectedTrainID = SelectedTrain.ID;
+        else
+            data.selectedTrainID = -1;
 
         foreach (var train in Trains)
         {
@@ -206,9 +208,9 @@ public class TrainManager : MonoBehaviour
             TrainCreated?.Invoke(train, line);
         }
 
-        if (data.selectedTrainID.HasValue)
+        if (data.selectedTrainID != -1)
         {
-            Train selected = Trains.Find(t => t != null && t.ID == data.selectedTrainID.Value);
+            Train selected = Trains.Find(t => t != null && t.ID == data.selectedTrainID);
             if (selected != null)
             {
                 SelectedTrain = selected;

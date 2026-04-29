@@ -137,6 +137,12 @@ public class TimeManager : MonoBehaviour
         if (dayCounter != oldDay)
             OnDayChanged?.Invoke(dayCounter);
     }
+
+    public void AdvanceHoursForTests(int hours = 1)
+    {
+        for (int i = 0; i < hours; i++)
+            AdvanceOneHour();
+    }
     private void RefreshUI()
     {
         if (dayHourText != null)

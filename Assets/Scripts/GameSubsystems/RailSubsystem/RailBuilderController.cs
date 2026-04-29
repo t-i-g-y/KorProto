@@ -133,7 +133,7 @@ public class RailBuilderController : MonoBehaviour
             if (terrain == TerrainType.Ocean)
                 return;
 
-            if (!HexCoords.AreNeighbors(ghostPath[^1], cur))
+            if (!HexCoords.AreNeighbours(ghostPath[^1], cur))
                 return;
 
             //bool canStep = (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) || (IsWater(cur) && ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel)));
