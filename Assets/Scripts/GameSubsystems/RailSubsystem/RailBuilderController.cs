@@ -191,15 +191,36 @@ public class RailBuilderController : MonoBehaviour
             }
 
             awaitingConfirm = true;
-            Vector3 offset = new Vector3(0, verticalOffset, 0);
-            confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
             confirmHolder.SetActive(true);
+            UpdateUIPanelPosition();
         }
 
         if (isBuilding || awaitingConfirm)
             UpdateLengthUI();
     }
 
+    private void LateUpdate()
+    {
+        UpdateUIPanelPosition();
+    }
+
+    private void UpdateUIPanelPosition()
+    {
+        if (ghostPath == null || ghostPath.Count == 0 || cam == null || land == null)
+            return;
+
+        if (!isBuilding && !awaitingConfirm)
+            return;
+
+        Vector3 worldPos = land.GetCellCenterWorld(ghostPath[^1]);
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
+
+        if (confirmHolder != null && awaitingConfirm && confirmHolder.activeSelf)
+            confirmHolder.transform.position = screenPos + new Vector3(0f, verticalOffset, 0f);
+
+        if (lengthPanel != null && lengthPanel.activeSelf)
+            lengthPanel.transform.position = screenPos + lengthPanelOffset;
+    }
     private void ConfirmBuild()
     {
         RailLine line = RailManager.Instance.CreateLine(ghostPath);
@@ -255,10 +276,6 @@ public class RailBuilderController : MonoBehaviour
             lengthText.color = Color.red;
 
         lengthText.text = $"{remaining}";
-        Vector3 worldPos = land.GetCellCenterWorld(ghostPath[^1]);
-        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
-        lengthPanel.transform.position = screenPos + lengthPanelOffset;
-
     }
 
     public void ChangeMaxLineLength(int delta) => maxLineLength += delta;

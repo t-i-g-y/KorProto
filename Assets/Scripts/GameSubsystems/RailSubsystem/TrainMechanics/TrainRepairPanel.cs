@@ -19,9 +19,7 @@ public class TrainRepairPanel : MonoBehaviour
 
     private void Awake()
     {
-        panelRect = panelRoot != null
-            ? panelRoot.GetComponent<RectTransform>()
-            : GetComponent<RectTransform>();
+        panelRect = panelRoot != null ? panelRoot.GetComponent<RectTransform>() : GetComponent<RectTransform>();
 
         if (repairButton != null)
             repairButton.onClick.AddListener(HandleRepair);
@@ -56,7 +54,7 @@ public class TrainRepairPanel : MonoBehaviour
             return;
 
         if (titleText != null)
-            titleText.text = $"Train#{train.ID} сломался!";
+            titleText.text = $"Поезд#{train.ID} сломался!";
 
         if (costText != null)
             costText.text = $"Починить: {train.RepairCost:0} | Продать: {50}";
