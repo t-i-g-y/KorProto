@@ -457,7 +457,7 @@ public class ArtifactManager : MonoBehaviour
             int directionOffset = Mathf.Abs(origin.x + origin.y) % 6;
             for (int i = 0; i < 6; i++)
             {
-                Vector3Int next = HexCoords.Neighbor(current, (i + directionOffset) % 6);
+                Vector3Int next = HexCoords.Neighbour(current, (i + directionOffset) % 6);
                 if (visited.Add(next))
                     queue.Enqueue(next);
             }

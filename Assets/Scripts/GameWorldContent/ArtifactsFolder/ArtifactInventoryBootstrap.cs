@@ -209,7 +209,7 @@ public static class ArtifactInventoryBootstrap
         layout.padding = new RectOffset(14, 14, 14, 14);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        layout.constraintCount = 6;
+        layout.constraintCount = 1000;
 
         ContentSizeFitter fitter = content.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
