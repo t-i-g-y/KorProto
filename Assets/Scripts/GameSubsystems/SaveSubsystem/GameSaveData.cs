@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public class SubsystemSaveData
+public class GameSaveData
 {
     public RailAnchorRegistrySaveData anchorData;
     public RailManagerSaveData railData;
@@ -12,7 +12,5 @@ public class SubsystemSaveData
     public TrainManagerSaveData trainData;
     public EconomyManagerSaveData economyData;
     public ResearchSystemSaveData researchData;
-    public EventManagerSaveData eventData;
-    public QuestManagerSaveData questData;
     public ArtifactManagerSaveData artifactData;
 }

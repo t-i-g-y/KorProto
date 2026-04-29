@@ -1,13 +1,13 @@
 using System.IO;
 using UnityEngine;
 
-public class SubsystemSaveManager : MonoBehaviour
+public class SaveManager : MonoBehaviour
 {
     private string path => Application.persistentDataPath + "/save.json";
 
     public void SaveGame()
     {
-        SubsystemSaveData data = new SubsystemSaveData
+        GameSaveData data = new GameSaveData
         {
             anchorData = RailAnchorRegistry.Instance.GetSaveData(),
             railData = RailManager.Instance.GetSaveData(),
@@ -17,10 +17,7 @@ public class SubsystemSaveManager : MonoBehaviour
             financeData = FinanceSystem.Instance.GetSaveData(),
             trainData = TrainManager.Instance.GetSaveData(),
             economyData = EconomyManager.Instance.GetSaveData(),
-            researchData = ResearchSystem.Instance.GetSaveData(),
-            eventData = EventManager.Instance != null ? EventManager.Instance.GetSaveData() : null,
-            questData = QuestManager.Instance != null ? QuestManager.Instance.GetSaveData() : null,
-            artifactData = ArtifactManager.Instance != null ? ArtifactManager.Instance.GetSaveData() : null
+            researchData = ResearchSystem.Instance.GetSaveData()
         };
 
         string json = JsonUtility.ToJson(data, true);
@@ -38,7 +35,7 @@ public class SubsystemSaveManager : MonoBehaviour
         }
 
         string json = File.ReadAllText(path);
-        SubsystemSaveData data = JsonUtility.FromJson<SubsystemSaveData>(json);
+        GameSaveData data = JsonUtility.FromJson<GameSaveData>(json);
 
         if (data == null)
         {
@@ -72,15 +69,6 @@ public class SubsystemSaveManager : MonoBehaviour
         
         if (data.researchData != null)
             ResearchSystem.Instance.LoadFromSaveData(data.researchData);
-
-        if (data.eventData != null && EventManager.Instance != null)
-            EventManager.Instance.LoadFromSaveData(data.eventData);
-
-        if (data.questData != null && QuestManager.Instance != null)
-            QuestManager.Instance.LoadFromSaveData(data.questData);
-
-        if (data.artifactData != null && ArtifactManager.Instance != null)
-            ArtifactManager.Instance.LoadFromSaveData(data.artifactData);
 
         Debug.Log("game loaded");
     }
