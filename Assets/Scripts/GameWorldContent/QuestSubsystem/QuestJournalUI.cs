@@ -86,6 +86,7 @@ public class QuestJournalUI : MonoBehaviour
 
         if (panelRoot.activeSelf)
         {
+            panelRoot.transform.SetAsLastSibling();
             SetNotificationVisible(false);
             Rebuild();
         }

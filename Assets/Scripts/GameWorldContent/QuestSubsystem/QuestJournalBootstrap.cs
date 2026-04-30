@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public static class QuestJournalBootstrap
 {
+    private const int PanelSortingOrder = 1100;
     private static QuestJournalUI journalInstance;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -128,7 +129,7 @@ public static class QuestJournalBootstrap
 
     private static GameObject CreatePanel(Transform parent)
     {
-        GameObject panel = new("QuestJournalPanel", typeof(RectTransform), typeof(Image));
+        GameObject panel = new("QuestJournalPanel", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster), typeof(Image));
         panel.transform.SetParent(parent, false);
 
         RectTransform rect = panel.GetComponent<RectTransform>();
@@ -140,6 +141,10 @@ public static class QuestJournalBootstrap
 
         Image image = panel.GetComponent<Image>();
         image.color = new Color32(245, 246, 242, 255);
+
+        Canvas canvas = panel.GetComponent<Canvas>();
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = PanelSortingOrder;
 
         GameObject titleObject = new("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
         titleObject.transform.SetParent(panel.transform, false);

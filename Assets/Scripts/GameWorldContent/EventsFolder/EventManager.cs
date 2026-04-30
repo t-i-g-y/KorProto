@@ -192,7 +192,7 @@ public class EventManager : MonoBehaviour
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_route_permit_dispute_4",
-            "Спор за полосу отвода",
+            "Владелец земли затеял спор!",
             "После прокладки длинного участка владельцы земли требуют компенсацию. Можно заплатить и оставить путь или разобрать спорный участок.",
             GameEventTriggerType.RailLineCountReached,
             4f,
@@ -204,7 +204,7 @@ public class EventManager : MonoBehaviour
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_route_permit_dispute_8",
-            "Повторный спор за полосу отвода",
+            "Владелец земли затеял спор!",
             "Расширение сети снова вызвало претензии владельцев земли. Можно заплатить и оставить путь или разобрать спорный участок.",
             GameEventTriggerType.RailLineCountReached,
             8f,
@@ -217,7 +217,7 @@ public class EventManager : MonoBehaviour
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_city_request",
             "Городской заказ",
-            "Одна из станций сформировала дополнительный заказ на поставки.",
+            "Одна из станций стала популярной, и местные власти просят обеспечить дополнительный спрос.",
             GameEventTriggerType.DayInterval,
             4f,
             GameEventConsequenceMode.Fixed,
