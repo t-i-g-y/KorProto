@@ -10,7 +10,7 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] private string masterVolumeParameter = "MasterVolume";
 
     private const string FullscreenPrefKey = "settings.fullscreen";
-    private const string MasterVolumePrefKey = "settings.masterVolume";
+    private const string MasterVolumePrefKey = MusicManager.MasterVolumePrefKey;
 
     private void Start()
     {
@@ -30,16 +30,20 @@ public class SettingsMenuController : MonoBehaviour
     private void LoadSettings()
     {
         bool fullscreen = PlayerPrefs.GetInt(FullscreenPrefKey, Screen.fullScreen ? 1 : 0) == 1;
-        float volume = PlayerPrefs.GetFloat(MasterVolumePrefKey, 1f);
+        float volume = MusicManager.LoadSavedMasterVolume();
 
         ApplyFullscreen(fullscreen);
-        ApplyMasterVolume(volume);
+
+        if (MusicManager.Instance != null)
+            MusicManager.Instance.ApplyMasterVolume(volume);
+        else
+            ApplyMasterVolume(volume);
 
         if (fullscreenToggle != null)
             fullscreenToggle.isOn = fullscreen;
 
         if (masterVolumeSlider != null)
-            masterVolumeSlider.value = volume;
+            masterVolumeSlider.SetValueWithoutNotify(volume);
     }
 
     public void SetFullscreen(bool fullscreen)
@@ -51,8 +55,16 @@ public class SettingsMenuController : MonoBehaviour
 
     public void SetMasterVolume(float sliderVolume)
     {
-        ApplyMasterVolume(sliderVolume);
-        PlayerPrefs.SetFloat(MasterVolumePrefKey, sliderVolume);
+        float clamped = Mathf.Clamp01(sliderVolume);
+
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.SetMasterVolume(clamped);
+            return;
+        }
+
+        ApplyMasterVolume(clamped);
+        PlayerPrefs.SetFloat(MasterVolumePrefKey, clamped);
         PlayerPrefs.Save();
     }
 

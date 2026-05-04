@@ -404,6 +404,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: MainMenu, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 8611130952888948385, guid: b85d6b2bd05d62348927657631afa947, type: 3}
+      propertyPath: masterVolumeParameter
+      value: MasterVolume
+      objectReference: {fileID: 0}
     - target: {fileID: 9127355273551429104, guid: b85d6b2bd05d62348927657631afa947, type: 3}
       propertyPath: m_text
       value: "\u041F\u041E\u041B\u041D\u042B\u0419 \u042D\u041A\u0420\u0410\u041D"
@@ -1439,7 +1443,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 531948145}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99998647
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2319,7 +2323,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00011951825}
+  m_AnchoredPosition: {x: 0, y: 0.0000024829346}
   m_SizeDelta: {x: 0, y: 420}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1788666757
