@@ -13,12 +13,15 @@ public class EventNotificationUI : MonoBehaviour
     [SerializeField] private Transform optionsContainer;
     [SerializeField] private Button optionButtonPrefab;
     [SerializeField] private Button closeButton;
+    [SerializeField] private GameObject inputBlocker;
 
     private readonly List<Button> spawnedOptionButtons = new();
     private EventManager boundManager;
 
     private void Awake()
     {
+        EnsureInputBlocker();
+
         if (closeButton != null)
             closeButton.onClick.AddListener(Hide);
 
@@ -75,7 +78,11 @@ public class EventNotificationUI : MonoBehaviour
             return;
 
         if (root != null)
+        {
+            SetInputBlockerVisible(true);
             root.SetActive(true);
+            PlaceInputBlockerBehindRoot();
+        }
 
         if (titleText != null)
             titleText.text = runtime.Definition.Title;
@@ -184,6 +191,10 @@ public class EventNotificationUI : MonoBehaviour
 
         if (root != null)
             root.SetActive(false);
+
+        SetInputBlockerVisible(false);
+
+        boundManager?.AcknowledgeEventNotification();
     }
 
     private void ClearOptions()
@@ -195,5 +206,42 @@ public class EventNotificationUI : MonoBehaviour
         }
 
         spawnedOptionButtons.Clear();
+    }
+
+    private void EnsureInputBlocker()
+    {
+        if (inputBlocker != null)
+            return;
+
+        Transform parent = root != null ? root.transform.parent : transform;
+        GameObject blocker = new("EventInputBlocker", typeof(RectTransform), typeof(Image));
+        blocker.transform.SetParent(parent, false);
+
+        RectTransform rect = blocker.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image image = blocker.GetComponent<Image>();
+        image.color = Color.clear;
+        image.raycastTarget = true;
+
+        inputBlocker = blocker;
+    }
+
+    private void SetInputBlockerVisible(bool visible)
+    {
+        if (inputBlocker != null)
+            inputBlocker.SetActive(visible);
+    }
+
+    private void PlaceInputBlockerBehindRoot()
+    {
+        if (inputBlocker == null || root == null)
+            return;
+
+        inputBlocker.transform.SetSiblingIndex(root.transform.GetSiblingIndex());
+        root.transform.SetAsLastSibling();
     }
 }

@@ -16,6 +16,8 @@ public class EventManager : MonoBehaviour
 
     private TimeManager boundTimeManager;
     private GameEventRuntime pendingEvent;
+    private float timeMultiplierBeforePendingEvent = 1f;
+    private bool shouldResumeTimeAfterPendingEvent;
 
     public static EventManager Instance { get; private set; }
     public IReadOnlyList<EventHistoryEntry> History => history;
@@ -103,6 +105,14 @@ public class EventManager : MonoBehaviour
         return true;
     }
 
+    public void AcknowledgeEventNotification()
+    {
+        if (pendingEvent != null && pendingEvent.IsAwaitingChoice)
+            return;
+
+        ResumeTimeAfterEventNotification();
+    }
+
     public EventManagerSaveData GetSaveData()
     {
         EventManagerSaveData data = new();
@@ -123,6 +133,7 @@ public class EventManager : MonoBehaviour
         firedNonRepeatableEvents.Clear();
         lastTriggerDayByEventId.Clear();
         pendingEvent = null;
+        shouldResumeTimeAfterPendingEvent = false;
 
         if (data == null)
         {
@@ -337,6 +348,7 @@ public class EventManager : MonoBehaviour
 
         GameEventRuntime runtime = new(definition, CloneContext(context));
         MarkTriggered(definition, runtime.Context.Day);
+        PauseTimeForEventNotification();
 
         if (definition.ConsequenceMode == GameEventConsequenceMode.PlayerChoice)
         {
@@ -447,6 +459,31 @@ public class EventManager : MonoBehaviour
 
         boundTimeManager.OnDayChanged -= HandleDayChanged;
         boundTimeManager = null;
+    }
+
+    private void PauseTimeForEventNotification()
+    {
+        if (TimeManager.Instance == null)
+            return;
+
+        timeMultiplierBeforePendingEvent = TimeManager.Instance.TimeMultiplier;
+        shouldResumeTimeAfterPendingEvent = timeMultiplierBeforePendingEvent > 0f;
+        TimeManager.Instance.Pause();
+    }
+
+    private void ResumeTimeAfterEventNotification()
+    {
+        if (!shouldResumeTimeAfterPendingEvent || TimeManager.Instance == null)
+            return;
+
+        if (MenuPauseState.IsPaused)
+        {
+            shouldResumeTimeAfterPendingEvent = false;
+            return;
+        }
+
+        TimeManager.Instance.Unpause();
+        shouldResumeTimeAfterPendingEvent = false;
     }
 
     private static string BuildLogMessage(GameEventRuntime runtime)
