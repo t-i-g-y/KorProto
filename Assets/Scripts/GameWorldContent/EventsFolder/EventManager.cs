@@ -16,10 +16,14 @@ public class EventManager : MonoBehaviour
 
     private TimeManager boundTimeManager;
     private GameEventRuntime pendingEvent;
+    private float timeMultiplierBeforePendingEvent = 1f;
+    private bool shouldResumeTimeAfterPendingEvent;
+    private bool isEventNotificationOpen;
 
     public static EventManager Instance { get; private set; }
     public IReadOnlyList<EventHistoryEntry> History => history;
     public GameEventRuntime PendingEvent => pendingEvent;
+    public bool IsEventNotificationOpen => isEventNotificationOpen;
 
     public event Action<GameEventRuntime> EventActivated;
     public event Action<EventHistoryEntry> EventRecorded;
@@ -103,6 +107,15 @@ public class EventManager : MonoBehaviour
         return true;
     }
 
+    public void AcknowledgeEventNotification()
+    {
+        if (pendingEvent != null && pendingEvent.IsAwaitingChoice)
+            return;
+
+        isEventNotificationOpen = false;
+        ResumeTimeAfterEventNotification();
+    }
+
     public EventManagerSaveData GetSaveData()
     {
         EventManagerSaveData data = new();
@@ -123,6 +136,8 @@ public class EventManager : MonoBehaviour
         firedNonRepeatableEvents.Clear();
         lastTriggerDayByEventId.Clear();
         pendingEvent = null;
+        shouldResumeTimeAfterPendingEvent = false;
+        isEventNotificationOpen = false;
 
         if (data == null)
         {
@@ -313,7 +328,7 @@ public class EventManager : MonoBehaviour
 
     private void EvaluateTrigger(GameEventTriggerType triggerType, EventWorldContext context)
     {
-        if (pendingEvent != null)
+        if (pendingEvent != null || isEventNotificationOpen)
             return;
 
         context.TriggerType = triggerType;
@@ -332,11 +347,16 @@ public class EventManager : MonoBehaviour
 
     private bool TryActivate(EventDefinition definition, EventWorldContext context)
     {
+        if (pendingEvent != null || isEventNotificationOpen)
+            return false;
+
         if (!CanActivate(definition, context))
             return false;
 
         GameEventRuntime runtime = new(definition, CloneContext(context));
         MarkTriggered(definition, runtime.Context.Day);
+        isEventNotificationOpen = true;
+        PauseTimeForEventNotification();
 
         if (definition.ConsequenceMode == GameEventConsequenceMode.PlayerChoice)
         {
@@ -447,6 +467,31 @@ public class EventManager : MonoBehaviour
 
         boundTimeManager.OnDayChanged -= HandleDayChanged;
         boundTimeManager = null;
+    }
+
+    private void PauseTimeForEventNotification()
+    {
+        if (TimeManager.Instance == null)
+            return;
+
+        timeMultiplierBeforePendingEvent = TimeManager.Instance.TimeMultiplier;
+        shouldResumeTimeAfterPendingEvent = timeMultiplierBeforePendingEvent > 0f;
+        TimeManager.Instance.Pause();
+    }
+
+    private void ResumeTimeAfterEventNotification()
+    {
+        if (!shouldResumeTimeAfterPendingEvent || TimeManager.Instance == null)
+            return;
+
+        if (MenuPauseState.IsPaused)
+        {
+            shouldResumeTimeAfterPendingEvent = false;
+            return;
+        }
+
+        TimeManager.Instance.Unpause();
+        shouldResumeTimeAfterPendingEvent = false;
     }
 
     private static string BuildLogMessage(GameEventRuntime runtime)
