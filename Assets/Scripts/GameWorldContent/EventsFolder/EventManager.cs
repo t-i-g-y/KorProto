@@ -18,10 +18,12 @@ public class EventManager : MonoBehaviour
     private GameEventRuntime pendingEvent;
     private float timeMultiplierBeforePendingEvent = 1f;
     private bool shouldResumeTimeAfterPendingEvent;
+    private bool isEventNotificationOpen;
 
     public static EventManager Instance { get; private set; }
     public IReadOnlyList<EventHistoryEntry> History => history;
     public GameEventRuntime PendingEvent => pendingEvent;
+    public bool IsEventNotificationOpen => isEventNotificationOpen;
 
     public event Action<GameEventRuntime> EventActivated;
     public event Action<EventHistoryEntry> EventRecorded;
@@ -110,6 +112,7 @@ public class EventManager : MonoBehaviour
         if (pendingEvent != null && pendingEvent.IsAwaitingChoice)
             return;
 
+        isEventNotificationOpen = false;
         ResumeTimeAfterEventNotification();
     }
 
@@ -134,6 +137,7 @@ public class EventManager : MonoBehaviour
         lastTriggerDayByEventId.Clear();
         pendingEvent = null;
         shouldResumeTimeAfterPendingEvent = false;
+        isEventNotificationOpen = false;
 
         if (data == null)
         {
@@ -324,7 +328,7 @@ public class EventManager : MonoBehaviour
 
     private void EvaluateTrigger(GameEventTriggerType triggerType, EventWorldContext context)
     {
-        if (pendingEvent != null)
+        if (pendingEvent != null || isEventNotificationOpen)
             return;
 
         context.TriggerType = triggerType;
@@ -343,11 +347,15 @@ public class EventManager : MonoBehaviour
 
     private bool TryActivate(EventDefinition definition, EventWorldContext context)
     {
+        if (pendingEvent != null || isEventNotificationOpen)
+            return false;
+
         if (!CanActivate(definition, context))
             return false;
 
         GameEventRuntime runtime = new(definition, CloneContext(context));
         MarkTriggered(definition, runtime.Context.Day);
+        isEventNotificationOpen = true;
         PauseTimeForEventNotification();
 
         if (definition.ConsequenceMode == GameEventConsequenceMode.PlayerChoice)
