@@ -20,11 +20,11 @@ public class EventNotificationUI : MonoBehaviour
 
     private void Awake()
     {
-        EnsureInputBlocker();
-
         if (closeButton != null)
             closeButton.onClick.AddListener(Hide);
 
+        if (root != null || inputBlocker != null)
+            EnsureInputBlocker();
         Hide();
     }
 
@@ -47,6 +47,33 @@ public class EventNotificationUI : MonoBehaviour
     {
         if (eventManager == null)
             TryBindManager();
+    }
+
+    public void Configure(
+        GameObject notificationRoot,
+        TMP_Text title,
+        TMP_Text description,
+        TMP_Text consequence,
+        Transform options,
+        Button close,
+        GameObject blocker = null,
+        Button optionPrefab = null)
+    {
+        root = notificationRoot;
+        titleText = title;
+        descriptionText = description;
+        consequenceText = consequence;
+        optionsContainer = options;
+        closeButton = close;
+        inputBlocker = blocker;
+        optionButtonPrefab = optionPrefab;
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(Hide);
+
+        EnsureInputBlocker();
+        Hide();
+        TryBindManager();
     }
 
     private void TryBindManager()

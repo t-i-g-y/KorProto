@@ -7,6 +7,7 @@ public class EventInventoryUI : MonoBehaviour
 {
     [SerializeField] private EventManager eventManager;
     [SerializeField] private Button toggleButton;
+    [SerializeField] private Button closeButton;
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject entryPrefab;
@@ -19,6 +20,9 @@ public class EventInventoryUI : MonoBehaviour
     {
         if (toggleButton != null)
             toggleButton.onClick.AddListener(TogglePanel);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(ClosePanel);
 
         if (panelRoot != null)
             panelRoot.SetActive(false);
@@ -54,6 +58,31 @@ public class EventInventoryUI : MonoBehaviour
 
         if (panelRoot.activeSelf)
             Rebuild();
+    }
+
+    public void ClosePanel()
+    {
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
+    }
+
+    public void Configure(Button button, Button close, GameObject panel, Transform content, TMP_Text emptyLabel, GameObject prefab = null)
+    {
+        toggleButton = button;
+        closeButton = close;
+        panelRoot = panel;
+        contentRoot = content;
+        emptyText = emptyLabel;
+        entryPrefab = prefab;
+
+        if (toggleButton != null)
+            toggleButton.onClick.AddListener(TogglePanel);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(ClosePanel);
+
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
     }
 
     public void Rebuild()
