@@ -258,7 +258,7 @@ public class GameEventOption
     }
 }
 
-[CreateAssetMenu(menuName = "Rail/Events/Event Definition")]
+[CreateAssetMenu(menuName = "GameContent/Events/Event Definition")]
 public class EventDefinition : ScriptableObject
 {
     [Header("Event")]

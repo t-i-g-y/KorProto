@@ -3383,7 +3383,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f30c3467e3c41a68fe89aaf58cba56b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EventManager
-  eventDefinitions: []
+  eventDefinitions:
+  - {fileID: 11400000, guid: 45e6834aed1af42cea6daf4949d8701a, type: 2}
   useBuiltInEventsWhenEmpty: 1
 --- !u!4 &307986717
 Transform:

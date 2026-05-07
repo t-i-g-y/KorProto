@@ -71,20 +71,20 @@ public static class EventNotificationBootstrap
         titleRect.offsetMax = new Vector2(-32f, -24f);
 
         RectTransform descriptionRect = description.GetComponent<RectTransform>();
-        descriptionRect.anchorMin = new Vector2(0f, 0.55f);
+        descriptionRect.anchorMin = new Vector2(0f, 0.58f);
         descriptionRect.anchorMax = new Vector2(1f, 1f);
         descriptionRect.offsetMin = new Vector2(36f, 8f);
         descriptionRect.offsetMax = new Vector2(-36f, -96f);
 
         RectTransform consequenceRect = consequence.GetComponent<RectTransform>();
-        consequenceRect.anchorMin = new Vector2(0f, 0.32f);
-        consequenceRect.anchorMax = new Vector2(1f, 0.55f);
+        consequenceRect.anchorMin = new Vector2(0f, 0.42f);
+        consequenceRect.anchorMax = new Vector2(1f, 0.58f);
         consequenceRect.offsetMin = new Vector2(36f, 8f);
         consequenceRect.offsetMax = new Vector2(-36f, -8f);
 
         RectTransform optionsRect = options.GetComponent<RectTransform>();
         optionsRect.anchorMin = new Vector2(0f, 0.1f);
-        optionsRect.anchorMax = new Vector2(1f, 0.32f);
+        optionsRect.anchorMax = new Vector2(1f, 0.42f);
         optionsRect.offsetMin = new Vector2(36f, 12f);
         optionsRect.offsetMax = new Vector2(-36f, -8f);
 
@@ -159,6 +159,7 @@ public static class EventNotificationBootstrap
         layout.childControlHeight = true;
         layout.childControlWidth = true;
         layout.childForceExpandHeight = false;
+        layout.childForceExpandWidth = true;
 
         return container.transform;
     }

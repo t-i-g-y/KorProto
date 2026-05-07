@@ -166,8 +166,17 @@ public class EventInventoryUI : MonoBehaviour
             return;
 
         text.textWrappingMode = TextWrappingModes.Normal;
+        text.richText = true;
         text.color = Color.black;
-        text.text = $"День {entry.day}, {entry.hour:00}:00 - {entry.title}\n{entry.consequenceTitle}: {entry.consequenceEffects}";
+
+        string consequence = string.IsNullOrWhiteSpace(entry.consequenceEffects)
+            ? entry.consequenceDescription
+            : entry.consequenceEffects;
+
+        text.text = $"<b>{entry.title}</b>\n" +
+                    $"День {entry.day}, {entry.hour:00}:00\n" +
+                    $"{entry.description}\n" +
+                    $"<b><color=#8A3B12>Последствие: {entry.consequenceTitle}: {consequence}</color></b>";
     }
 
     private void Clear()

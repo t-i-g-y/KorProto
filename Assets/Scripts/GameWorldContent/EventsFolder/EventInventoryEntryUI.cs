@@ -33,12 +33,13 @@ public class EventInventoryEntryUI : MonoBehaviour
 
         if (consequenceText != null)
         {
-            consequenceText.color = Color.black;
+            consequenceText.color = new Color32(138, 59, 18, 255);
+            consequenceText.fontStyle = FontStyles.Bold;
             string consequence = string.IsNullOrWhiteSpace(entry.consequenceEffects)
                 ? entry.consequenceDescription
                 : entry.consequenceEffects;
 
-            consequenceText.text = $"{entry.consequenceTitle}: {consequence}";
+            consequenceText.text = $"Последствие: {entry.consequenceTitle}: {consequence}";
         }
     }
 }

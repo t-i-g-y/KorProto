@@ -174,10 +174,20 @@ public class EventNotificationUI : MonoBehaviour
             return null;
 
         if (optionButtonPrefab != null)
-            return Instantiate(optionButtonPrefab, optionsContainer);
+        {
+            Button prefabButton = Instantiate(optionButtonPrefab, optionsContainer);
+            EnsureOptionButtonLayout(prefabButton.gameObject);
+            return prefabButton;
+        }
 
-        GameObject buttonObject = new("EventOptionButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        GameObject buttonObject = new("EventOptionButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
         buttonObject.transform.SetParent(optionsContainer, false);
+
+        RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(0f, 56f);
+
+        Image image = buttonObject.GetComponent<Image>();
+        image.color = Color.white;
 
         GameObject textObject = new("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
         textObject.transform.SetParent(buttonObject.transform, false);
@@ -190,9 +200,27 @@ public class EventNotificationUI : MonoBehaviour
 
         TMP_Text text = textObject.GetComponent<TMP_Text>();
         text.alignment = TextAlignmentOptions.Center;
+        text.color = Color.black;
+        text.fontSize = 20f;
         text.textWrappingMode = TextWrappingModes.Normal;
+        text.raycastTarget = false;
 
+        EnsureOptionButtonLayout(buttonObject);
         return buttonObject.GetComponent<Button>();
+    }
+
+    private static void EnsureOptionButtonLayout(GameObject buttonObject)
+    {
+        if (buttonObject == null)
+            return;
+
+        LayoutElement layout = buttonObject.GetComponent<LayoutElement>();
+        if (layout == null)
+            layout = buttonObject.AddComponent<LayoutElement>();
+
+        layout.minHeight = 56f;
+        layout.preferredHeight = 56f;
+        layout.flexibleHeight = 0f;
     }
 
     private void SetConsequenceText(GameEventOption option)

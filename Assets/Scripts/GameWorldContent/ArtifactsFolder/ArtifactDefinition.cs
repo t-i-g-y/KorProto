@@ -40,7 +40,7 @@ public class ArtifactWorldContext
     public QuestRuntime Quest;
 }
 
-[CreateAssetMenu(menuName = "Rail/Artifacts/Artifact Definition")]
+[CreateAssetMenu(menuName = "GameContent/Artifacts/Artifact Definition")]
 public class ArtifactDefinition : ScriptableObject
 {
     [Header("Artifact")]
@@ -128,4 +128,3 @@ public class ArtifactDefinition : ScriptableObject
         return definition;
     }
 }
-
