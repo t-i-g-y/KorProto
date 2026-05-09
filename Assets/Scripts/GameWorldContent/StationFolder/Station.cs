@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Station : MonoBehaviour
 {
+    private static Station selectedStation;
+    private static int lastSelectionInputFrame = -1;
+    private const float SelectionRadius = 0.35f;
+
     private int stationID;
     [Header("Grid / Tile")]
     [SerializeField] private Grid grid;
@@ -38,6 +44,7 @@ public class Station : MonoBehaviour
     public IReadOnlyList<ResourceAmount> ConsumedResources => consumedResources;
     public ResourceAmount[] Supply => supply;
     public ResourceAmount[] Demand => demand;
+    public bool IsSelected => selectedStation == this;
 
     private void Awake()
     {
@@ -49,6 +56,9 @@ public class Station : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (selectedStation == this)
+            selectedStation = null;
+
         StationRegistry.Unregister(this);
     }
 
@@ -60,6 +70,8 @@ public class Station : MonoBehaviour
 
     private void Update()
     {
+        HandleSelectionInput();
+
         if (config == null || TimeManager.Instance == null)
             return;
 
@@ -76,6 +88,39 @@ public class Station : MonoBehaviour
         {
             demandTimer = 0f;
             TryRequest();
+        }
+    }
+
+    private static void HandleSelectionInput()
+    {
+        if (lastSelectionInputFrame == Time.frameCount)
+            return;
+
+        lastSelectionInputFrame = Time.frameCount;
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null || !mouse.rightButton.wasPressedThisFrame)
+            return;
+
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        Camera camera = Camera.main;
+        if (camera == null)
+            return;
+
+        Vector2 screenPosition = mouse.position.ReadValue();
+        Vector3 worldPosition = camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -camera.transform.position.z));
+        Collider2D[] hits = Physics2D.OverlapCircleAll(worldPosition, SelectionRadius);
+
+        foreach (Collider2D hit in hits)
+        {
+            Station station = hit.GetComponentInParent<Station>();
+            if (station == null)
+                continue;
+
+            selectedStation = selectedStation == station ? null : station;
+            return;
         }
     }
 
