@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 public class Station : MonoBehaviour
 {
     private static Station selectedStation;
-    private static int lastSelectionInputFrame = -1;
+    private static int lastHoverInputFrame = -1;
     private const float SelectionRadius = 0.35f;
 
     private int stationID;
@@ -57,7 +57,7 @@ public class Station : MonoBehaviour
     private void OnDestroy()
     {
         if (selectedStation == this)
-            selectedStation = null;
+            SetHoveredStation(null);
 
         StationRegistry.Unregister(this);
     }
@@ -70,7 +70,7 @@ public class Station : MonoBehaviour
 
     private void Update()
     {
-        HandleSelectionInput();
+        UpdateHoveredStation();
 
         if (config == null || TimeManager.Instance == null)
             return;
@@ -91,23 +91,32 @@ public class Station : MonoBehaviour
         }
     }
 
-    private static void HandleSelectionInput()
+    private static void UpdateHoveredStation()
     {
-        if (lastSelectionInputFrame == Time.frameCount)
+        if (lastHoverInputFrame == Time.frameCount)
             return;
 
-        lastSelectionInputFrame = Time.frameCount;
+        lastHoverInputFrame = Time.frameCount;
 
         Mouse mouse = Mouse.current;
-        if (mouse == null || !mouse.rightButton.wasPressedThisFrame)
+        if (mouse == null)
+        {
+            SetHoveredStation(null);
             return;
+        }
 
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            SetHoveredStation(null);
             return;
+        }
 
         Camera camera = Camera.main;
         if (camera == null)
+        {
+            SetHoveredStation(null);
             return;
+        }
 
         Vector2 screenPosition = mouse.position.ReadValue();
         Vector3 worldPosition = camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -camera.transform.position.z));
@@ -119,9 +128,21 @@ public class Station : MonoBehaviour
             if (station == null)
                 continue;
 
-            selectedStation = selectedStation == station ? null : station;
+            SetHoveredStation(station);
             return;
         }
+
+        SetHoveredStation(null);
+    }
+
+    private static void SetHoveredStation(Station station)
+    {
+        selectedStation = station;
+
+        if (station != null)
+            UIStationManager.Instance?.ShowStationInfo(station);
+        else
+            UIStationManager.Instance?.HideStationInfo();
     }
 
     public void UpdateCellFromWorldPosition()
