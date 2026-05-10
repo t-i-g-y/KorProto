@@ -10,6 +10,8 @@ public class RailLineUIEntry : MonoBehaviour
     [SerializeField] private TMP_Text selectText;
     [SerializeField] private Image selectImage;
     [SerializeField] private Button deleteButton;
+    [SerializeField] private GameObject noDemandRouteMarker;
+    [SerializeField] private TMP_Text noDemandRouteText;
 
     [SerializeField] private Color32 selectColor = new Color32(0, 204, 68, 255);
     [SerializeField] private Color32 selectTextColor = new Color32(50, 50, 50, 255);
@@ -32,6 +34,7 @@ public class RailLineUIEntry : MonoBehaviour
         deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke(this));
 
         SetSelected(false);
+        UpdateDemandRouteState();
     }
 
     public void SetSelected(bool selected)
@@ -47,6 +50,22 @@ public class RailLineUIEntry : MonoBehaviour
         if (selectImage != null)
         {
             selectImage.color = selected ? deselectColor : selectColor;
+        }
+    }
+
+    public void UpdateDemandRouteState()
+    {
+        bool isDemandedRoute = TrainManager.Instance != null && TrainManager.Instance.IsLineDemandedRoute(ReferenceLine);
+
+        bool showNoDemandMarker = !isDemandedRoute;
+
+        if (noDemandRouteMarker != null)
+            noDemandRouteMarker.SetActive(showNoDemandMarker);
+
+        if (noDemandRouteText != null)
+        {
+            noDemandRouteText.gameObject.SetActive(showNoDemandMarker);
+            noDemandRouteText.text = "Не востребованный маршрут";
         }
     }
 }

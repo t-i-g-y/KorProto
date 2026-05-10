@@ -71,11 +71,11 @@ public class SubsystemSaveManager : MonoBehaviour
         if (data.timeData != null)
             TimeManager.Instance.LoadFromSaveData(data.timeData);
 
-        if (data.financeData != null)
-            FinanceSystem.Instance.LoadFromSaveData(data.financeData);
-
         if (data.trainData != null)
             TrainManager.Instance.LoadFromSaveData(data.trainData);
+        
+        if (data.financeData != null)
+            FinanceSystem.Instance.LoadFromSaveData(data.financeData);
 
         if (data.economyData != null)
             EconomyManager.Instance.LoadFromSaveData(data.economyData);

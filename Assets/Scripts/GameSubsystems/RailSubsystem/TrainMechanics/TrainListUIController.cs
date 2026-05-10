@@ -8,6 +8,7 @@ public class TrainListUIController : MonoBehaviour
     [SerializeField] private GameObject listPanel;
     [SerializeField] private GameObject listEntryPrefab;
     [SerializeField] private Transform listContent;
+    [SerializeField] private TrainCardController trainCardController;
 
     private readonly Dictionary<Train, TrainEntryUI> entries = new();
 
@@ -20,6 +21,17 @@ public class TrainListUIController : MonoBehaviour
             viewListButton.onClick.AddListener(() => TogglePanel(listPanel));
     }
 
+    private void Update()
+    {
+        foreach (TrainEntryUI entry in entries.Values)
+        {
+            if (entry == null)
+                continue;
+
+            entry.UpdateDemandRouteState();
+        }
+    }
+    
     private void OnEnable()
     {
         TrainManager.TrainCreated += OnTrainCreated;
@@ -54,6 +66,7 @@ public class TrainListUIController : MonoBehaviour
         entry.OnDeleteClicked += HandleDeleteClicked;
         entry.OnSpeedClicked += HandleSpeedClicked;
         entry.OnCapacityClicked += HandleCapacityClicked;
+        entry.OnTrainClicked += HandleTrainClicked;
 
         entries[train] = entry;
     }
@@ -69,9 +82,13 @@ public class TrainListUIController : MonoBehaviour
             entry.OnDeleteClicked -= HandleDeleteClicked;
             entry.OnSpeedClicked -= HandleSpeedClicked;
             entry.OnCapacityClicked -= HandleCapacityClicked;
+            entry.OnTrainClicked -= HandleTrainClicked;
             Destroy(entry.gameObject);
             entries.Remove(train);
         }
+
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.HideCard();
     }
 
     private void OnTrainSelected(Train train)
@@ -110,6 +127,9 @@ public class TrainListUIController : MonoBehaviour
 
         train.SetSpeedLevel(train.SpeedLevel + 1);
         entry.UpdateSpeedText();
+
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.ShowTrain(entry.ReferenceTrain);
     }
 
     private void HandleCapacityClicked(TrainEntryUI entry)
@@ -120,6 +140,18 @@ public class TrainListUIController : MonoBehaviour
 
         train.TryAddWagon();
         entry.UpdateCapacityText();
+        
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.ShowTrain(entry.ReferenceTrain);
+    }
+
+    private void HandleTrainClicked(TrainEntryUI entry)
+    {
+        if (entry == null || entry.ReferenceTrain == null)
+            return;
+
+        if (trainCardController != null)
+            trainCardController.ToggleTrain(entry.ReferenceTrain);
     }
 
     private void TogglePanel(GameObject panel)

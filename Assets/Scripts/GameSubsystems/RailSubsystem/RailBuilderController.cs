@@ -33,6 +33,8 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private GameObject lengthPanel;
     [SerializeField] private TMP_Text lengthText;
     [SerializeField] private Vector3 lengthPanelOffset = new Vector3(0f, 40f, 0f);
+    [SerializeField] private GameObject costPanel;
+    [SerializeField] private TMP_Text costText;
 
     private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
@@ -122,7 +124,7 @@ public class RailBuilderController : MonoBehaviour
                 ghost.SetTile(ghostPath[^1], null);
                 ghostPath.RemoveAt(ghostPath.Count - 1);
                 painter.PaintGhostPath(ghostPath);
-                UpdateLengthUI();
+                UpdateConstructionInfoUI();
                 return;
             }
 
@@ -136,7 +138,6 @@ public class RailBuilderController : MonoBehaviour
             if (!HexCoords.AreNeighbours(ghostPath[^1], cur))
                 return;
 
-            //bool canStep = (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) || (IsWater(cur) && ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel)));
             bool canStep = ResearchModifierSystem.Instance.CanBuildOn(terrain);
             if (!canStep)
                 return;
@@ -146,7 +147,7 @@ public class RailBuilderController : MonoBehaviour
                 ghostPath.Add(cur);
                 ghost.SetTile(cur, ghostTile);
                 painter.PaintGhostPath(ghostPath);
-                UpdateLengthUI();
+                UpdateConstructionInfoUI();
             }
 
             return;
@@ -187,6 +188,7 @@ public class RailBuilderController : MonoBehaviour
             {
                 Debug.Log("Can't create duplicate line");
                 ClearHighlight();
+                UpdateConstructionInfoUI();
                 return;
             }
 
@@ -196,7 +198,7 @@ public class RailBuilderController : MonoBehaviour
         }
 
         if (isBuilding || awaitingConfirm)
-            UpdateLengthUI();
+            UpdateConstructionInfoUI();
     }
 
     private void LateUpdate()
@@ -231,8 +233,8 @@ public class RailBuilderController : MonoBehaviour
 
         ClearHighlight();
         confirmHolder.SetActive(false);
-        lengthPanel.SetActive(false);
         awaitingConfirm = false;
+        UpdateConstructionInfoUI();
     }
 
     private void CreateRelayIfNeeded(Vector3Int endpoint)
@@ -251,18 +253,26 @@ public class RailBuilderController : MonoBehaviour
         ClearHighlight();
         confirmHolder.SetActive(false);
         awaitingConfirm = false;
-        lengthPanel.SetActive(false);
+        UpdateConstructionInfoUI();
+    }
+
+    private void UpdateConstructionInfoUI()
+    {
+        bool show = isBuilding || awaitingConfirm;
+
+        lengthPanel.SetActive(show);
+        costPanel.SetActive(show);
+
+        if (!show)
+            return;
+
+        UpdateLengthUI();
+        UpdateCostUI();
     }
 
     private void UpdateLengthUI()
     {
         if (lengthPanel == null || lengthText == null)
-            return;
-
-        bool show = isBuilding || awaitingConfirm;
-        lengthPanel.SetActive(show);
-
-        if (!show)
             return;
 
         int used = ghostPath.Count;
@@ -276,6 +286,16 @@ public class RailBuilderController : MonoBehaviour
             lengthText.color = Color.red;
 
         lengthText.text = $"{remaining}";
+    }
+
+    private void UpdateCostUI()
+    {
+        if (costPanel == null || costText == null)
+            return;
+        
+        float cost = RailEconomySystem.Instance.CalculateLineConstructionCost(ghostPath);
+
+        costText.text = $"-{cost}";
     }
 
     public void ChangeMaxLineLength(int delta) => maxLineLength += delta;

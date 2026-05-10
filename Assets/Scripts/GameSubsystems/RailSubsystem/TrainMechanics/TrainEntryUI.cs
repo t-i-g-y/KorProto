@@ -15,6 +15,9 @@ public class TrainEntryUI : MonoBehaviour
     [SerializeField] private TMP_Text selectText;
     [SerializeField] private Image selectImage;
     [SerializeField] private Button deleteButton;
+    [SerializeField] private GameObject noDemandRouteMarker;
+    [SerializeField] private TMP_Text noDemandRouteText;
+    [SerializeField] private Button trainButton;
 
     [SerializeField] private Color32 selectColor = new Color32(0, 204, 68, 255);
     [SerializeField] private Color32 selectTextColor = new Color32(50, 50, 50, 255);
@@ -29,6 +32,7 @@ public class TrainEntryUI : MonoBehaviour
     public event Action<TrainEntryUI> OnCapacityClicked;
     public event Action<TrainEntryUI> OnSelectClicked;
     public event Action<TrainEntryUI> OnDeleteClicked;
+    public event Action<TrainEntryUI> OnTrainClicked;
 
     public void Init(Train train, RailLine line)
     {
@@ -45,10 +49,12 @@ public class TrainEntryUI : MonoBehaviour
         deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke(this));
         speedButton.onClick.AddListener(() => OnSpeedClicked?.Invoke(this));
         capacityButton.onClick.AddListener(() => OnCapacityClicked?.Invoke(this));
+        trainButton.onClick.AddListener(() => OnTrainClicked?.Invoke(this));
 
         UpdateSpeedText();
         UpdateCapacityText();
         SetSelected(false);
+        UpdateDemandRouteState();
     }
 
     public void SetSelected(bool selected)
@@ -76,5 +82,19 @@ public class TrainEntryUI : MonoBehaviour
         if (capacityText != null && ReferenceTrain != null && ReferenceTrain.AttachedTrainConsist != null)
             capacityText.text = $"W:{ReferenceTrain.AttachedTrainConsist.WagonCount}";
     }
-    
+    public void UpdateDemandRouteState()
+    {
+        bool isDemandedRoute = TrainManager.Instance != null && TrainManager.Instance.IsLineDemandedRoute(ReferenceLine);
+
+        bool showNoDemandMarker = !isDemandedRoute;
+
+        if (noDemandRouteMarker != null)
+            noDemandRouteMarker.SetActive(showNoDemandMarker);
+
+        if (noDemandRouteText != null)
+        {
+            noDemandRouteText.gameObject.SetActive(showNoDemandMarker);
+            noDemandRouteText.text = "Не востребованный маршрут";
+        }
+    }
 }

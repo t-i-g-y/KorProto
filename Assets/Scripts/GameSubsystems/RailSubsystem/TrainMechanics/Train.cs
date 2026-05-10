@@ -14,6 +14,7 @@ public class Train : MonoBehaviour
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color brokenColor = Color.darkGray;
+    [SerializeField] private Color noDemandColor;
     [SerializeField] private CargoVisualizer cargoVisualizer;
     [SerializeField] private Vector3 incomePopupOffset = new Vector3(0f, 0.6f, 0f);
 
@@ -37,7 +38,6 @@ public class Train : MonoBehaviour
 
     [Header("Breaking")]
     [SerializeField] private float breakChancePerSecond = 0.002f;
-    [SerializeField] private int repairCost = 10;
 
     [Header("Config")]
     [SerializeField] private TrainConfig config;
@@ -49,6 +49,8 @@ public class Train : MonoBehaviour
     private bool isDwelling;
     private int speedLevel = 1;
     private bool hasReportedBrokenState;
+    private float inDemandRouteTimer = 15f;
+    private const float inDemandRouteMarkerTime = 30f;
 
     public RailLine AssignedLine => assignedLine;
     public bool IsOperational => isOperational;
@@ -56,7 +58,7 @@ public class Train : MonoBehaviour
     public int SpeedLevel => speedLevel;
     public float Speed => speed;
     public bool IsBroken => isBroken;
-    public int RepairCost => repairCost;
+    public bool InDemandedRoute => inDemandRouteTimer > 0f;
 
     public static event Action<Train> TrainBroken;
     public static event Action<Train> TrainRepaired;
@@ -79,6 +81,8 @@ public class Train : MonoBehaviour
 
     private void Update()
     {
+        if (inDemandRouteTimer > 0f && attachedTrainConsist.usedCapacity <= 0)
+            inDemandRouteTimer -= TimeManager.Instance.CustomDeltaTime;
         HandleTrainMovement();
     }
 
@@ -86,6 +90,8 @@ public class Train : MonoBehaviour
     {
         CleanupWagonViews();
     }
+
+    private void MarkRouteDemandStatus() => inDemandRouteTimer = inDemandRouteMarkerTime;
 
     private void CleanupWagonViews()
     {
@@ -187,9 +193,11 @@ public class Train : MonoBehaviour
         if (!justCreated && assignedLine != null && RailEconomySystem.Instance != null)
         {
             float earnedIncome = RailEconomySystem.Instance.ApplyLineIncome(assignedLine);
-
+            earnedIncome += RailEconomySystem.Instance.ApplyTransitLineIncome(assignedLine, station.Cell);
+            Debug.Log($"[Train] earned {earnedIncome} at station{station.StationID}");
             if (earnedIncome > 0f)
             {
+                MarkRouteDemandStatus();
                 IncomePopupSpawner.Instance?.QueueRailIncome(transform, popupBasePosition, earnedIncome);
                 popupStackIndex++;
             }
@@ -221,11 +229,9 @@ public class Train : MonoBehaviour
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
             {
-                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
-
                 foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
                 {
-                    while (freeCapacity > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
                     {
                         if (!GlobalDemandSystem.Instance.PeekStationTransitDestination(station.StationID, resource, out int destinationStationId))
                             break;
@@ -242,11 +248,11 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromStationTransit(station, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
                         yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }
-                    while (freeCapacity > 0 && station.GetSupplyAmount(resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && station.GetSupplyAmount(resource) > 0)
                     {
                         if (!GlobalDemandSystem.Instance.TryGetBestDestinationForResource(station.Cell, twinnedCell, resource, out int destinationStationId))
                             break;
@@ -254,7 +260,7 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromStation(station, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
                         yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }
@@ -279,6 +285,9 @@ public class Train : MonoBehaviour
         isDwelling = true;
         atStation = true;
 
+        if (!justCreated && assignedLine != null && relay != null && RailEconomySystem.Instance != null)
+            RailEconomySystem.Instance.ApplyTransitLineIncome(assignedLine, relay.Cell);
+        
         yield return WaitForGameSeconds(stationDwellSeconds);
 
         if (attachedTrainConsist != null && relay != null)
@@ -291,11 +300,9 @@ public class Train : MonoBehaviour
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
             {
-                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
-
                 foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
                 {
-                    while (freeCapacity > 0 && relay.GetAmount(resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && relay.GetAmount(resource) > 0)
                     {
                         if (!relay.PeekNextDestination(resource, out int destinationStationId))
                             break;
@@ -312,7 +319,7 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromRelay(relay, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
                         yield return WaitForGameSeconds(config.TimePerLoadSec);
                     }

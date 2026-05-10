@@ -19,6 +19,17 @@ public class RailListUIController : MonoBehaviour
         if (viewListButton != null)
             viewListButton.onClick.AddListener(() => TogglePanel(listPanel));
     }
+    
+    private void Update()
+    {
+        foreach (RailLineUIEntry entry in entries.Values)
+        {
+            if (entry == null)
+                continue;
+
+            entry.UpdateDemandRouteState();
+        }
+    }
 
     private void OnEnable()
     {

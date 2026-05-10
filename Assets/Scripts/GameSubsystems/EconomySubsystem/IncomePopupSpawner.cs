@@ -8,8 +8,8 @@ public class IncomePopupSpawner : MonoBehaviour
 
     [SerializeField] private IncomePopup popupPrefab;
     [SerializeField] private Transform popupParent;
-    [SerializeField] private float timeBetweenPopups = 0.12f;
-    [SerializeField] private float verticalStackSpacing = 0.28f;
+    [SerializeField] private float timeBetweenPopups = 0.1f;
+    [SerializeField] private float verticalStackSpacing = 0.15f;
 
     private readonly Dictionary<Transform, Coroutine> activeRunners = new();
     private readonly Dictionary<Transform, Queue<PopupRequest>> queues = new();
@@ -62,21 +62,13 @@ public class IncomePopupSpawner : MonoBehaviour
 
     private IEnumerator RunQueue(Transform anchor)
     {
-        while (anchor != null &&
-               queues.TryGetValue(anchor, out Queue<PopupRequest> queue) &&
-               queue.Count > 0)
+        while (anchor != null && queues.TryGetValue(anchor, out Queue<PopupRequest> queue) && queue.Count > 0)
         {
             PopupRequest request = queue.Dequeue();
 
-            Vector3 spawnPos = request.WorldBasePosition + Vector3.up * (request.StackIndex * verticalStackSpacing);
+            Vector3 spawnPos = request.WorldBasePosition + Vector3.up * ((request.StackIndex % 7) * verticalStackSpacing);
 
-            IncomePopup popup = Instantiate(
-                popupPrefab,
-                spawnPos,
-                Quaternion.identity,
-                popupParent
-            );
-
+            IncomePopup popup = Instantiate(popupPrefab, spawnPos, Quaternion.identity, popupParent);
             popup.Initialize(request.Text, anchor);
 
             yield return new WaitForSeconds(timeBetweenPopups);

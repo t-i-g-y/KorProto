@@ -46,6 +46,7 @@ public class TrainRepairPanel : MonoBehaviour
     {
         currentTrain = train;
         target = train != null ? train.transform : null;
+        float repairCost = RailEconomySystem.Instance.CalculateTrainRepairCost(currentTrain);
 
         if (panelRoot != null)
             panelRoot.SetActive(train != null);
@@ -57,7 +58,7 @@ public class TrainRepairPanel : MonoBehaviour
             titleText.text = $"Поезд#{train.ID} сломался!";
 
         if (costText != null)
-            costText.text = $"Починить: {train.RepairCost:0} | Продать: {50}";
+            costText.text = $"Починить: {repairCost:0} | Продать: {50}";
     }
 
     public void Hide()
@@ -79,7 +80,7 @@ public class TrainRepairPanel : MonoBehaviour
         if (currentTrain == null || FinanceSystem.Instance == null)
             return;
 
-        float cost = currentTrain.RepairCost;
+        float cost = RailEconomySystem.Instance.CalculateTrainRepairCost(currentTrain);
         if (FinanceSystem.Instance.Balance < cost)
             return;
 
@@ -97,9 +98,6 @@ public class TrainRepairPanel : MonoBehaviour
             return;
 
         Train trainToSell = currentTrain;
-
-        if (FinanceSystem.Instance != null)
-            FinanceSystem.Instance.AdjustBalance(50);
 
         Hide();
         TrainManager.Instance.RemoveTrain(trainToSell);

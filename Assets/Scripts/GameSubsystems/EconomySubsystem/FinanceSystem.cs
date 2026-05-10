@@ -49,6 +49,11 @@ public class FinanceSystem : MonoBehaviour
         dayBalance = 0f;
     }
 
+    public void ApplyFinanceSystemTick()
+    {
+        currentDay++;
+        dayBalance = 0;
+    }
     public void AdjustBalance(float amount)
     {
         lastBalanceChange = amount;

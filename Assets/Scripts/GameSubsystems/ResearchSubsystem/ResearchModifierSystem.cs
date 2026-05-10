@@ -7,6 +7,7 @@ public class ResearchModifierSystem : MonoBehaviour
 
     public float RailMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float TrainMaintenanceResearchMultiplier { get; private set; } = 1f;
+    public float TrainCostResearchMultiplier { get; private set; } = 1f;
     public float RelayMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float WagonMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float TrainSpeedResearchMultiplier { get; private set; } = 1f;
@@ -61,7 +62,7 @@ public class ResearchModifierSystem : MonoBehaviour
         LocalResearchIncomeMultiplier = 1f;
         CargoCapacityResearchMultiplier = 1f;
         CargoCapacityBonus = 0;
-        WagonUpgradeTiers = 0;
+        WagonUpgradeTiers = 3;
 
         ResetBuildableTerrains();
         terrainConstructionResearchMultipliers.Clear();
