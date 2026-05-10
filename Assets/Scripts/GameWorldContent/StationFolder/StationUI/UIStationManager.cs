@@ -11,9 +11,9 @@ public class UIStationManager : MonoBehaviour
 	[SerializeField] private Image stationInfoBackground;
 	[SerializeField] private TMP_Text stationInfoText;
 
-	[Header("Follow Mouse")]
-	[SerializeField] private bool followMouse = true;
-	[SerializeField] private Vector2 screenOffset = new(20f, -20f);
+	[Header("Follow Station")]
+	[SerializeField] private bool followStation = true;
+	[SerializeField] private Vector3 worldOffset = new(0f, 0.5f, 0f);
 
 	[Header("Background Colors")]
 	[SerializeField] private Color defaultBackgroundColor = new(0f, 0f, 0f, 0.75f);
@@ -24,6 +24,7 @@ public class UIStationManager : MonoBehaviour
 	private Canvas parentCanvas;
 	private RectTransform rootRectTransform;
 	private Camera uiCamera;
+	private Station currentStation;
 
 	public static UIStationManager Instance { get; private set; }
 
@@ -42,7 +43,7 @@ public class UIStationManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (!followMouse || stationInfoRoot == null || !stationInfoRoot.activeSelf)
+		if (!followStation || stationInfoRoot == null || !stationInfoRoot.activeSelf)
 			return;
 
 		UpdateCardPosition();
@@ -67,6 +68,7 @@ public class UIStationManager : MonoBehaviour
 		if (stationInfoRoot == null || stationInfoText == null)
 			return;
 
+		currentStation = station;
 		stationInfoRoot.SetActive(true);
 		stationInfoText.text = BuildStationDescription(station);
 
@@ -78,6 +80,8 @@ public class UIStationManager : MonoBehaviour
 
 	public void HideStationInfo()
 	{
+		currentStation = null;
+
 		if (stationInfoRoot != null)
 			stationInfoRoot.SetActive(false);
 	}
@@ -89,6 +93,7 @@ public class UIStationManager : MonoBehaviour
 		if (stationInfoRoot == null || stationInfoText == null)
 			return;
 
+		currentStation = null;
 		stationInfoRoot.SetActive(true);
 		stationInfoText.text = text;
 
@@ -119,6 +124,9 @@ public class UIStationManager : MonoBehaviour
 				stationInfoText = textObject.GetComponent<TMP_Text>();
 		}
 
+		if (stationInfoText == null && stationInfoRoot != null)
+			stationInfoText = stationInfoRoot.GetComponentInChildren<TMP_Text>(true);
+
 		if (stationInfoBackground == null && stationInfoRoot != null)
 			stationInfoBackground = stationInfoRoot.GetComponent<Image>();
 
@@ -137,7 +145,14 @@ public class UIStationManager : MonoBehaviour
 		if (rootRectTransform == null)
 			return;
 
-		Vector2 screenPosition = (Vector2)Input.mousePosition + screenOffset;
+		if (currentStation == null)
+			return;
+
+		Camera worldCamera = Camera.main;
+		if (worldCamera == null)
+			return;
+
+		Vector2 screenPosition = worldCamera.WorldToScreenPoint(currentStation.transform.position + worldOffset);
 		screenPosition.x = Mathf.Clamp(screenPosition.x, 0f, Screen.width);
 		screenPosition.y = Mathf.Clamp(screenPosition.y, 0f, Screen.height);
 
