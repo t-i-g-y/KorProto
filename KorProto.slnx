@@ -1,3 +1,4 @@
 ﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="GameAssembly.csproj" />
+  <Project Path="GameSubsystemTests.csproj" />
 </Solution>

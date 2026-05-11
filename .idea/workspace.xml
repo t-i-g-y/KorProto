@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ab1af035-efaf-43fe-9100-31a6b1f4b54a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainConsist.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainConsist.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainConsistUnit.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainConsistUnit.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainWagonView.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainWagonView.cs.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/TrainMock.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Wagon.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/TrainMock.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Train.prefab.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/WagonMock.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Train.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/WagonMock.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Wagon.prefab.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/RailBuilderProto.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/RailBuilderProto.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/RailLine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/RailLine.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/CargoVisualizer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/CargoVisualizer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/Train.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/Train.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainWagon.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/TrainWagon.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/UITrainLineEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/UITrainLineEntry.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/UITrainListController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameSubsystems/RailSubsystem/TrainMechanics/UITrainListController.cs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="3B4BfhCapRnu12CGu5ru5RabYke" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ab1af035-efaf-43fe-9100-31a6b1f4b54a" name="Changes" comment="" />
+      <created>1773738567495</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1773738567495</updated>
+    </task>
+    <servers />
+  </component>
+</project>
