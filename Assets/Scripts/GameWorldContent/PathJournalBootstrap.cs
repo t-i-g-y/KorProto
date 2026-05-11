@@ -70,12 +70,12 @@ public static class PathJournalBootstrap
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        Button toggleButton = CreateButton(journalRoot.transform, "PathJournalButton", "Журнал путейца", new Vector2(190f, 34f));
+        Button toggleButton = CreateButton(journalRoot.transform, "PathJournalButton", "Журнал путейца", new Vector2(150f, 34f));
         RectTransform toggleRect = toggleButton.GetComponent<RectTransform>();
         toggleRect.anchorMin = new Vector2(1f, 1f);
         toggleRect.anchorMax = new Vector2(1f, 1f);
         toggleRect.pivot = new Vector2(1f, 1f);
-        toggleRect.anchoredPosition = new Vector2(-250f, -225f);
+        toggleRect.anchoredPosition = new Vector2(-1750f, -450f);
 
         notificationBadge = CreateNotificationBadge(toggleButton.transform);
         panelRoot = CreatePanel(journalRoot.transform);

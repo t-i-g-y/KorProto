@@ -5,15 +5,41 @@ using UnityEngine;
 public enum GameEventTriggerType
 {
     Manual,
-    DayReached,
-    DayInterval,
-    RailLineCreated,
-    RailLineCountReached,
-    RailLengthReached,
-    TrainCreated,
-    TrainCountReached,
-    TrainBroken,
-    BalanceBelow
+    PathBuilt,
+    PathRemoved,
+    PathBuiltWithLength,
+    TrainTravelledPathTimes,
+    TrainDeliveredCargo,
+    TrainArrivedAtStation,
+    TrainDestroyed,
+    FinanceAmountReached,
+    IncomeEarnedForPeriod,
+    AmountSpent,
+    StationPopulationDecreased,
+    StationPopulationIncreased,
+    StationsConnected,
+    ArtifactObtained,
+    QuestCompleted,
+    TechnologyUnlocked,
+    SpecificDayReached,
+    SpecificHourReached,
+    TimePassed,
+    RandomEvent,
+    PathPassesThroughBiome,
+    TrainCount,
+    StationCount
+}
+
+public enum GameEventTimeUnit
+{
+    Hours,
+    Days
+}
+
+public enum GameEventStationParameterMode
+{
+    Count,
+    StationPair
 }
 
 public enum GameEventConsequenceMode
@@ -25,17 +51,16 @@ public enum GameEventConsequenceMode
 public enum GameEventEffectType
 {
     None,
-    AdjustBalance,
+    AddBalance,
+    SubtractBalance,
     AddResearchPoints,
-    RepairContextTrain,
-    RepairRandomBrokenTrain,
-    RemoveRandomTrain,
-    RemoveContextRailLine,
-    ChangeAllTrainSpeed,
-    AddDemandToRandomStation,
-    AddSupplyToRandomStation,
-    IncreaseRandomStationPopulation,
-    DecreaseRandomStationPopulation
+    RemovePath,
+    RemoveTrain,
+    ChangeTrainSpeed,
+    AddStationProducedResource,
+    AddStationRequiredResource,
+    AddStationPopulation,
+    SubtractStationPopulation
 }
 
 public class EventWorldContext
@@ -44,10 +69,109 @@ public class EventWorldContext
     public int Day;
     public int Hour;
     public int RailLineCount;
+    public int RemovedRailLineCount;
+    public int TotalConnectedStationCount;
     public int TrainCount;
+    public int TrainDestroyedCount;
+    public int PathPassCount;
+    public int CargoAmount;
+    public ResourceType CargoType;
+    public string StationName;
+    public string StartStationName;
+    public string EndStationName;
+    public string DestinationStationName;
+    public int ArrivalCount;
+    public int PopulationDelta;
+    public int ArtifactCount;
+    public int QuestCompletedCount;
+    public bool TechnologyUnlocked;
+    public float IncomeAmount;
+    public float SpentAmount;
+    public int PeriodHours;
+    public int HoursPassed;
     public float Balance;
+    public TerrainType BiomeType;
     public RailLine RailLine;
     public Train Train;
+}
+
+[Serializable]
+public class GameEventTriggerParameters
+{
+    [SerializeField] private int count = 1;
+    [SerializeField] private GameEventStationParameterMode stationParameterMode = GameEventStationParameterMode.Count;
+    [SerializeField] private string startStationName;
+    [SerializeField] private string endStationName;
+    [SerializeField] private int tileCount = 1;
+    [SerializeField] private int passCount = 1;
+    [SerializeField] private ResourceType cargoType = ResourceType.Coal;
+    [SerializeField] private int cargoCount = 1;
+    [SerializeField] private string destinationStationName;
+    [SerializeField] private string stationName;
+    [SerializeField] private int arrivalCount = 1;
+    [SerializeField] private float amount;
+    [SerializeField] private int timePeriodHours = 24;
+    [SerializeField] private int populationCount = 1;
+    [SerializeField] private int dayNumber = 1;
+    [Range(0, 23)]
+    [SerializeField] private int hour;
+    [SerializeField] private int elapsedTimeAmount = 1;
+    [SerializeField] private GameEventTimeUnit elapsedTimeUnit = GameEventTimeUnit.Days;
+    [SerializeField] private int checkIntervalHours = 24;
+    [Range(0f, 1f)]
+    [SerializeField] private float randomEventChance = 1f;
+    [SerializeField] private TerrainType biomeType = TerrainType.Grassland;
+    [SerializeField] private int pathLength = 1;
+    [SerializeField] private int trainBuiltCount = 1;
+    [SerializeField] private int stationConnectedCount = 1;
+
+    public int Count => Mathf.Max(0, count);
+    public GameEventStationParameterMode StationParameterMode => stationParameterMode;
+    public string StartStationName => startStationName;
+    public string EndStationName => endStationName;
+    public int TileCount => Mathf.Max(0, tileCount);
+    public int PassCount => Mathf.Max(0, passCount);
+    public ResourceType CargoType => cargoType;
+    public int CargoCount => Mathf.Max(0, cargoCount);
+    public string DestinationStationName => destinationStationName;
+    public string StationName => stationName;
+    public int ArrivalCount => Mathf.Max(0, arrivalCount);
+    public float Amount => amount;
+    public int TimePeriodHours => Mathf.Max(1, timePeriodHours);
+    public int PopulationCount => Mathf.Max(0, populationCount);
+    public int DayNumber => Mathf.Max(0, dayNumber);
+    public int Hour => Mathf.Clamp(hour, 0, 23);
+    public int ElapsedTimeHours => Mathf.Max(0, elapsedTimeAmount) * (elapsedTimeUnit == GameEventTimeUnit.Days ? 24 : 1);
+    public int CheckIntervalHours => Mathf.Max(1, checkIntervalHours);
+    public float RandomEventChance => Mathf.Clamp01(randomEventChance);
+    public TerrainType BiomeType => biomeType;
+    public int PathLength => Mathf.Max(0, pathLength);
+    public int TrainBuiltCount => Mathf.Max(0, trainBuiltCount);
+    public int StationConnectedCount => Mathf.Max(0, stationConnectedCount);
+
+    public void SetCount(int value)
+    {
+        count = Mathf.Max(0, value);
+        tileCount = Mathf.Max(0, value);
+        passCount = Mathf.Max(0, value);
+        cargoCount = Mathf.Max(0, value);
+        arrivalCount = Mathf.Max(0, value);
+        populationCount = Mathf.Max(0, value);
+        trainBuiltCount = Mathf.Max(0, value);
+        stationConnectedCount = Mathf.Max(0, value);
+        dayNumber = Mathf.Max(0, value);
+        elapsedTimeAmount = Mathf.Max(0, value);
+    }
+
+    public void SetAmount(float value)
+    {
+        amount = value;
+    }
+
+    public void SetCheckIntervalHours(int value)
+    {
+        checkIntervalHours = Mathf.Max(1, value);
+    }
 }
 
 [Serializable]
@@ -79,38 +203,34 @@ public class GameEventEffect
     {
         switch (effectType)
         {
-            case GameEventEffectType.AdjustBalance:
-                FinanceSystem.Instance?.AdjustBalance(floatAmount);
+            case GameEventEffectType.AddBalance:
+                FinanceSystem.Instance?.AdjustBalance(Mathf.Abs(floatAmount));
+                break;
+            case GameEventEffectType.SubtractBalance:
+                FinanceSystem.Instance?.AdjustBalance(-Mathf.Abs(floatAmount));
                 break;
             case GameEventEffectType.AddResearchPoints:
                 ResearchSystem.Instance?.AddResearchPoints(Mathf.Max(0, intAmount));
                 break;
-            case GameEventEffectType.RepairContextTrain:
-                if (context != null && context.Train != null)
-                    context.Train.Repair();
-                break;
-            case GameEventEffectType.RepairRandomBrokenTrain:
-                TryRepairRandomBrokenTrain();
-                break;
-            case GameEventEffectType.RemoveRandomTrain:
+            case GameEventEffectType.RemoveTrain:
                 TryRemoveRandomTrain();
                 break;
-            case GameEventEffectType.RemoveContextRailLine:
+            case GameEventEffectType.RemovePath:
                 TryRemoveContextRailLine(context);
                 break;
-            case GameEventEffectType.ChangeAllTrainSpeed:
+            case GameEventEffectType.ChangeTrainSpeed:
                 ChangeAllTrainSpeed(floatAmount);
                 break;
-            case GameEventEffectType.AddDemandToRandomStation:
-                TryChangeRandomStationResource(true);
-                break;
-            case GameEventEffectType.AddSupplyToRandomStation:
+            case GameEventEffectType.AddStationProducedResource:
                 TryChangeRandomStationResource(false);
                 break;
-            case GameEventEffectType.IncreaseRandomStationPopulation:
+            case GameEventEffectType.AddStationRequiredResource:
+                TryChangeRandomStationResource(true);
+                break;
+            case GameEventEffectType.AddStationPopulation:
                 TryChangeRandomStationPopulation(Mathf.Abs(intAmount));
                 break;
-            case GameEventEffectType.DecreaseRandomStationPopulation:
+            case GameEventEffectType.SubtractStationPopulation:
                 TryChangeRandomStationPopulation(-Mathf.Abs(intAmount));
                 break;
         }
@@ -120,31 +240,18 @@ public class GameEventEffect
     {
         return effectType switch
         {
-            GameEventEffectType.AdjustBalance => floatAmount >= 0f ? $"+{floatAmount:0} к бюджету" : $"{floatAmount:0} к бюджету",
+            GameEventEffectType.AddBalance => $"+{Mathf.Abs(floatAmount):0} к бюджету",
+            GameEventEffectType.SubtractBalance => $"-{Mathf.Abs(floatAmount):0} к бюджету",
             GameEventEffectType.AddResearchPoints => $"+{Mathf.Max(0, intAmount)} очков исследования",
-            GameEventEffectType.RepairContextTrain => "ремонт затронутого поезда",
-            GameEventEffectType.RepairRandomBrokenTrain => "ремонт случайного сломанного поезда",
-            GameEventEffectType.RemoveRandomTrain => "списание случайного поезда",
-            GameEventEffectType.RemoveContextRailLine => "удаление затронутого пути и поездов на нем",
-            GameEventEffectType.ChangeAllTrainSpeed => $"скорость всех поездов x{floatAmount:0.##}",
-            GameEventEffectType.AddDemandToRandomStation => $"+{Mathf.Max(0, intAmount)} спроса на {resourceType}",
-            GameEventEffectType.AddSupplyToRandomStation => $"+{Mathf.Max(0, intAmount)} запаса {resourceType}",
-            GameEventEffectType.IncreaseRandomStationPopulation => $"+{Mathf.Abs(intAmount)} населения на станции",
-            GameEventEffectType.DecreaseRandomStationPopulation => $"-{Mathf.Abs(intAmount)} населения на станции",
+            GameEventEffectType.RemovePath => "удаление затронутого пути и поездов на нем",
+            GameEventEffectType.RemoveTrain => "удаление случайного поезда",
+            GameEventEffectType.ChangeTrainSpeed => $"скорость поездов x{floatAmount:0.##}",
+            GameEventEffectType.AddStationProducedResource => $"+{Mathf.Max(0, intAmount)} производимого ресурса {resourceType}",
+            GameEventEffectType.AddStationRequiredResource => $"+{Mathf.Max(0, intAmount)} необходимого ресурса {resourceType}",
+            GameEventEffectType.AddStationPopulation => $"+{Mathf.Abs(intAmount)} населения на станции",
+            GameEventEffectType.SubtractStationPopulation => $"-{Mathf.Abs(intAmount)} населения на станции",
             _ => string.Empty
         };
-    }
-
-    private static void TryRepairRandomBrokenTrain()
-    {
-        if (TrainManager.Instance == null)
-            return;
-
-        List<Train> brokenTrains = TrainManager.Instance.GetBrokenTrains();
-        if (brokenTrains.Count == 0)
-            return;
-
-        brokenTrains[UnityEngine.Random.Range(0, brokenTrains.Count)].Repair();
     }
 
     private static void TryRemoveRandomTrain()
@@ -269,7 +376,7 @@ public class EventDefinition : ScriptableObject
 
     [Header("Trigger")]
     [SerializeField] private GameEventTriggerType triggerType = GameEventTriggerType.Manual;
-    [SerializeField] private float triggerValue;
+    [SerializeField] private GameEventTriggerParameters triggerParameters = new();
     [Range(0f, 1f)]
     [SerializeField] private float chance = 1f;
     [SerializeField] private int minDay;
@@ -285,7 +392,7 @@ public class EventDefinition : ScriptableObject
     public string Title => title;
     public string Description => description;
     public GameEventTriggerType TriggerType => triggerType;
-    public float TriggerValue => triggerValue;
+    public GameEventTriggerParameters TriggerParameters => triggerParameters;
     public float Chance => chance;
     public int MinDay => minDay;
     public bool CanRepeat => canRepeat;
@@ -302,22 +409,91 @@ public class EventDefinition : ScriptableObject
         if (context.Day < minDay)
             return false;
 
-        int threshold = Mathf.RoundToInt(triggerValue);
+        triggerParameters ??= new GameEventTriggerParameters();
 
         return triggerType switch
         {
             GameEventTriggerType.Manual => true,
-            GameEventTriggerType.DayReached => context.Day >= threshold,
-            GameEventTriggerType.DayInterval => threshold > 0 && context.Day > 0 && context.Day % threshold == 0,
-            GameEventTriggerType.RailLineCreated => true,
-            GameEventTriggerType.RailLineCountReached => context.RailLineCount >= threshold,
-            GameEventTriggerType.RailLengthReached => context.RailLine != null && context.RailLine.Length >= threshold,
-            GameEventTriggerType.TrainCreated => true,
-            GameEventTriggerType.TrainCountReached => context.TrainCount >= threshold,
-            GameEventTriggerType.TrainBroken => context.Train != null,
-            GameEventTriggerType.BalanceBelow => context.Balance <= triggerValue,
+            GameEventTriggerType.PathBuilt => MatchesPathCounter(context.RailLineCount, context),
+            GameEventTriggerType.PathRemoved => MatchesPathCounter(context.RemovedRailLineCount, context),
+            GameEventTriggerType.PathBuiltWithLength => context.RailLine != null && context.RailLine.Length >= triggerParameters.TileCount,
+            GameEventTriggerType.TrainTravelledPathTimes => context.PathPassCount >= triggerParameters.PassCount,
+            GameEventTriggerType.TrainDeliveredCargo => context.CargoType == triggerParameters.CargoType
+                && context.CargoAmount >= triggerParameters.CargoCount
+                && MatchesOptionalStationName(context.DestinationStationName, triggerParameters.DestinationStationName),
+            GameEventTriggerType.TrainArrivedAtStation => context.ArrivalCount >= triggerParameters.ArrivalCount
+                && MatchesOptionalStationName(context.StationName, triggerParameters.StationName),
+            GameEventTriggerType.TrainDestroyed => context.TrainDestroyedCount >= triggerParameters.Count,
+            GameEventTriggerType.FinanceAmountReached => context.Balance >= triggerParameters.Amount,
+            GameEventTriggerType.IncomeEarnedForPeriod => context.IncomeAmount >= triggerParameters.Amount
+                && context.PeriodHours >= triggerParameters.TimePeriodHours,
+            GameEventTriggerType.AmountSpent => context.SpentAmount >= triggerParameters.Amount,
+            GameEventTriggerType.StationPopulationDecreased => -context.PopulationDelta >= triggerParameters.PopulationCount
+                && MatchesOptionalStationName(context.StationName, triggerParameters.StationName),
+            GameEventTriggerType.StationPopulationIncreased => context.PopulationDelta >= triggerParameters.PopulationCount
+                && MatchesOptionalStationName(context.StationName, triggerParameters.StationName),
+            GameEventTriggerType.StationsConnected => context.TotalConnectedStationCount >= triggerParameters.Count,
+            GameEventTriggerType.ArtifactObtained => context.ArtifactCount >= triggerParameters.Count,
+            GameEventTriggerType.QuestCompleted => context.QuestCompletedCount >= triggerParameters.Count,
+            GameEventTriggerType.TechnologyUnlocked => context.TechnologyUnlocked,
+            GameEventTriggerType.SpecificDayReached => context.Day >= triggerParameters.DayNumber,
+            GameEventTriggerType.SpecificHourReached => context.Hour == triggerParameters.Hour,
+            GameEventTriggerType.TimePassed => context.HoursPassed >= triggerParameters.ElapsedTimeHours,
+            GameEventTriggerType.RandomEvent => context.HoursPassed > 0
+                && context.HoursPassed % triggerParameters.CheckIntervalHours == 0
+                && UnityEngine.Random.value <= triggerParameters.RandomEventChance,
+            GameEventTriggerType.PathPassesThroughBiome => RailLinePassesThroughBiome(context.RailLine),
+            GameEventTriggerType.TrainCount => context.TrainCount >= triggerParameters.TrainBuiltCount,
+            GameEventTriggerType.StationCount => context.TotalConnectedStationCount >= triggerParameters.StationConnectedCount,
             _ => false
         };
+    }
+
+    private bool MatchesPathCounter(int count, EventWorldContext context)
+    {
+        if (triggerParameters.StationParameterMode == GameEventStationParameterMode.Count)
+            return count >= triggerParameters.Count;
+
+        return MatchesStationPair(context);
+    }
+
+    private bool MatchesStationPair(EventWorldContext context)
+    {
+        if (context == null)
+            return false;
+
+        bool direct = MatchesStationName(context.StartStationName, triggerParameters.StartStationName)
+            && MatchesStationName(context.EndStationName, triggerParameters.EndStationName);
+        bool reverse = MatchesStationName(context.StartStationName, triggerParameters.EndStationName)
+            && MatchesStationName(context.EndStationName, triggerParameters.StartStationName);
+
+        return direct || reverse;
+    }
+
+    private static bool MatchesOptionalStationName(string actualName, string expectedName)
+    {
+        return string.IsNullOrWhiteSpace(expectedName) || MatchesStationName(actualName, expectedName);
+    }
+
+    private static bool MatchesStationName(string actualName, string expectedName)
+    {
+        return !string.IsNullOrWhiteSpace(actualName)
+            && !string.IsNullOrWhiteSpace(expectedName)
+            && string.Equals(actualName.Trim(), expectedName.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool RailLinePassesThroughBiome(RailLine line)
+    {
+        if (line == null || HexRailNetwork.Instance == null || line.Length < triggerParameters.PathLength)
+            return false;
+
+        foreach (Vector3Int cell in line.Cells)
+        {
+            if (HexRailNetwork.Instance.GetTerrainType(cell) == triggerParameters.BiomeType)
+                return true;
+        }
+
+        return false;
     }
 
     public bool RollChance()
@@ -349,7 +525,11 @@ public class EventDefinition : ScriptableObject
         definition.title = eventTitle;
         definition.description = eventDescription;
         definition.triggerType = eventTriggerType;
-        definition.triggerValue = eventTriggerValue;
+        definition.triggerParameters = new GameEventTriggerParameters();
+        definition.triggerParameters.SetCount(Mathf.RoundToInt(eventTriggerValue));
+        definition.triggerParameters.SetAmount(eventTriggerValue);
+        if (eventTriggerType == GameEventTriggerType.RandomEvent)
+            definition.triggerParameters.SetCheckIntervalHours(Mathf.RoundToInt(eventTriggerValue * 24f));
         definition.consequenceMode = eventConsequenceMode;
         definition.canRepeat = repeat;
         definition.cooldownDays = cooldown;

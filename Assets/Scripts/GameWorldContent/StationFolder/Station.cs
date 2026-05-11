@@ -17,6 +17,7 @@ public class Station : MonoBehaviour
     [SerializeField] private Vector3Int cell;
 
     [Header("Station data")]
+    [SerializeField] private string stationName;
     [SerializeField] private List<StationAttribute> attributes = new();
     [SerializeField] private int population = 100;
 
@@ -37,6 +38,7 @@ public class Station : MonoBehaviour
     private float demandTimer;
 
     public int StationID { get; set; }
+    public string StationName => string.IsNullOrWhiteSpace(stationName) ? gameObject.name : stationName;
     public Vector3Int Cell => cell;
     public int Population => population;
     public IReadOnlyList<StationAttribute> Attributes => attributes;

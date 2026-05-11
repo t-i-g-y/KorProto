@@ -191,13 +191,13 @@ public class UIStationManager : MonoBehaviour
 	private static string BuildStationDescription(Station station)
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.AppendLine(station.gameObject.name);
-		builder.Append("Population: ").AppendLine(station.Population.ToString());
-		builder.Append("Attributes: ");
+		builder.AppendLine(station.StationName);
+		builder.Append("Население: ").AppendLine(station.Population.ToString());
+		builder.Append("Параметры: ");
 		AppendAttributes(builder, station.Attributes);
 		builder.AppendLine();
-		AppendResourceSection(builder, "Produced", station.ProducedResources, station.Supply);
-		AppendResourceSection(builder, "Requested", station.ConsumedResources, station.Demand);
+		AppendResourceSection(builder, "Производит", station.ProducedResources, station.Supply);
+		AppendResourceSection(builder, "Требует", station.ConsumedResources, station.Demand);
 		return builder.ToString();
 	}
 
@@ -205,7 +205,7 @@ public class UIStationManager : MonoBehaviour
 	{
 		if (attributes == null || attributes.Count == 0)
 		{
-			builder.Append("None");
+			builder.Append("Нет");
 			return;
 		}
 
@@ -219,12 +219,12 @@ public class UIStationManager : MonoBehaviour
 			if (hasAttributes)
 				builder.Append(", ");
 
-			builder.Append(NicifyName(attribute.AttributeType.ToString()));
+			builder.Append(TranslateAttributeType(attribute.AttributeType));
 			hasAttributes = true;
 		}
 
 		if (!hasAttributes)
-			builder.Append("None");
+			builder.Append("Нет");
 	}
 
 	private static void AppendResourceSection(
@@ -237,7 +237,7 @@ public class UIStationManager : MonoBehaviour
 
 		if (resourceTypes == null || resourceTypes.Count == 0)
 		{
-			builder.AppendLine("None");
+			builder.AppendLine("Нет");
 			return;
 		}
 
@@ -254,10 +254,10 @@ public class UIStationManager : MonoBehaviour
 				: 0;
 
 			builder
-				.Append(NicifyName(resourceType.ToString()))
+				.Append(TranslateResourceType(resourceType))
 				.Append(" x")
 				.Append(resourceInfo.Amount)
-				.Append(" (")
+				.Append(" (доступно: ")
 				.Append(amount)
 				.Append(')');
 		}
@@ -300,6 +300,50 @@ public class UIStationManager : MonoBehaviour
 		}
 
 		return defaultBackgroundColor;
+	}
+
+	private static string TranslateResourceType(ResourceType resourceType)
+	{
+		return resourceType switch
+		{
+			ResourceType.Coal => "Уголь",
+			ResourceType.Iron => "Железо",
+			ResourceType.Milk => "Молоко",
+			ResourceType.Water => "Вода",
+			ResourceType.Millet => "Просо",
+			ResourceType.Plastic => "Пластик",
+			_ => NicifyName(resourceType.ToString())
+		};
+	}
+
+	private static string TranslateAttributeType(StationAttributeType attributeType)
+	{
+		return attributeType switch
+		{
+			StationAttributeType.City => "Город",
+			StationAttributeType.Village => "Деревня",
+			StationAttributeType.Factory => "Фабрика",
+			StationAttributeType.Port => "Порт",
+			StationAttributeType.LogisticsCenter => "Логистический центр",
+			StationAttributeType.FinancialCenter => "Финансовый центр",
+			StationAttributeType.TourismCenter => "Туристический центр",
+			StationAttributeType.Seaport => "Морской порт",
+			StationAttributeType.FurnitureFactory => "Мебельная фабрика",
+			StationAttributeType.FoodIndustry => "Пищевая промышленность",
+			StationAttributeType.TextileIndustry => "Текстильная промышленность",
+			StationAttributeType.MechanicalEngineering => "Машиностроение",
+			StationAttributeType.Shipbuilding => "Судостроение",
+			StationAttributeType.WheatField => "Пшеничное поле",
+			StationAttributeType.CattleFarm => "Животноводческая ферма",
+			StationAttributeType.RiverFishing => "Речная рыбалка",
+			StationAttributeType.SeaFishing => "Морская рыбалка",
+			StationAttributeType.ForestBelt => "Лесополоса",
+			StationAttributeType.IronOreIndustry => "Железорудная промышленность",
+			StationAttributeType.NonFerrousMetallurgy => "Цветная металлургия",
+			StationAttributeType.CoalIndustry => "Угольная промышленность",
+			StationAttributeType.OilIndustry => "Нефтяная промышленность",
+			_ => NicifyName(attributeType.ToString())
+		};
 	}
 
 	private static string NicifyName(string value)
