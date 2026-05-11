@@ -124,7 +124,7 @@ public class TrainConsistTests
     {
         consist.ChangeHeadMaintenance(0.5f);
 
-        Assert.AreEqual(0.5f, consist.headLocomotive.maintenance);
+        Assert.AreEqual(2.5f, consist.headLocomotive.maintenance);
     }
 
     [Test]

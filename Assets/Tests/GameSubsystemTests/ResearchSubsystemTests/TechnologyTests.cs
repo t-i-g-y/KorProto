@@ -8,7 +8,7 @@ public class TechnologyTests
     private TechData CreateTech(int cost = 100)
     {
         TechData data = ScriptableObject.CreateInstance<TechData>();
-        data.ID = TechID.TrainSpeed;
+        data.ID = TechID.BaseTrainCost;
         data.techName = "Test Tech";
         data.researchCost = cost;
         return data;

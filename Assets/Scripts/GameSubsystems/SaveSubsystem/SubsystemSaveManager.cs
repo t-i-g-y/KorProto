@@ -82,6 +82,9 @@ public class SubsystemSaveManager : MonoBehaviour
 
         if (data.researchData != null)
             ResearchSystem.Instance.LoadFromSaveData(data.researchData);
+        
+        if (RailEconomySystem.Instance != null)
+            RailEconomySystem.Instance.ClearIncomeTokens();
 
         Debug.Log("game loaded " + path);
     }

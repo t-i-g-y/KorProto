@@ -10,8 +10,8 @@ public class RebuildResearchModifiersTests
     private GameObject modifierGO;
     private ResearchSystem researchSystem;
     private ResearchModifierSystem modifierSystem;
-    private TechData laketech;
-    private TechData speedTech;
+    private TechData bridgeTech;
+    private TechData trainCostTech;
 
     [SetUp]
     public void SetUp()
@@ -23,13 +23,13 @@ public class RebuildResearchModifiersTests
         modifierSystem = modifierGO.AddComponent<ResearchModifierSystem>();
         modifierSystem.ResetModifiers();
 
-        laketech = CreateTech(TechID.FreshwaterBridge, 10);
-        speedTech = CreateTech(TechID.TrainSpeed, 10);
+        bridgeTech = CreateTech(TechID.BridgeUnlock, 10);
+        trainCostTech = CreateTech(TechID.BaseTrainCost, 10);
 
         List<TechData> database = new List<TechData>
         {
-            laketech,
-            speedTech
+            bridgeTech,
+            trainCostTech
         };
 
         TestImmitationHelper.SetPrivateField(researchSystem, "techDatabase", database);
@@ -41,8 +41,8 @@ public class RebuildResearchModifiersTests
     {
         Object.DestroyImmediate(researchGO);
         Object.DestroyImmediate(modifierGO);
-        Object.DestroyImmediate(laketech);
-        Object.DestroyImmediate(speedTech);
+        Object.DestroyImmediate(bridgeTech);
+        Object.DestroyImmediate(trainCostTech);
     }
 
     private TechData CreateTech(TechID ID, int cost)
@@ -58,14 +58,18 @@ public class RebuildResearchModifiersTests
     [Test]
     public void RebuildApplyTechnologyEffectsTest()
     {
-        researchSystem.GetTechnology(TechID.FreshwaterBridge).Unlock();
-        researchSystem.GetTechnology(TechID.TrainSpeed).Unlock();
+        researchSystem.GetTechnology(TechID.BridgeUnlock).Unlock();
+        researchSystem.GetTechnology(TechID.BaseTrainCost).Unlock();
 
         modifierSystem.RebuildFromResearch(researchSystem);
 
         Assert.IsTrue(modifierSystem.CanBuildOn(TerrainType.Lake));
-        Assert.AreEqual(0.85f, modifierSystem.GetTerrainConstructionMultiplier(TerrainType.Lake));
-        Assert.AreEqual(1.15f, modifierSystem.TrainSpeedResearchMultiplier);
+        Assert.IsTrue(modifierSystem.CanBuildOn(TerrainType.River));
+        Assert.IsTrue(modifierSystem.CanBuildOn(TerrainType.Swamp));
+        Assert.AreEqual(0.9f, modifierSystem.TrainCostResearchMultiplier);
+        Assert.AreEqual(0.9f, modifierSystem.WagonCostResearchMultiplier);
+        Assert.AreEqual(1.1f, modifierSystem.TrainSpeedResearchMultiplier);
+        Assert.AreEqual(1, modifierSystem.RailLengthBonus);
     }
 
     [Test]
@@ -74,6 +78,10 @@ public class RebuildResearchModifiersTests
         modifierSystem.RebuildFromResearch(researchSystem);
 
         Assert.IsFalse(modifierSystem.CanBuildOn(TerrainType.Lake));
+        Assert.IsFalse(modifierSystem.CanBuildOn(TerrainType.River));
+        Assert.IsFalse(modifierSystem.CanBuildOn(TerrainType.Swamp));
+        Assert.AreEqual(1f, modifierSystem.TrainCostResearchMultiplier);
         Assert.AreEqual(1f, modifierSystem.TrainSpeedResearchMultiplier);
+        Assert.AreEqual(0, modifierSystem.RailLengthBonus);
     }
 }

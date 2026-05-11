@@ -17,9 +17,9 @@ public class ResearchSystemTests
         researchGO = new GameObject();
         researchSystem = researchGO.AddComponent<ResearchSystem>();
 
-        baseTech = CreateTech(TechID.TrainSpeed, 100);
-        dependentTech = CreateTech(TechID.CapacityUpgrade, 50);
-        dependentTech.prerequisites.Add(TechID.TrainSpeed);
+        baseTech = CreateTech(TechID.BaseTrainCost, 100);
+        dependentTech = CreateTech(TechID.WagonCapacity, 50);
+        dependentTech.prerequisites.Add(TechID.BaseTrainCost);
 
         List<TechData> database = new List<TechData>
         {
@@ -52,38 +52,38 @@ public class ResearchSystemTests
     [Test]
     public void BuildRuntimeTechnologiesTest()
     {
-        Assert.IsNotNull(researchSystem.GetTechnology(TechID.TrainSpeed));
-        Assert.IsNotNull(researchSystem.GetTechnology(TechID.CapacityUpgrade));
+        Assert.IsNotNull(researchSystem.GetTechnology(TechID.BaseTrainCost));
+        Assert.IsNotNull(researchSystem.GetTechnology(TechID.WagonCapacity));
         Assert.AreEqual(2, researchSystem.GetAllTechnologies().Count);
     }
 
     [Test]
     public void CanResearchNoPrereqTest()
     {
-        Assert.IsTrue(researchSystem.CanResearch(TechID.TrainSpeed));
+        Assert.IsTrue(researchSystem.CanResearch(TechID.BaseTrainCost));
     }
 
     [Test]
     public void CanResearchLockedPrereqTest()
     {
-        Assert.IsFalse(researchSystem.CanResearch(TechID.CapacityUpgrade));
+        Assert.IsFalse(researchSystem.CanResearch(TechID.WagonCapacity));
     }
 
     [Test]
     public void StartResearchTest()
     {
-        bool result = researchSystem.StartResearch(TechID.TrainSpeed);
+        bool result = researchSystem.StartResearch(TechID.BaseTrainCost);
 
         Assert.IsTrue(result);
         Assert.IsNotNull(researchSystem.CurrentResearch);
-        Assert.AreEqual(TechID.TrainSpeed, researchSystem.CurrentResearch.Data.ID);
+        Assert.AreEqual(TechID.BaseTrainCost, researchSystem.CurrentResearch.Data.ID);
         Assert.IsTrue(researchSystem.CurrentResearch.IsResearching);
     }
 
     [Test]
-    public void StartResearchLockTechTest()
+    public void StartResearchLockedTechTest()
     {
-        bool result = researchSystem.StartResearch(TechID.CapacityUpgrade);
+        bool result = researchSystem.StartResearch(TechID.WagonCapacity);
 
         Assert.IsFalse(result);
         Assert.IsNull(researchSystem.CurrentResearch);
@@ -92,22 +92,22 @@ public class ResearchSystemTests
     [Test]
     public void StopResearchTest()
     {
-        researchSystem.StartResearch(TechID.TrainSpeed);
+        researchSystem.StartResearch(TechID.BaseTrainCost);
 
         researchSystem.StopResearch();
 
         Assert.IsNull(researchSystem.CurrentResearch);
-        Assert.IsFalse(researchSystem.GetTechnology(TechID.TrainSpeed).IsResearching);
+        Assert.IsFalse(researchSystem.GetTechnology(TechID.BaseTrainCost).IsResearching);
     }
 
     [Test]
     public void AddResearchPointsTest()
     {
-        researchSystem.StartResearch(TechID.TrainSpeed);
+        researchSystem.StartResearch(TechID.BaseTrainCost);
 
         researchSystem.AddResearchPoints(25);
 
-        Assert.AreEqual(25f, researchSystem.GetTechnology(TechID.TrainSpeed).Progress);
+        Assert.AreEqual(25f, researchSystem.GetTechnology(TechID.BaseTrainCost).Progress);
     }
 
     [Test]
@@ -115,17 +115,17 @@ public class ResearchSystemTests
     {
         researchSystem.AddResearchPoints(25);
 
-        Assert.AreEqual(0f, researchSystem.GetTechnology(TechID.TrainSpeed).Progress);
+        Assert.AreEqual(0f, researchSystem.GetTechnology(TechID.BaseTrainCost).Progress);
     }
 
     [Test]
     public void AddResearchUnlockTechnologyTest()
     {
-        researchSystem.StartResearch(TechID.TrainSpeed);
+        researchSystem.StartResearch(TechID.BaseTrainCost);
 
         researchSystem.AddResearchPoints(100);
 
-        Technology tech = researchSystem.GetTechnology(TechID.TrainSpeed);
+        Technology tech = researchSystem.GetTechnology(TechID.BaseTrainCost);
 
         Assert.IsTrue(tech.IsUnlocked);
         Assert.IsNull(researchSystem.CurrentResearch);
@@ -134,16 +134,16 @@ public class ResearchSystemTests
     [Test]
     public void UnlockTechnologyAllowsDependentTest()
     {
-        researchSystem.StartResearch(TechID.TrainSpeed);
+        researchSystem.StartResearch(TechID.BaseTrainCost);
         researchSystem.AddResearchPoints(100);
 
-        Assert.IsTrue(researchSystem.CanResearch(TechID.CapacityUpgrade));
+        Assert.IsTrue(researchSystem.CanResearch(TechID.WagonCapacity));
     }
 
     [Test]
     public void NewResearchStopsPreviousResearchTest()
     {
-        TechData secondBaseTech = CreateTech(TechID.RailMaintenance, 40);
+        TechData secondBaseTech = CreateTech(TechID.BaseRailMaintenance, 40);
 
         List<TechData> database = new List<TechData>
         {
@@ -155,11 +155,11 @@ public class ResearchSystemTests
         TestImmitationHelper.SetPrivateField(researchSystem, "techDatabase", database);
         TestImmitationHelper.InvokePrivateMethod(researchSystem, "BuildRuntimeTechnologies");
 
-        researchSystem.StartResearch(TechID.TrainSpeed);
-        researchSystem.StartResearch(TechID.RailMaintenance);
+        researchSystem.StartResearch(TechID.BaseTrainCost);
+        researchSystem.StartResearch(TechID.BaseRailMaintenance);
 
-        Assert.IsFalse(researchSystem.GetTechnology(TechID.TrainSpeed).IsResearching);
-        Assert.IsTrue(researchSystem.GetTechnology(TechID.RailMaintenance).IsResearching);
+        Assert.IsFalse(researchSystem.GetTechnology(TechID.BaseTrainCost).IsResearching);
+        Assert.IsTrue(researchSystem.GetTechnology(TechID.BaseRailMaintenance).IsResearching);
 
         Object.DestroyImmediate(secondBaseTech);
     }

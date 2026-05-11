@@ -56,7 +56,7 @@ public class Train : MonoBehaviour
     public bool IsOperational => isOperational;
     public TrainConsist AttachedTrainConsist => attachedTrainConsist;
     public int SpeedLevel => speedLevel;
-    public float Speed => speed;
+    public float Speed => ResearchModifierSystem.Instance != null ? speed * ResearchModifierSystem.Instance.TrainSpeedResearchMultiplier : speed;
     public bool IsBroken => isBroken;
     public bool InDemandedRoute => inDemandRouteTimer > 0f;
 
@@ -109,6 +109,7 @@ public class Train : MonoBehaviour
         assignedLine = line;
         id = trainID;
         config = trainConfig;
+        SetSpeedLevel(speedLevel);
         RefreshOperationalState();
     }
 
@@ -153,7 +154,7 @@ public class Train : MonoBehaviour
             return;
 
         TryBreak();
-        float delta = speed * TimeManager.Instance.CustomDeltaTime * dir;
+        float delta = Speed * TimeManager.Instance.CustomDeltaTime * dir;
         headDistance += delta;
 
         if (dir > 0 && headDistance >= totalRouteLength - arriveDistance)
@@ -218,13 +219,13 @@ public class Train : MonoBehaviour
                 IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
 
                 popupStackIndex++;
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             while (attachedTrainConsist.TryUnloadOneToStationTransit(station))
             {
                 RefreshCargoVisuals();
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
@@ -250,7 +251,7 @@ public class Train : MonoBehaviour
 
                         MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
                     while (attachedTrainConsist.GetFreeCapacity() > 0 && station.GetSupplyAmount(resource) > 0)
                     {
@@ -262,7 +263,7 @@ public class Train : MonoBehaviour
 
                         MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
                 }
             }
@@ -295,7 +296,7 @@ public class Train : MonoBehaviour
             while (attachedTrainConsist.TryUnloadOneToRelay(relay))
             {
                 RefreshCargoVisuals();
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
@@ -321,7 +322,7 @@ public class Train : MonoBehaviour
 
                         MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
                 }
             }
@@ -358,7 +359,8 @@ public class Train : MonoBehaviour
 
     public void SetSpeedLevel(int level)
     {
-        speedLevel = Mathf.Clamp(level, 1, 3);
+        int maxLevel = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.SpeedUpgradeTiers : 1;
+        speedLevel = Mathf.Clamp(level, 1, maxLevel);
 
         switch (speedLevel)
         {
@@ -613,7 +615,8 @@ public class Train : MonoBehaviour
             return;
 
         float chance = config.BreakChancePerSecond * TimeManager.Instance.CustomDeltaTime;
-
+        float modifier = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.TrainBreakChanceMultiplier : 1f;
+        chance *= modifier;
         if (UnityEngine.Random.value < chance)
         {
             isBroken = true;

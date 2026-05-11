@@ -170,10 +170,31 @@ public class RailEconomySystem : MonoBehaviour
 
             total += config.BaseLineMaintenancePerCell * modifier;
         }
-
+        total *= ResearchModifierSystem.Instance.RailMaintenanceResearchMultiplier;
         return total;
     }
 
+    public float CalculateRelayMaintenance()
+    {
+        if (config == null)
+            return 0f;
+        
+        float total = 0f;
+
+        foreach (RelayStop relay in RelayStopRegistry.Instance.Relays.Values)
+        {
+            float maintenance = config.BaseRelayMaintenance;
+            TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(relay.Cell);
+            float modifier = config.GetMaintenanceModifier(terrain);
+
+            if (ResearchModifierSystem.Instance != null)
+                modifier *= ResearchModifierSystem.Instance.GetTerrainRelayMaintenanceMultiplier(terrain);
+            
+            total += maintenance * modifier;
+        }
+        total *= ResearchModifierSystem.Instance.RelayMaintenanceResearchMultiplier;
+        return total;
+    }
     public float CalculateTrainPurchaseCost(Train train)
     {
         if (train == null || config == null)
@@ -181,10 +202,11 @@ public class RailEconomySystem : MonoBehaviour
         
         float trainCost = config.BaseTrainPurchaseCost;
         trainCost += (train.SpeedLevel - 1) * config.BaseSpeedUpgradeCost;
-        trainCost += train.AttachedTrainConsist.WagonCount * config.BaseWagonUpdateCost;
 
         if (ResearchModifierSystem.Instance != null)
             trainCost *= ResearchModifierSystem.Instance.TrainCostResearchMultiplier;
+        
+        trainCost += train.AttachedTrainConsist.WagonCount * CalculateWagonRefundCost();
         return trainCost;
     }
 
@@ -197,7 +219,7 @@ public class RailEconomySystem : MonoBehaviour
         float wagonCost = config.BaseWagonUpdateCost;
 
         if (ResearchModifierSystem.Instance != null)
-            wagonCost *= ResearchModifierSystem.Instance.TrainCostResearchMultiplier;
+            wagonCost *= ResearchModifierSystem.Instance.WagonCostResearchMultiplier;
 
         return wagonCost * config.RefundRatio;
     }
@@ -209,9 +231,6 @@ public class RailEconomySystem : MonoBehaviour
         float trainMaintenance = consist.GetHeadMaintenance();
         for (int i = 0; i < consist.wagons.Count; i++)
             trainMaintenance += consist.GetUnitMaintenance(i);
-
-        if (ResearchModifierSystem.Instance != null)
-            trainMaintenance *= ResearchModifierSystem.Instance.TrainMaintenanceResearchMultiplier;
 
         return trainMaintenance;
     }
@@ -245,6 +264,9 @@ public class RailEconomySystem : MonoBehaviour
                 total += CalculateTrainMaintenance(train);
         }
 
+        if (RelayStopRegistry.Instance != null)
+            total += CalculateRelayMaintenance();
+        
         return total;
     }
 
@@ -431,7 +453,7 @@ public class RailEconomySystem : MonoBehaviour
         return false;
     }
 
-    private void ClearIncomeTokens()
+    public void ClearIncomeTokens()
     {
         trackedIncomeTokens.Clear();
     }

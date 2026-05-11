@@ -23,7 +23,7 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private TileBase ghostTile;
 
     [Header("Build Limits")]
-    [SerializeField] private int maxLineLength = 8;
+    [SerializeField] private int baseLineLength = 5;
 
     [Header("UI")]
     [SerializeField] private GameObject confirmHolder;
@@ -128,7 +128,7 @@ public class RailBuilderController : MonoBehaviour
                 return;
             }
 
-            if (ghostPath.Count >= maxLineLength)
+            if (ghostPath.Count >= GetMaxLineLength())
                 return;
 
             TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(cur);
@@ -163,7 +163,7 @@ public class RailBuilderController : MonoBehaviour
                 return;
             }
 
-            if (ghostPath.Count > maxLineLength)
+            if (ghostPath.Count > GetMaxLineLength())
             {
                 Debug.Log("Line too long");
                 ClearHighlight();
@@ -276,9 +276,10 @@ public class RailBuilderController : MonoBehaviour
             return;
 
         int used = ghostPath.Count;
-        int remaining = Mathf.Max(0, maxLineLength - used);
+        int lineLength = GetMaxLineLength();
+        int remaining = Mathf.Max(0, lineLength - used);
 
-        if (remaining > 4 && remaining <= maxLineLength)
+        if ((remaining > (lineLength * 0.5f)) && remaining <= lineLength)
             lengthText.color = Color.green;
         else if (remaining > 0)
             lengthText.color = Color.yellow;
@@ -297,8 +298,6 @@ public class RailBuilderController : MonoBehaviour
 
         costText.text = $"-{cost}";
     }
-
-    public void ChangeMaxLineLength(int delta) => maxLineLength += delta;
 
     private void HandleLineCycling()
     {
@@ -326,4 +325,6 @@ public class RailBuilderController : MonoBehaviour
             RailManager.Instance.ToggleSelection(cycledLines[cycledLineIndex]);
         }
     }
+
+    private int GetMaxLineLength() => ResearchModifierSystem.Instance != null ? baseLineLength + ResearchModifierSystem.Instance.RailLengthBonus : baseLineLength;
 }

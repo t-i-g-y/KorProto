@@ -31,6 +31,11 @@ public class TechnologyNodeView : MonoBehaviour
             selectButton.onClick.RemoveAllListeners();
             selectButton.onClick.AddListener(OnClicked);
         }
+
+        if (techImage != null)
+        {
+            techImage.color = technology.Data.techColor;
+        }
     }
 
     private void OnEnable()

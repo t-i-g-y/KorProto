@@ -241,7 +241,8 @@ public class TrainConsist : MonoBehaviour
 
     public bool TryAddWagon()
     {
-        if (wagons.Count >= ResearchModifierSystem.Instance.WagonUpgradeTiers)
+        int maxWagons = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonUpgradeTiers : 2;
+        if (wagons.Count >= maxWagons) 
             return false;
     
         wagons.Add(new TrainConsistUnit(defaultWagonCapacity, defaultWagonMaintenance));
@@ -291,14 +292,27 @@ public class TrainConsist : MonoBehaviour
 
         return slice;
     }
-    public float GetHeadMaintenance() => headLocomotive != null ? headLocomotive.maintenance : 0f;
+    public float GetHeadMaintenance()
+    {
+        float maintenance = headLocomotive != null ? headLocomotive.maintenance : 0f;
+
+        if (ResearchModifierSystem.Instance != null)
+            maintenance *= ResearchModifierSystem.Instance.TrainMaintenanceResearchMultiplier;
+
+        return maintenance;
+    }
 
     public float GetUnitMaintenance(int wagonIndex)
     {
         if (wagonIndex < 0 || wagonIndex >= wagons.Count || wagons[wagonIndex] == null)
             return 0f;
 
-        return wagons[wagonIndex].maintenance;
+        float maintenance = wagons[wagonIndex].maintenance;
+
+        if (ResearchModifierSystem.Instance != null)
+            maintenance *= ResearchModifierSystem.Instance.WagonMaintenanceResearchMultiplier;
+
+        return maintenance;
     }
 
     public int GetCargoStartIndexForWagon(int wagonIndex)
@@ -313,29 +327,31 @@ public class TrainConsist : MonoBehaviour
 
         return start;
     }
-    public int GetHeadCapacity() => headLocomotive != null ? headLocomotive.capacity : 0;
+    public int GetHeadCapacity()
+    {
+        int capacity = headLocomotive != null ? headLocomotive.capacity : 0;
+        int bonus = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.LocomotiveCargoCapacityBonus : 0;
+
+        return Mathf.Max(0, capacity + bonus);
+    }
 
     public int GetUnitCapacity(int wagonIndex)
     {
         if (wagonIndex < 0 || wagonIndex >= wagons.Count)
             return 0;
+        int bonus = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonCargoCapacityBonus : 0;
 
-        return wagons[wagonIndex].capacity;
+        return Mathf.Max(0, wagons[wagonIndex].capacity + bonus);
     }
 
     public int GetFreeCapacity() => totalCapacity - usedCapacity;
+    
     private void RecalculateCapacity()
     {
-        totalCapacity = 0;
+        totalCapacity = GetHeadCapacity();
 
-        if (headLocomotive != null)
-            totalCapacity += Mathf.Max(0, headLocomotive.capacity);
-
-        foreach (TrainConsistUnit wagon in wagons)
-        {
-            if (wagon != null)
-                totalCapacity += Mathf.Max(0, wagon.capacity);
-        }
+        for (int i = 0; i < wagons.Count; i++)
+            totalCapacity += GetUnitCapacity(i);
 
         usedCapacity = CountCargo();
     }
