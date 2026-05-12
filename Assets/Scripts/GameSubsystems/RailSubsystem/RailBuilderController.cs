@@ -23,7 +23,7 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private TileBase ghostTile;
 
     [Header("Build Limits")]
-    [SerializeField] private int maxLineLength = 8;
+    [SerializeField] private int baseLineLength = 5;
 
     [Header("UI")]
     [SerializeField] private GameObject confirmHolder;
@@ -33,6 +33,8 @@ public class RailBuilderController : MonoBehaviour
     [SerializeField] private GameObject lengthPanel;
     [SerializeField] private TMP_Text lengthText;
     [SerializeField] private Vector3 lengthPanelOffset = new Vector3(0f, 40f, 0f);
+    [SerializeField] private GameObject costPanel;
+    [SerializeField] private TMP_Text costText;
 
     private List<Vector3Int> ghostPath = new();
     private bool isBuilding = false;
@@ -122,11 +124,11 @@ public class RailBuilderController : MonoBehaviour
                 ghost.SetTile(ghostPath[^1], null);
                 ghostPath.RemoveAt(ghostPath.Count - 1);
                 painter.PaintGhostPath(ghostPath);
-                UpdateLengthUI();
+                UpdateConstructionInfoUI();
                 return;
             }
 
-            if (ghostPath.Count >= maxLineLength)
+            if (ghostPath.Count >= GetMaxLineLength())
                 return;
 
             TerrainType terrain = HexRailNetwork.Instance.GetTerrainType(cur);
@@ -136,7 +138,6 @@ public class RailBuilderController : MonoBehaviour
             if (!HexCoords.AreNeighbours(ghostPath[^1], cur))
                 return;
 
-            //bool canStep = (IsLand(cur) && (terrain != TerrainType.Mountain || canBuildMountainTunnel)) || (IsWater(cur) && ((terrain == TerrainType.Lake && canBuildLakeCrossing) || (terrain == TerrainType.Sea && canBuildSeaTunnel)));
             bool canStep = ResearchModifierSystem.Instance.CanBuildOn(terrain);
             if (!canStep)
                 return;
@@ -146,7 +147,7 @@ public class RailBuilderController : MonoBehaviour
                 ghostPath.Add(cur);
                 ghost.SetTile(cur, ghostTile);
                 painter.PaintGhostPath(ghostPath);
-                UpdateLengthUI();
+                UpdateConstructionInfoUI();
             }
 
             return;
@@ -162,7 +163,7 @@ public class RailBuilderController : MonoBehaviour
                 return;
             }
 
-            if (ghostPath.Count > maxLineLength)
+            if (ghostPath.Count > GetMaxLineLength())
             {
                 Debug.Log("Line too long");
                 ClearHighlight();
@@ -187,19 +188,41 @@ public class RailBuilderController : MonoBehaviour
             {
                 Debug.Log("Can't create duplicate line");
                 ClearHighlight();
+                UpdateConstructionInfoUI();
                 return;
             }
 
             awaitingConfirm = true;
-            Vector3 offset = new Vector3(0, verticalOffset, 0);
-            confirmHolder.transform.position = cam.WorldToScreenPoint(land.GetCellCenterWorld(ghostPath[^1])) + offset;
             confirmHolder.SetActive(true);
+            UpdateUIPanelPosition();
         }
 
         if (isBuilding || awaitingConfirm)
-            UpdateLengthUI();
+            UpdateConstructionInfoUI();
     }
 
+    private void LateUpdate()
+    {
+        UpdateUIPanelPosition();
+    }
+
+    private void UpdateUIPanelPosition()
+    {
+        if (ghostPath == null || ghostPath.Count == 0 || cam == null || land == null)
+            return;
+
+        if (!isBuilding && !awaitingConfirm)
+            return;
+
+        Vector3 worldPos = land.GetCellCenterWorld(ghostPath[^1]);
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
+
+        if (confirmHolder != null && awaitingConfirm && confirmHolder.activeSelf)
+            confirmHolder.transform.position = screenPos + new Vector3(0f, verticalOffset, 0f);
+
+        if (lengthPanel != null && lengthPanel.activeSelf)
+            lengthPanel.transform.position = screenPos + lengthPanelOffset;
+    }
     private void ConfirmBuild()
     {
         RailLine line = RailManager.Instance.CreateLine(ghostPath);
@@ -210,8 +233,8 @@ public class RailBuilderController : MonoBehaviour
 
         ClearHighlight();
         confirmHolder.SetActive(false);
-        lengthPanel.SetActive(false);
         awaitingConfirm = false;
+        UpdateConstructionInfoUI();
     }
 
     private void CreateRelayIfNeeded(Vector3Int endpoint)
@@ -230,7 +253,21 @@ public class RailBuilderController : MonoBehaviour
         ClearHighlight();
         confirmHolder.SetActive(false);
         awaitingConfirm = false;
-        lengthPanel.SetActive(false);
+        UpdateConstructionInfoUI();
+    }
+
+    private void UpdateConstructionInfoUI()
+    {
+        bool show = isBuilding || awaitingConfirm;
+
+        lengthPanel.SetActive(show);
+        costPanel.SetActive(show);
+
+        if (!show)
+            return;
+
+        UpdateLengthUI();
+        UpdateCostUI();
     }
 
     private void UpdateLengthUI()
@@ -238,16 +275,11 @@ public class RailBuilderController : MonoBehaviour
         if (lengthPanel == null || lengthText == null)
             return;
 
-        bool show = isBuilding || awaitingConfirm;
-        lengthPanel.SetActive(show);
-
-        if (!show)
-            return;
-
         int used = ghostPath.Count;
-        int remaining = Mathf.Max(0, maxLineLength - used);
+        int lineLength = GetMaxLineLength();
+        int remaining = Mathf.Max(0, lineLength - used);
 
-        if (remaining > 4 && remaining <= maxLineLength)
+        if ((remaining > (lineLength * 0.5f)) && remaining <= lineLength)
             lengthText.color = Color.green;
         else if (remaining > 0)
             lengthText.color = Color.yellow;
@@ -255,13 +287,17 @@ public class RailBuilderController : MonoBehaviour
             lengthText.color = Color.red;
 
         lengthText.text = $"{remaining}";
-        Vector3 worldPos = land.GetCellCenterWorld(ghostPath[^1]);
-        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
-        lengthPanel.transform.position = screenPos + lengthPanelOffset;
-
     }
 
-    public void ChangeMaxLineLength(int delta) => maxLineLength += delta;
+    private void UpdateCostUI()
+    {
+        if (costPanel == null || costText == null)
+            return;
+        
+        float cost = RailEconomySystem.Instance.CalculateLineConstructionCost(ghostPath);
+
+        costText.text = $"-{cost}";
+    }
 
     private void HandleLineCycling()
     {
@@ -289,4 +325,6 @@ public class RailBuilderController : MonoBehaviour
             RailManager.Instance.ToggleSelection(cycledLines[cycledLineIndex]);
         }
     }
+
+    private int GetMaxLineLength() => ResearchModifierSystem.Instance != null ? baseLineLength + ResearchModifierSystem.Instance.RailLengthBonus : baseLineLength;
 }

@@ -14,6 +14,7 @@ public class Train : MonoBehaviour
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color brokenColor = Color.darkGray;
+    [SerializeField] private Color noDemandColor;
     [SerializeField] private CargoVisualizer cargoVisualizer;
     [SerializeField] private Vector3 incomePopupOffset = new Vector3(0f, 0.6f, 0f);
 
@@ -37,7 +38,6 @@ public class Train : MonoBehaviour
 
     [Header("Breaking")]
     [SerializeField] private float breakChancePerSecond = 0.002f;
-    [SerializeField] private int repairCost = 10;
 
     [Header("Config")]
     [SerializeField] private TrainConfig config;
@@ -49,14 +49,16 @@ public class Train : MonoBehaviour
     private bool isDwelling;
     private int speedLevel = 1;
     private bool hasReportedBrokenState;
+    private float inDemandRouteTimer = 15f;
+    private const float inDemandRouteMarkerTime = 30f;
 
     public RailLine AssignedLine => assignedLine;
     public bool IsOperational => isOperational;
     public TrainConsist AttachedTrainConsist => attachedTrainConsist;
     public int SpeedLevel => speedLevel;
-    public float Speed => speed;
+    public float Speed => ResearchModifierSystem.Instance != null ? speed * ResearchModifierSystem.Instance.TrainSpeedResearchMultiplier : speed;
     public bool IsBroken => isBroken;
-    public int RepairCost => repairCost;
+    public bool InDemandedRoute => inDemandRouteTimer > 0f;
 
     public static event Action<Train> TrainBroken;
     public static event Action<Train> TrainRepaired;
@@ -79,6 +81,8 @@ public class Train : MonoBehaviour
 
     private void Update()
     {
+        if (inDemandRouteTimer > 0f && attachedTrainConsist.usedCapacity <= 0)
+            inDemandRouteTimer -= TimeManager.Instance.CustomDeltaTime;
         HandleTrainMovement();
     }
 
@@ -86,6 +90,8 @@ public class Train : MonoBehaviour
     {
         CleanupWagonViews();
     }
+
+    private void MarkRouteDemandStatus() => inDemandRouteTimer = inDemandRouteMarkerTime;
 
     private void CleanupWagonViews()
     {
@@ -103,6 +109,7 @@ public class Train : MonoBehaviour
         assignedLine = line;
         id = trainID;
         config = trainConfig;
+        SetSpeedLevel(speedLevel);
         RefreshOperationalState();
     }
 
@@ -147,7 +154,7 @@ public class Train : MonoBehaviour
             return;
 
         TryBreak();
-        float delta = speed * TimeManager.Instance.CustomDeltaTime * dir;
+        float delta = Speed * TimeManager.Instance.CustomDeltaTime * dir;
         headDistance += delta;
 
         if (dir > 0 && headDistance >= totalRouteLength - arriveDistance)
@@ -187,9 +194,11 @@ public class Train : MonoBehaviour
         if (!justCreated && assignedLine != null && RailEconomySystem.Instance != null)
         {
             float earnedIncome = RailEconomySystem.Instance.ApplyLineIncome(assignedLine);
-
+            earnedIncome += RailEconomySystem.Instance.ApplyTransitLineIncome(assignedLine, station.Cell);
+            Debug.Log($"[Train] earned {earnedIncome} at station{station.StationID}");
             if (earnedIncome > 0f)
             {
+                MarkRouteDemandStatus();
                 IncomePopupSpawner.Instance?.QueueRailIncome(transform, popupBasePosition, earnedIncome);
                 popupStackIndex++;
             }
@@ -210,22 +219,20 @@ public class Train : MonoBehaviour
                 IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
 
                 popupStackIndex++;
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             while (attachedTrainConsist.TryUnloadOneToStationTransit(station))
             {
                 RefreshCargoVisuals();
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(station.Cell, out Vector3Int twinnedCell))
             {
-                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
-
                 foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
                 {
-                    while (freeCapacity > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && GlobalDemandSystem.Instance.GetStationTransitAmount(station.StationID, resource) > 0)
                     {
                         if (!GlobalDemandSystem.Instance.PeekStationTransitDestination(station.StationID, resource, out int destinationStationId))
                             break;
@@ -242,11 +249,11 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromStationTransit(station, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
-                    while (freeCapacity > 0 && station.GetSupplyAmount(resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && station.GetSupplyAmount(resource) > 0)
                     {
                         if (!GlobalDemandSystem.Instance.TryGetBestDestinationForResource(station.Cell, twinnedCell, resource, out int destinationStationId))
                             break;
@@ -254,9 +261,9 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromStation(station, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
                 }
             }
@@ -279,6 +286,9 @@ public class Train : MonoBehaviour
         isDwelling = true;
         atStation = true;
 
+        if (!justCreated && assignedLine != null && relay != null && RailEconomySystem.Instance != null)
+            RailEconomySystem.Instance.ApplyTransitLineIncome(assignedLine, relay.Cell);
+        
         yield return WaitForGameSeconds(stationDwellSeconds);
 
         if (attachedTrainConsist != null && relay != null)
@@ -286,16 +296,14 @@ public class Train : MonoBehaviour
             while (attachedTrainConsist.TryUnloadOneToRelay(relay))
             {
                 RefreshCargoVisuals();
-                yield return WaitForGameSeconds(config.TimePerUnloadSec);
+                yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
             }
 
             if (GlobalDemandSystem.Instance != null && TryGetCurrentAndTwinnedCells(relay.Cell, out Vector3Int twinnedCell))
             {
-                int freeCapacity = attachedTrainConsist.totalCapacity - attachedTrainConsist.usedCapacity;
-
                 foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
                 {
-                    while (freeCapacity > 0 && relay.GetAmount(resource) > 0)
+                    while (attachedTrainConsist.GetFreeCapacity() > 0 && relay.GetAmount(resource) > 0)
                     {
                         if (!relay.PeekNextDestination(resource, out int destinationStationId))
                             break;
@@ -312,9 +320,9 @@ public class Train : MonoBehaviour
                         if (!attachedTrainConsist.TryLoadOneFromRelay(relay, resource, destinationStationId))
                             break;
 
-                        freeCapacity--;
+                        MarkRouteDemandStatus();
                         RefreshCargoVisuals();
-                        yield return WaitForGameSeconds(config.TimePerLoadSec);
+                        yield return WaitForGameSeconds(config.TimePerLoadSec * ResearchModifierSystem.Instance.CargoLoadSpeedResearchMultiplier);
                     }
                 }
             }
@@ -351,7 +359,8 @@ public class Train : MonoBehaviour
 
     public void SetSpeedLevel(int level)
     {
-        speedLevel = Mathf.Clamp(level, 1, 3);
+        int maxLevel = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.SpeedUpgradeTiers : 1;
+        speedLevel = Mathf.Clamp(level, 1, maxLevel);
 
         switch (speedLevel)
         {
@@ -606,7 +615,8 @@ public class Train : MonoBehaviour
             return;
 
         float chance = config.BreakChancePerSecond * TimeManager.Instance.CustomDeltaTime;
-
+        float modifier = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.TrainBreakChanceMultiplier : 1f;
+        chance *= modifier;
         if (UnityEngine.Random.value < chance)
         {
             isBroken = true;
@@ -678,5 +688,11 @@ public class Train : MonoBehaviour
 
         SyncWagonViews(true);
     }
+    #endregion
+
+    #region testing
+    public void HandleTrainMovementForTests() => HandleTrainMovement();
+    public void SetOperationalForTests(bool value) => isOperational = value;
+    public void SetBrokenForTests(bool value) => isBroken = value;
     #endregion
 }

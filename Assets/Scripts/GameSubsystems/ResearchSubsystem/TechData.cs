@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 [CreateAssetMenu(fileName = "Tech", menuName = "Research/TechData")]
 public class TechData : ScriptableObject
@@ -11,28 +12,44 @@ public class TechData : ScriptableObject
     public int researchCost;
     public List<TechID> prerequisites = new();
     public Vector2 technologyTreePos;
+    public Color techColor;
 }
 
 public enum TechID
 {
     None,
 
-    GrasslandModifier,
-    FreshwaterBridge,
+    BaseTerrainModifiers,
+    BridgeUnlock,
+    TundraUnlock,
+    TerrainMaintenance,
+    DesertTropicsUnlock,
+    TerrainConstruction,
     MountainTunnel,
     SeaTunnel,
-    RailMaintenance,
-    TrainWagonMaintenance,
-    TrainSpeed,
-    CapacityUpgrade,
-    CapacityUpgrade2,
-    LoadUnloadSpeed,
-    RelayCapacity,
+    TerrainMaintenanceConstruction,
+
+    BaseRailMaintenance,
     RailConnectionIncome,
-    LoadSpeedLocalResearch,
-    CargoSaleIncome,
+    BaseRelayMaintenance,
+    BaseRailAndRelayMaintenance,
     RailConnectionIncome2,
-    AllMaintenance,
+    RailConnectionIncome3,
+    BaseRailMaintenanceAndIncome,
+
+    BaseTrainWagonMaintenance,
+    BaseTrainCost,
+    BaseTrainWagonMaintenance2,
+    UpgradeTiers,
+    WagonCapacity,
+    AllSpeedUpgrade,
+    UpgradeTiers2,
+    WagonUpgrade,
+    BaseTrainWagonCostAndMaintenance,
+
+    GlobalResearch,
+    GlobalLocalResearch,
     LocalResearch,
-    GlobalResearch
+    LocalResearch2,
+    GlobalLocalResearch2
 }

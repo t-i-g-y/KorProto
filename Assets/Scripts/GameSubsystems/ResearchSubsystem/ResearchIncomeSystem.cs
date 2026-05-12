@@ -103,6 +103,9 @@ public class ResearchIncomeSystem : MonoBehaviour
     public int AddGlobalResearchPerHour(int rp) => globalResearchPerHour += rp;
     private void SetResearchPointDisplayText(int income)
     {
+        if (researchIncomeText == null)
+            return;
+        
         string text = $"+{income}";
         researchIncomeText.text = text;
     }

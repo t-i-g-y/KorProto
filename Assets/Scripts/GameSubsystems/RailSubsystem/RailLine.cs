@@ -11,7 +11,16 @@ public class RailLine
     public readonly Vector3Int End;
     public int Length => Cells.Count;
     public List<Train> AssignedTrains;
-    public int MaxTrainCount;
+    public int BaseMaxTrainCount = 2;
+    public int MaxTrainCount
+    {
+        get
+        {
+            int bonus = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.TrainPerLineBonus : 0;
+
+            return BaseMaxTrainCount + bonus;
+        }
+    }
     public bool CanAddTrain => AssignedTrains.Count < MaxTrainCount;
 
     public RailLine(int id, List<Vector3Int> cells)
@@ -21,7 +30,6 @@ public class RailLine
         Start = cells[0];
         End = cells[^1];
         AssignedTrains = new List<Train>();
-        MaxTrainCount = 2;
     }
 
     public override string ToString()

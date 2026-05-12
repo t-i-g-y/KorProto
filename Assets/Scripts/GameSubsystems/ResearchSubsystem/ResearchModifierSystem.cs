@@ -7,6 +7,9 @@ public class ResearchModifierSystem : MonoBehaviour
 
     public float RailMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float TrainMaintenanceResearchMultiplier { get; private set; } = 1f;
+    public float TrainCostResearchMultiplier { get; private set; } = 1f;
+    public float TrainBreakChanceMultiplier { get; private set; } = 1f;
+    public float WagonCostResearchMultiplier { get; private set; } = 1f;
     public float RelayMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float WagonMaintenanceResearchMultiplier { get; private set; } = 1f;
     public float TrainSpeedResearchMultiplier { get; private set; } = 1f;
@@ -17,8 +20,12 @@ public class ResearchModifierSystem : MonoBehaviour
     public float GlobalResearchIncomeMultiplier { get; private set; } = 1f;
     public float LocalResearchIncomeMultiplier { get; private set; } = 1f;
     public float CargoCapacityResearchMultiplier { get; private set; } = 1f;
-    public int CargoCapacityBonus { get; private set; } = 0;
+    public int WagonCargoCapacityBonus { get; private set; } = 0;
+    public int LocomotiveCargoCapacityBonus { get; private set; } = 0;
     public int WagonUpgradeTiers { get; private set; } = 0;
+    public int SpeedUpgradeTiers { get; private set; } = 0;
+    public int RailLengthBonus {get; private set; } = 0;
+    public int TrainPerLineBonus { get; private set; } = 0;
     private HashSet<TerrainType> buildableTerrains = new();
     private Dictionary<TerrainType, float> terrainConstructionResearchMultipliers = new();
     private Dictionary<TerrainType, float> terrainRailMaintenanceResearchMultipliers = new();
@@ -38,18 +45,94 @@ public class ResearchModifierSystem : MonoBehaviour
         ResetModifiers();
     }
 
+    private void AddBuildableTerrain(TerrainType terrain)
+    {
+        buildableTerrains.Add(terrain);
+        terrainConstructionResearchMultipliers[terrain] = 1f;
+        terrainRailMaintenanceResearchMultipliers[terrain] = 1f;
+        terrainRelayMaintenanceResearchMultipliers[terrain] = 1f;
+    }
     private void ResetBuildableTerrains()
     {
         buildableTerrains.Clear();
-        buildableTerrains.Add(TerrainType.Grassland);
-        buildableTerrains.Add(TerrainType.Forest);
-        buildableTerrains.Add(TerrainType.Hills);
+        AddBuildableTerrain(TerrainType.Grassland);
+        AddBuildableTerrain(TerrainType.Forest);
+        AddBuildableTerrain(TerrainType.Hills);
+    }
+
+    private void ApplyTerrainConstructionModifiers(float modifier)
+    {
+        foreach (TerrainType terrain in buildableTerrains)
+        {
+            EnsureTerrainEntry(terrain);
+            terrainConstructionResearchMultipliers[terrain] -= modifier;
+        }
+    }
+
+    private void ApplyTerrainConstructionModifiers(float modifier, TerrainType[] terrains)
+    {
+        foreach (TerrainType terrain in terrains)
+        {
+            EnsureTerrainEntry(terrain);
+            terrainConstructionResearchMultipliers[terrain] -= modifier;
+        }
+    }
+
+    private void ApplyTerrainRailMaintenanceModifiers(float modifier)
+    {
+        foreach (TerrainType terrain in buildableTerrains)
+        {
+            EnsureTerrainEntry(terrain);
+            terrainRailMaintenanceResearchMultipliers[terrain] -= modifier;
+        }
+    }
+
+    private void ApplyTerrainRailMaintenanceModifiers(float modifier, TerrainType[] terrains)
+    {
+        foreach (TerrainType terrain in terrains)
+        {
+            EnsureTerrainEntry(terrain);
+            terrainRailMaintenanceResearchMultipliers[terrain] -= modifier;
+        }
+    }
+
+    private void ApplyTerrainRelayMaintenanceModifiers(float modifier)
+    {
+        foreach (TerrainType terrian in buildableTerrains)
+        {
+            EnsureTerrainEntry(terrian);
+            terrainRelayMaintenanceResearchMultipliers[terrian] -= modifier;
+        }
+    }
+
+    private void ApplyTerrainRelayMaintenanceModifiers(float modifier, TerrainType[] terrains)
+    {
+        foreach (TerrainType terrian in terrains)
+        {
+            EnsureTerrainEntry(terrian);
+            terrainRelayMaintenanceResearchMultipliers[terrian] -= modifier;
+        }
+    }
+
+    private void EnsureTerrainEntry(TerrainType terrain)
+    {
+        if (!terrainConstructionResearchMultipliers.ContainsKey(terrain))
+            terrainConstructionResearchMultipliers[terrain] = 1f;
+
+        if (!terrainRailMaintenanceResearchMultipliers.ContainsKey(terrain))
+            terrainRailMaintenanceResearchMultipliers[terrain] = 1f;
+
+        if (!terrainRelayMaintenanceResearchMultipliers.ContainsKey(terrain))
+            terrainRelayMaintenanceResearchMultipliers[terrain] = 1f;
     }
 
     public void ResetModifiers()
     {
         RailMaintenanceResearchMultiplier = 1f;
         TrainMaintenanceResearchMultiplier = 1f;
+        TrainCostResearchMultiplier = 1f;
+        TrainBreakChanceMultiplier = 1f;
+        WagonCostResearchMultiplier = 1f;
         RelayMaintenanceResearchMultiplier = 1f;
         WagonMaintenanceResearchMultiplier = 1f;
         TrainSpeedResearchMultiplier = 1f;
@@ -60,8 +143,11 @@ public class ResearchModifierSystem : MonoBehaviour
         GlobalResearchIncomeMultiplier = 1f;
         LocalResearchIncomeMultiplier = 1f;
         CargoCapacityResearchMultiplier = 1f;
-        CargoCapacityBonus = 0;
-        WagonUpgradeTiers = 0;
+        LocomotiveCargoCapacityBonus = 0;
+        WagonCargoCapacityBonus = 0;
+        RailLengthBonus = 0;
+        WagonUpgradeTiers = 1;
+        SpeedUpgradeTiers = 1;
 
         ResetBuildableTerrains();
         terrainConstructionResearchMultipliers.Clear();
@@ -89,86 +175,183 @@ public class ResearchModifierSystem : MonoBehaviour
     {
         switch (ID)
         {
-            case TechID.GrasslandModifier:
-                terrainConstructionResearchMultipliers[TerrainType.Grassland] = 0.9f;
+            case TechID.BaseTerrainModifiers:
+                ApplyTerrainConstructionModifiers(0.1f);
+                ApplyTerrainRailMaintenanceModifiers(0.05f);
+                ApplyTerrainRelayMaintenanceModifiers(0.05f);
                 break;
 
-            case TechID.FreshwaterBridge:
-                buildableTerrains.Add(TerrainType.Lake);
-                terrainConstructionResearchMultipliers[TerrainType.Lake] = 0.85f;
+            case TechID.BridgeUnlock:
+                AddBuildableTerrain(TerrainType.Swamp);
+                AddBuildableTerrain(TerrainType.Lake);
+                AddBuildableTerrain(TerrainType.River);
+                break;
+
+            case TechID.TundraUnlock:
+                buildableTerrains.Add(TerrainType.Tundra);
+                TerrainType[] tundraUnlockTerrains = new TerrainType[] {TerrainType.Hills, TerrainType.Forest};
+                ApplyTerrainConstructionModifiers(0.05f, tundraUnlockTerrains);
+                ApplyTerrainRailMaintenanceModifiers(0.05f, tundraUnlockTerrains);
+                ApplyTerrainRelayMaintenanceModifiers(0.05f, tundraUnlockTerrains);
+                break;
+
+            case TechID.TerrainMaintenance:
+                ApplyTerrainRailMaintenanceModifiers(0.1f);
+                ApplyTerrainRelayMaintenanceModifiers(0.1f);
+                break;
+
+            case TechID.DesertTropicsUnlock:
+                AddBuildableTerrain(TerrainType.Desert);
+                AddBuildableTerrain(TerrainType.Tropics);
+                TerrainType[] grasslandTerrain = new TerrainType[] {TerrainType.Grassland};
+                ApplyTerrainConstructionModifiers(0.1f, grasslandTerrain);
+                ApplyTerrainRailMaintenanceModifiers(0.1f, grasslandTerrain);
+                ApplyTerrainRelayMaintenanceModifiers(0.1f, grasslandTerrain);
+                break;
+            
+            case TechID.TerrainConstruction:
+                TerrainType[] terrainConstructionTerrains = new TerrainType[] {TerrainType.Forest, TerrainType.Swamp, TerrainType.Lake, TerrainType.River, TerrainType.Tundra, TerrainType.Tropics};
+                ApplyTerrainConstructionModifiers(0.1f, terrainConstructionTerrains);
                 break;
 
             case TechID.MountainTunnel:
-                buildableTerrains.Add(TerrainType.Mountain);
-                terrainRailMaintenanceResearchMultipliers[TerrainType.Mountain] = 0.85f;
+                AddBuildableTerrain(TerrainType.Mountain);
                 break;
 
             case TechID.SeaTunnel:
-                buildableTerrains.Add(TerrainType.Sea);
-                terrainConstructionResearchMultipliers[TerrainType.Sea] = 0.8f;
+                AddBuildableTerrain(TerrainType.Sea);
+                TerrainType[] seaTunnelTerrains = new TerrainType[] {TerrainType.Swamp, TerrainType.Lake, TerrainType.River};
+                ApplyTerrainConstructionModifiers(0.05f, seaTunnelTerrains);
                 break;
 
-            case TechID.RailMaintenance:
-                RailMaintenanceResearchMultiplier *= 0.85f;
-                break;
-
-            case TechID.TrainWagonMaintenance:
-                TrainMaintenanceResearchMultiplier *= 0.9f;
-                WagonMaintenanceResearchMultiplier *= 0.9f;
-                break;
-
-            case TechID.TrainSpeed:
-                TrainSpeedResearchMultiplier *= 1.15f;
-                break;
-
-            case TechID.CapacityUpgrade:
-                CargoCapacityResearchMultiplier *= 1.2f;
-                WagonUpgradeTiers += 1;
-                break;
-
-            case TechID.CapacityUpgrade2:
-                CargoCapacityResearchMultiplier *= 1.35f;
+            case TechID.TerrainMaintenanceConstruction:
+                ApplyTerrainConstructionModifiers(0.1f);
+                ApplyTerrainRailMaintenanceModifiers(0.1f);
+                ApplyTerrainRelayMaintenanceModifiers(0.1f);
                 break;
             
-            case TechID.LoadUnloadSpeed:
-                CargoLoadSpeedResearchMultiplier *= 1.25f;
-                CargoUnloadSpeedResearchMultiplier *= 1.25f;
-                break;
 
-            case TechID.RelayCapacity:
-                terrainRelayCapacityResearchMultipliers[TerrainType.Grassland] = 1.3f;
-                RelayMaintenanceResearchMultiplier *= 0.9f;
+            case TechID.BaseRailMaintenance:
+                RailMaintenanceResearchMultiplier -= 0.1f;
                 break;
-
+            
             case TechID.RailConnectionIncome:
-                RailConnectionIncomeResearchMultiplier *= 1.15f;
-                break;
-
-            case TechID.LoadSpeedLocalResearch:
-                CargoLoadSpeedResearchMultiplier *= 1.15f;
-                LocalResearchIncomeMultiplier *= 1.1f;
+                RailConnectionIncomeResearchMultiplier += 0.2f;
                 break;
             
-            case TechID.CargoSaleIncome:
-                CargoSaleIncomeResearchMultiplier *= 1.15f;
+            case TechID.BaseRelayMaintenance:
+                RelayMaintenanceResearchMultiplier -= 0.1f;
+                RailLengthBonus += 2;
                 break;
-
+            
+            case TechID.BaseRailAndRelayMaintenance:
+                RailMaintenanceResearchMultiplier -= 0.05f;
+                RelayMaintenanceResearchMultiplier -= 0.05f;
+                break;
+            
             case TechID.RailConnectionIncome2:
-                RailConnectionIncomeResearchMultiplier *= 1.2f;
-                break;
-
-            case TechID.AllMaintenance:
-                RailMaintenanceResearchMultiplier *= 0.9f;
-                TrainMaintenanceResearchMultiplier *= 0.9f;
-                RelayMaintenanceResearchMultiplier *= 0.9f;
+                RailConnectionIncomeResearchMultiplier += 0.15f;
+                CargoSaleIncomeResearchMultiplier += 0.15f;
                 break;
             
-            case TechID.LocalResearch:
-                LocalResearchIncomeMultiplier *= 1.25f;
+            case TechID.RailConnectionIncome3:
+                RailConnectionIncomeResearchMultiplier += 0.25f;
+                CargoSaleIncomeResearchMultiplier += 0.25f;
+                RelayMaintenanceResearchMultiplier -= 0.1f;
+                break;
+            
+            case TechID.BaseRailMaintenanceAndIncome:
+                RailMaintenanceResearchMultiplier -= 0.1f;
+                RelayMaintenanceResearchMultiplier -= 0.1f;
+                RailConnectionIncomeResearchMultiplier += 0.15f;
+                RailLengthBonus += 2;
+                break;
+            
+
+            case TechID.BaseTrainWagonMaintenance:
+                TrainMaintenanceResearchMultiplier -= 0.05f;
+                WagonMaintenanceResearchMultiplier -= 0.05f;
+                break;
+            
+            case TechID.BaseTrainCost:
+                TrainCostResearchMultiplier -= 0.1f;
+                WagonCostResearchMultiplier -= 0.1f;
+                TrainSpeedResearchMultiplier += 0.1f;
+                RailLengthBonus += 1;
+                break;
+            
+            case TechID.BaseTrainWagonMaintenance2:
+                TrainMaintenanceResearchMultiplier -= 0.05f;
+                WagonMaintenanceResearchMultiplier -= 0.05f;
+                CargoLoadSpeedResearchMultiplier -= 0.1f;
+                CargoUnloadSpeedResearchMultiplier -= 0.1f;
                 break;
 
+            case TechID.UpgradeTiers:
+                WagonUpgradeTiers += 1;
+                SpeedUpgradeTiers += 1;
+                TrainCostResearchMultiplier -= 0.05f;
+                break;
+            
+            case TechID.WagonCapacity:
+                WagonCargoCapacityBonus += 2;
+                WagonCostResearchMultiplier -= 0.05f;
+                break;
+            
+            case TechID.AllSpeedUpgrade:
+                TrainSpeedResearchMultiplier += 0.2f;
+                CargoLoadSpeedResearchMultiplier -= 0.2f;
+                CargoUnloadSpeedResearchMultiplier -= 0.2f;
+                RelayMaintenanceResearchMultiplier -= 0.1f;
+                break;
+
+            case TechID.UpgradeTiers2:
+                WagonUpgradeTiers += 2;
+                SpeedUpgradeTiers += 1;
+                LocomotiveCargoCapacityBonus += 2;
+                break;
+            
+            case TechID.WagonUpgrade:
+                WagonUpgradeTiers += 2;
+                WagonCargoCapacityBonus += 2;
+                RailLengthBonus += 1;
+                break;
+
+            case TechID.BaseTrainWagonCostAndMaintenance:
+                TrainCostResearchMultiplier -= 0.1f;
+                WagonCostResearchMultiplier -= 0.1f;
+                TrainMaintenanceResearchMultiplier -= 0.1f;
+                WagonMaintenanceResearchMultiplier -= 0.1f;
+                TrainSpeedResearchMultiplier += 0.15f;
+                CargoLoadSpeedResearchMultiplier -= 0.1f;
+                CargoUnloadSpeedResearchMultiplier -= 0.1f;
+                break;
+
+            
             case TechID.GlobalResearch:
-                GlobalResearchIncomeMultiplier *= 1.25f;
+                GlobalResearchIncomeMultiplier += 0.1f;
+                break;
+            
+            case TechID.GlobalLocalResearch:
+                GlobalResearchIncomeMultiplier += 0.15f;
+                LocalResearchIncomeMultiplier += 0.15f;
+                TrainCostResearchMultiplier -= 0.05f;
+                break;
+
+            case TechID.LocalResearch:
+                LocalResearchIncomeMultiplier += 0.1f;
+                ApplyTerrainConstructionModifiers(0.05f);
+                ApplyTerrainRailMaintenanceModifiers(0.05f);
+                ApplyTerrainRelayMaintenanceModifiers(0.05f);
+                break;
+
+            case TechID.LocalResearch2:
+                LocalResearchIncomeMultiplier += 0.25f;
+                break;
+
+            case TechID.GlobalLocalResearch2:
+                GlobalResearchIncomeMultiplier += 0.5f;
+                LocalResearchIncomeMultiplier += 0.1f;
                 break;
         }
     }

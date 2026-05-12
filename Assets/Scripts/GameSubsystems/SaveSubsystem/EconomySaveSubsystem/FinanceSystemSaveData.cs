@@ -7,4 +7,6 @@ public class FinanceSystemSaveData
     public float lastBalanceChange;
     public float dayBalance;
     public int currentDay;
+    public int daysBelowGameOverThreshold;
+    public bool gameOverTriggered;
 }
