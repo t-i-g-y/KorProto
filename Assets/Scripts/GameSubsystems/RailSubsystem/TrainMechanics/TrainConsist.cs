@@ -10,6 +10,7 @@ public class TrainConsist : MonoBehaviour
     [SerializeField] private float defaultWagonMaintenance = 2f;
     [SerializeField] private ResourceAmount[] cargo;
     private Queue<int>[] cargoDestinations;
+    private int maxWagonCount = 2;
     [SerializeField] private bool debugCargo;
     public TrainConsistUnit headLocomotive;
     public List<TrainConsistUnit> wagons = new();
@@ -241,7 +242,7 @@ public class TrainConsist : MonoBehaviour
 
     public bool TryAddWagon()
     {
-        int maxWagons = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonUpgradeTiers : 2;
+        int maxWagons = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonUpgradeTiers : maxWagonCount;
         if (wagons.Count >= maxWagons) 
             return false;
     
@@ -529,5 +530,8 @@ public class TrainConsist : MonoBehaviour
 
         RecalculateCapacity();
     }
+    #endregion
+    #region testing
+    public void SetMaxWagonCount(int count) => maxWagonCount = count;
     #endregion
 }

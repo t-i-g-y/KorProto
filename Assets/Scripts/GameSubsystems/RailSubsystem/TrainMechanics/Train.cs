@@ -689,4 +689,10 @@ public class Train : MonoBehaviour
         SyncWagonViews(true);
     }
     #endregion
+
+    #region testing
+    public void HandleTrainMovementForTests() => HandleTrainMovement();
+    public void SetOperationalForTests(bool value) => isOperational = value;
+    public void SetBrokenForTests(bool value) => isBroken = value;
+    #endregion
 }
