@@ -13,7 +13,7 @@ public class TrainPerformanceTests
     [SetUp]
     public void SetUp()
     {
-        timeGO = new GameObject("Performance TimeManager");
+        timeGO = new GameObject();
         timeManager = timeGO.AddComponent<TimeManager>();
         timeManager.SetSpeed(1f);
     }

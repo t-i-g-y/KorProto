@@ -46,7 +46,7 @@ public class EconomyPerformanceTests
     }
 
     [Test, Performance]
-    public void ImportAttributeRelationMatrixCsv_Performance()
+    public void ImportAttributeRelationMatrixCSVPerformance()
     {
         EconomyConfig config = ScriptableObject.CreateInstance<EconomyConfig>();
 
