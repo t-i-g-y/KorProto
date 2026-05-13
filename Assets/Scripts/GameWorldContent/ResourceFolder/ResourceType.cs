@@ -8,7 +8,31 @@ public enum ResourceType
     Milk,
     Water,
     Millet,
-    Plastic
+    Plastic,
+    Food,
+    Fish,
+    IronOre,
+    Metal,
+    Oil,
+    Fuel,
+    Wood,
+    Electricity,
+    Tools,
+    Equipment,
+    Goods,
+    Money,
+    Workforce,
+    Specialists,
+    ResearchData,
+    Technology,
+    Medicine,
+    Fertilizer,
+    Fabric,
+    Cotton,
+    Culture,
+    Investments,
+    LogisticsService,
+    ImportedGoods
 }
 
 [Serializable]
