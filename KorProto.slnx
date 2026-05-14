@@ -1,4 +1,6 @@
 ﻿<Solution>
   <Project Path="GameAssembly.csproj" />
   <Project Path="GameSubsystemTests.csproj" />
+  <Project Path="GameSubsystemPlayModeTests.csproj" />
+  <Project Path="Performance.csproj" />
 </Solution>
