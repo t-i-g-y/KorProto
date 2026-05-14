@@ -87,6 +87,32 @@ public class ArtifactManager : MonoBehaviour
         TrySpawn(definition, BuildContext(ArtifactTriggerType.Manual));
     }
 
+    public void AddArtifactToInventory(ArtifactDefinition definition)
+    {
+        if (definition == null)
+            return;
+
+        string artifactId = definition.ArtifactId;
+        if (string.IsNullOrWhiteSpace(artifactId) || acquiredArtifactIds.Contains(artifactId))
+            return;
+
+        ArtifactInventoryEntry entry = new()
+        {
+            artifactId = artifactId,
+            title = definition.Title,
+            story = definition.Story,
+            day = TimeManager.Instance != null ? TimeManager.Instance.DayCounter : 0,
+            hour = TimeManager.Instance != null ? TimeManager.Instance.HourCounter : 0
+        };
+
+        inventory.Add(entry);
+        acquiredArtifactIds.Add(artifactId);
+        activePickups.Remove(artifactId);
+
+        ArtifactCollected?.Invoke(entry);
+        InventoryChanged?.Invoke();
+    }
+
     public Sprite GetIcon(string artifactId)
     {
         ArtifactDefinition definition = FindDefinition(artifactId);

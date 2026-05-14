@@ -10,7 +10,6 @@ public class QuestRuntime
     public string activationCondition;
     public string objectiveSummary;
     public string rewardSummary;
-    public int objectiveType;
     public int targetValue;
     public int progress;
     public int status;
@@ -20,13 +19,14 @@ public class QuestRuntime
     public int completedHour;
 
     public QuestStatus Status => (QuestStatus)status;
-    public QuestObjectiveType ObjectiveType => (QuestObjectiveType)objectiveType;
     public float NormalizedProgress => targetValue <= 0 ? 1f : Mathf.Clamp01(progress / (float)targetValue);
     public bool IsComplete => progress >= targetValue;
 
-    public static QuestRuntime FromDefinition(QuestDefinition definition, QuestWorldContext context)
+    public static QuestRuntime FromDefinition(QuestDefinition definition, QuestWorldContext context, QuestStatus questStatus = QuestStatus.Active)
     {
-        int progress = Mathf.Clamp(definition.GetProgressFromContext(context), 0, definition.TargetValue);
+        int progress = definition.Objective != null && definition.Objective.IsResourceDelivery
+            ? 0
+            : Mathf.Clamp(definition.GetProgressFromContext(context), 0, definition.TargetValue);
 
         return new QuestRuntime
         {
@@ -36,10 +36,9 @@ public class QuestRuntime
             activationCondition = definition.BuildActivationCondition(),
             objectiveSummary = definition.BuildObjectiveSummary(),
             rewardSummary = definition.BuildRewardSummary(),
-            objectiveType = (int)definition.ObjectiveType,
             targetValue = definition.TargetValue,
             progress = progress,
-            status = (int)QuestStatus.Active,
+            status = (int)questStatus,
             activatedDay = context != null ? context.Day : 0,
             activatedHour = context != null ? context.Hour : 0
         };

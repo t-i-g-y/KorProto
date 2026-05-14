@@ -2,47 +2,169 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum QuestTriggerType
+public enum QuestConditionType
 {
     Manual,
-    DayReached,
-    RailLineCreated,
-    RailLineCountReached,
-    TrainCountReached,
-    BalanceBelow
-}
-
-public enum QuestObjectiveType
-{
-    BuildRailLines,
-    BuildRailTiles,
-    OwnTrains,
-    ReachBalance
+    RailLineCount,
+    TrainCount,
+    StationsFoundByName,
+    StationsConnectedByName,
+    ResourceDeliveredBetweenStations,
+    ArtifactCount
 }
 
 public enum QuestRewardType
 {
     None,
-    AdjustBalance,
-    AddResearchPoints
+    AddBalance,
+    AddResearchPoints,
+    AddArtifact
 }
 
 public enum QuestStatus
 {
-    Active,
-    Completed
+    Active = 0,
+    Completed = 1,
+    Inactive = 2
 }
 
 public class QuestWorldContext
 {
-    public QuestTriggerType TriggerType;
     public int Day;
     public int Hour;
     public int RailLineCount;
-    public int TotalRailTiles;
     public int TrainCount;
-    public float Balance;
-    public RailLine RailLine;
+    public int ArtifactCount;
+    public ResourceType ResourceType;
+    public int ResourceAmount;
+    public string StartStationName;
+    public string EndStationName;
+}
+
+[Serializable]
+public class QuestCondition
+{
+    [SerializeField] private QuestConditionType conditionType = QuestConditionType.Manual;
+    [SerializeField] private int count = 1;
+    [SerializeField] private ResourceType resourceType = ResourceType.Coal;
+    [SerializeField] private string stationName;
+    [SerializeField] private string startStationName;
+    [SerializeField] private string endStationName;
+
+    public QuestConditionType ConditionType => conditionType;
+    public int TargetCount => Mathf.Max(1, count);
+    public bool IsResourceDelivery => conditionType == QuestConditionType.ResourceDeliveredBetweenStations;
+
+    public bool Matches(QuestWorldContext context)
+    {
+        return GetProgress(context) >= TargetCount;
+    }
+
+    public int GetProgress(QuestWorldContext context)
+    {
+        if (context == null)
+            return 0;
+
+        return conditionType switch
+        {
+            QuestConditionType.Manual => 1,
+            QuestConditionType.RailLineCount => context.RailLineCount,
+            QuestConditionType.TrainCount => context.TrainCount,
+            QuestConditionType.StationsFoundByName => CountFoundStations(),
+            QuestConditionType.StationsConnectedByName => AreStationsConnected() ? 1 : 0,
+            QuestConditionType.ResourceDeliveredBetweenStations => MatchesDeliveredResource(context) ? context.ResourceAmount : 0,
+            QuestConditionType.ArtifactCount => context.ArtifactCount,
+            _ => 0
+        };
+    }
+
+    public int GetProgressDelta(QuestWorldContext context)
+    {
+        return conditionType == QuestConditionType.ResourceDeliveredBetweenStations && MatchesDeliveredResource(context)
+            ? Mathf.Max(0, context.ResourceAmount)
+            : 0;
+    }
+
+    public string BuildSummary()
+    {
+        return conditionType switch
+        {
+            QuestConditionType.Manual => "Выдается вручную",
+            QuestConditionType.RailLineCount => $"Построить путей: {TargetCount}",
+            QuestConditionType.TrainCount => $"Достичь количества поездов: {TargetCount}",
+            QuestConditionType.StationsFoundByName => $"Найти станции: {BuildStationPairText()}",
+            QuestConditionType.StationsConnectedByName => $"Соединить станции: {BuildStationPairText()}",
+            QuestConditionType.ResourceDeliveredBetweenStations => $"Провезти {TargetCount} {resourceType} между станциями {BuildStationPairText()}",
+            QuestConditionType.ArtifactCount => $"Найти артефактов: {TargetCount}",
+            _ => "Не задано"
+        };
+    }
+
+    private bool MatchesDeliveredResource(QuestWorldContext context)
+    {
+        if (context.ResourceType != resourceType)
+            return false;
+
+        return MatchesStationName(context.StartStationName, startStationName)
+            && MatchesStationName(context.EndStationName, endStationName);
+    }
+
+    private int CountFoundStations()
+    {
+        int found = 0;
+
+        if (!string.IsNullOrWhiteSpace(stationName) && FindStationByName(stationName) != null)
+            found++;
+
+        if (!string.IsNullOrWhiteSpace(startStationName) && FindStationByName(startStationName) != null)
+            found++;
+
+        if (!string.IsNullOrWhiteSpace(endStationName) && FindStationByName(endStationName) != null)
+            found++;
+
+        return found;
+    }
+
+    private bool AreStationsConnected()
+    {
+        Station start = FindStationByName(startStationName);
+        Station end = FindStationByName(endStationName);
+
+        return start != null
+            && end != null
+            && RailManager.Instance != null
+            && RailManager.Instance.TryGetShortestPathFirstHop(start.Cell, end.Cell, out _, out _);
+    }
+
+    private string BuildStationPairText()
+    {
+        if (!string.IsNullOrWhiteSpace(stationName))
+            return stationName;
+
+        return $"{startStationName} - {endStationName}";
+    }
+
+    private static Station FindStationByName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        Station[] stations = UnityEngine.Object.FindObjectsByType<Station>(FindObjectsSortMode.None);
+        foreach (Station station in stations)
+        {
+            if (station != null && MatchesStationName(station.StationName, name))
+                return station;
+        }
+
+        return null;
+    }
+
+    private static bool MatchesStationName(string actual, string expected)
+    {
+        return !string.IsNullOrWhiteSpace(actual)
+            && !string.IsNullOrWhiteSpace(expected)
+            && string.Equals(actual.Trim(), expected.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 [Serializable]
@@ -51,31 +173,32 @@ public class QuestReward
     [SerializeField] private QuestRewardType rewardType;
     [SerializeField] private float floatAmount;
     [SerializeField] private int intAmount;
+    [SerializeField] private ArtifactDefinition artifactDefinition;
 
     public QuestReward()
     {
     }
 
-    public QuestReward(QuestRewardType rewardType, float floatAmount = 0f, int intAmount = 0)
+    public QuestReward(QuestRewardType rewardType, float floatAmount = 0f, int intAmount = 0, ArtifactDefinition artifactDefinition = null)
     {
         this.rewardType = rewardType;
         this.floatAmount = floatAmount;
         this.intAmount = intAmount;
+        this.artifactDefinition = artifactDefinition;
     }
-
-    public QuestRewardType RewardType => rewardType;
-    public float FloatAmount => floatAmount;
-    public int IntAmount => intAmount;
 
     public void Apply()
     {
         switch (rewardType)
         {
-            case QuestRewardType.AdjustBalance:
-                FinanceSystem.Instance?.AdjustBalance(floatAmount);
+            case QuestRewardType.AddBalance:
+                FinanceSystem.Instance?.AdjustBalance(Mathf.Abs(floatAmount));
                 break;
             case QuestRewardType.AddResearchPoints:
                 ResearchSystem.Instance?.AddResearchPoints(Mathf.Max(0, intAmount));
+                break;
+            case QuestRewardType.AddArtifact:
+                ArtifactManager.Instance?.AddArtifactToInventory(artifactDefinition);
                 break;
         }
     }
@@ -84,8 +207,9 @@ public class QuestReward
     {
         return rewardType switch
         {
-            QuestRewardType.AdjustBalance => floatAmount >= 0f ? $"+{floatAmount:0} к бюджету" : $"{floatAmount:0} к бюджету",
+            QuestRewardType.AddBalance => $"+{Mathf.Abs(floatAmount):0} к бюджету",
             QuestRewardType.AddResearchPoints => $"+{Mathf.Max(0, intAmount)} очков исследования",
+            QuestRewardType.AddArtifact => artifactDefinition != null ? $"Артефакт: {artifactDefinition.Title}" : "Артефакт",
             _ => string.Empty
         };
     }
@@ -102,13 +226,10 @@ public class QuestDefinition : ScriptableObject
     [SerializeField] private bool canRepeat;
 
     [Header("Activation")]
-    [SerializeField] private QuestTriggerType triggerType = QuestTriggerType.Manual;
-    [SerializeField] private float triggerValue;
-    [SerializeField] private int minDay;
+    [SerializeField] private QuestCondition activationCondition = new();
 
     [Header("Objective")]
-    [SerializeField] private QuestObjectiveType objectiveType = QuestObjectiveType.BuildRailLines;
-    [SerializeField] private int targetValue = 1;
+    [SerializeField] private QuestCondition objective = new();
 
     [Header("Rewards")]
     [SerializeField] private List<QuestReward> rewards = new();
@@ -117,76 +238,27 @@ public class QuestDefinition : ScriptableObject
     public string Title => title;
     public string Description => description;
     public bool CanRepeat => canRepeat;
-    public QuestTriggerType TriggerType => triggerType;
-    public float TriggerValue => triggerValue;
-    public int MinDay => minDay;
-    public QuestObjectiveType ObjectiveType => objectiveType;
-    public int TargetValue => Mathf.Max(1, targetValue);
-    public IReadOnlyList<QuestReward> Rewards => rewards;
+    public QuestCondition Objective => objective;
+    public int TargetValue => objective.TargetCount;
 
     public bool Matches(QuestWorldContext context)
     {
-        if (context == null || context.TriggerType != triggerType)
-            return false;
-
-        if (context.Day < minDay)
-            return false;
-
-        int threshold = Mathf.RoundToInt(triggerValue);
-
-        return triggerType switch
-        {
-            QuestTriggerType.Manual => true,
-            QuestTriggerType.DayReached => context.Day >= threshold,
-            QuestTriggerType.RailLineCreated => true,
-            QuestTriggerType.RailLineCountReached => context.RailLineCount >= threshold,
-            QuestTriggerType.TrainCountReached => context.TrainCount >= threshold,
-            QuestTriggerType.BalanceBelow => context.Balance <= triggerValue,
-            _ => false
-        };
+        return activationCondition != null && activationCondition.Matches(context);
     }
 
     public int GetProgressFromContext(QuestWorldContext context)
     {
-        if (context == null)
-            return 0;
-
-        return objectiveType switch
-        {
-            QuestObjectiveType.BuildRailLines => context.RailLineCount,
-            QuestObjectiveType.BuildRailTiles => context.TotalRailTiles,
-            QuestObjectiveType.OwnTrains => context.TrainCount,
-            QuestObjectiveType.ReachBalance => Mathf.FloorToInt(context.Balance),
-            _ => 0
-        };
+        return objective != null ? objective.GetProgress(context) : 0;
     }
 
     public string BuildActivationCondition()
     {
-        int threshold = Mathf.RoundToInt(triggerValue);
-
-        return triggerType switch
-        {
-            QuestTriggerType.Manual => "Выдается вручную",
-            QuestTriggerType.DayReached => $"Появляется с дня {threshold}",
-            QuestTriggerType.RailLineCreated => "Появляется после строительства пути",
-            QuestTriggerType.RailLineCountReached => $"Появляется после строительства {threshold} путей",
-            QuestTriggerType.TrainCountReached => $"Появляется при наличии {threshold} поездов",
-            QuestTriggerType.BalanceBelow => $"Появляется при бюджете ниже {triggerValue:0}",
-            _ => "Условие появления не задано"
-        };
+        return activationCondition != null ? activationCondition.BuildSummary() : "Условие появления не задано";
     }
 
     public string BuildObjectiveSummary()
     {
-        return objectiveType switch
-        {
-            QuestObjectiveType.BuildRailLines => $"Построить {TargetValue} путей",
-            QuestObjectiveType.BuildRailTiles => $"Построить {TargetValue} клеток пути",
-            QuestObjectiveType.OwnTrains => $"Иметь {TargetValue} поездов",
-            QuestObjectiveType.ReachBalance => $"Достичь бюджета {TargetValue}",
-            _ => "Цель не задана"
-        };
+        return objective != null ? objective.BuildSummary() : "Цель не задана";
     }
 
     public string BuildRewardSummary()
@@ -210,30 +282,5 @@ public class QuestDefinition : ScriptableObject
     {
         foreach (QuestReward reward in rewards)
             reward?.Apply();
-    }
-
-    public static QuestDefinition CreateRuntime(
-        string id,
-        string questTitle,
-        string questDescription,
-        QuestTriggerType questTriggerType,
-        float questTriggerValue,
-        QuestObjectiveType questObjectiveType,
-        int questTargetValue,
-        bool repeat,
-        params QuestReward[] questRewards)
-    {
-        QuestDefinition definition = CreateInstance<QuestDefinition>();
-        definition.questId = id;
-        definition.title = questTitle;
-        definition.description = questDescription;
-        definition.triggerType = questTriggerType;
-        definition.triggerValue = questTriggerValue;
-        definition.objectiveType = questObjectiveType;
-        definition.targetValue = Mathf.Max(1, questTargetValue);
-        definition.canRepeat = repeat;
-        definition.rewards = questRewards != null ? new List<QuestReward>(questRewards) : new List<QuestReward>();
-
-        return definition;
     }
 }

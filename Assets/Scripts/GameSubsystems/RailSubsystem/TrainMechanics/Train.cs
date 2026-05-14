@@ -221,6 +221,7 @@ public class Train : MonoBehaviour
 
                 IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
                 EventManager.Instance?.NotifyTrainDeliveredCargo(sale.Resource, 1, station);
+                QuestManager.Instance?.NotifyResourceDelivered(sale.Resource, 1, ResolveSourceStationForDelivery(station), station);
 
                 popupStackIndex++;
                 yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);
@@ -283,6 +284,15 @@ public class Train : MonoBehaviour
         {
             ReverseAndResume();
         }
+    }
+
+    private Station ResolveSourceStationForDelivery(Station destination)
+    {
+        if (assignedLine == null || destination == null)
+            return null;
+
+        Vector3Int sourceCell = destination.Cell == assignedLine.Start ? assignedLine.End : assignedLine.Start;
+        return StationRegistry.TryGet(sourceCell, out Station source) ? source : null;
     }
 
     public IEnumerator ArriveAtRelay(RelayStop relay, bool justCreated = false)

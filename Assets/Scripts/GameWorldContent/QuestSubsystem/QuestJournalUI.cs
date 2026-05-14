@@ -102,8 +102,8 @@ public class QuestJournalUI : MonoBehaviour
     {
         Clear();
 
-        bool hasEntries = boundManager != null &&
-            (boundManager.ActiveQuests.Count > 0 || boundManager.CompletedQuests.Count > 0);
+        IReadOnlyList<QuestRuntime> quests = boundManager != null ? boundManager.BuildJournalQuests() : null;
+        bool hasEntries = quests != null && quests.Count > 0;
 
         if (emptyText != null)
             emptyText.gameObject.SetActive(!hasEntries);
@@ -113,15 +113,9 @@ public class QuestJournalUI : MonoBehaviour
 
         bool hasSpawnedEntry = false;
 
-        foreach (QuestRuntime quest in boundManager.ActiveQuests)
+        foreach (QuestRuntime quest in quests)
         {
             SpawnEntryWithSeparator(quest, hasSpawnedEntry);
-            hasSpawnedEntry = true;
-        }
-
-        for (int i = boundManager.CompletedQuests.Count - 1; i >= 0; i--)
-        {
-            SpawnEntryWithSeparator(boundManager.CompletedQuests[i], hasSpawnedEntry);
             hasSpawnedEntry = true;
         }
     }
@@ -179,8 +173,8 @@ public class QuestJournalUI : MonoBehaviour
         if (emptyText == null)
             return;
 
-        bool hasEntries = boundManager != null &&
-            (boundManager.ActiveQuests.Count > 0 || boundManager.CompletedQuests.Count > 0);
+        IReadOnlyList<QuestRuntime> quests = boundManager != null ? boundManager.BuildJournalQuests() : null;
+        bool hasEntries = quests != null && quests.Count > 0;
         emptyText.gameObject.SetActive(!hasEntries);
     }
 
@@ -345,7 +339,13 @@ public class QuestJournalUI : MonoBehaviour
         text.color = Color.black;
         text.fontSize = 18f;
         string progressColor = quest.IsComplete ? "#188038" : "#BE2828";
-        text.text = $"{quest.title} ({(quest.Status == QuestStatus.Completed ? "выполнено" : "активно")})\n" +
+        string status = quest.Status switch
+        {
+            QuestStatus.Completed => "выполнено",
+            QuestStatus.Active => "активно",
+            _ => "неактивно"
+        };
+        text.text = $"{quest.title} ({status})\n" +
                     $"{quest.description}\n" +
                     $"Условия: {quest.activationCondition}. Цель: {quest.objectiveSummary}\n" +
                     $"Награда: {quest.rewardSummary}\n" +

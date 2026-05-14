@@ -44,7 +44,12 @@ public class QuestJournalEntryUI : MonoBehaviour
         if (statusText != null)
         {
             statusText.color = Color.black;
-            statusText.text = quest.Status == QuestStatus.Completed ? "Выполнено" : "Активно";
+            statusText.text = quest.Status switch
+            {
+                QuestStatus.Completed => "Выполнено",
+                QuestStatus.Active => "Активно",
+                _ => "Неактивно"
+            };
         }
 
         if (descriptionText != null)
