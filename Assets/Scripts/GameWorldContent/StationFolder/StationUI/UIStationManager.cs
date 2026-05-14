@@ -11,9 +11,9 @@ public class UIStationManager : MonoBehaviour
 	[SerializeField] private Image stationInfoBackground;
 	[SerializeField] private TMP_Text stationInfoText;
 
-	[Header("Follow Mouse")]
-	[SerializeField] private bool followMouse = true;
-	[SerializeField] private Vector2 screenOffset = new(20f, -20f);
+	[Header("Follow Station")]
+	[SerializeField] private bool followStation = true;
+	[SerializeField] private Vector3 worldOffset = new(0f, 0.5f, 0f);
 
 	[Header("Background Colors")]
 	[SerializeField] private Color defaultBackgroundColor = new(0f, 0f, 0f, 0.75f);
@@ -24,6 +24,7 @@ public class UIStationManager : MonoBehaviour
 	private Canvas parentCanvas;
 	private RectTransform rootRectTransform;
 	private Camera uiCamera;
+	private Station currentStation;
 
 	public static UIStationManager Instance { get; private set; }
 
@@ -42,7 +43,7 @@ public class UIStationManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (!followMouse || stationInfoRoot == null || !stationInfoRoot.activeSelf)
+		if (!followStation || stationInfoRoot == null || !stationInfoRoot.activeSelf)
 			return;
 
 		UpdateCardPosition();
@@ -67,6 +68,7 @@ public class UIStationManager : MonoBehaviour
 		if (stationInfoRoot == null || stationInfoText == null)
 			return;
 
+		currentStation = station;
 		stationInfoRoot.SetActive(true);
 		stationInfoText.text = BuildStationDescription(station);
 
@@ -78,6 +80,8 @@ public class UIStationManager : MonoBehaviour
 
 	public void HideStationInfo()
 	{
+		currentStation = null;
+
 		if (stationInfoRoot != null)
 			stationInfoRoot.SetActive(false);
 	}
@@ -89,6 +93,7 @@ public class UIStationManager : MonoBehaviour
 		if (stationInfoRoot == null || stationInfoText == null)
 			return;
 
+		currentStation = null;
 		stationInfoRoot.SetActive(true);
 		stationInfoText.text = text;
 
@@ -119,6 +124,9 @@ public class UIStationManager : MonoBehaviour
 				stationInfoText = textObject.GetComponent<TMP_Text>();
 		}
 
+		if (stationInfoText == null && stationInfoRoot != null)
+			stationInfoText = stationInfoRoot.GetComponentInChildren<TMP_Text>(true);
+
 		if (stationInfoBackground == null && stationInfoRoot != null)
 			stationInfoBackground = stationInfoRoot.GetComponent<Image>();
 
@@ -137,7 +145,14 @@ public class UIStationManager : MonoBehaviour
 		if (rootRectTransform == null)
 			return;
 
-		Vector2 screenPosition = (Vector2)Input.mousePosition + screenOffset;
+		if (currentStation == null)
+			return;
+
+		Camera worldCamera = Camera.main;
+		if (worldCamera == null)
+			return;
+
+		Vector2 screenPosition = worldCamera.WorldToScreenPoint(currentStation.transform.position + worldOffset);
 		screenPosition.x = Mathf.Clamp(screenPosition.x, 0f, Screen.width);
 		screenPosition.y = Mathf.Clamp(screenPosition.y, 0f, Screen.height);
 
@@ -177,12 +192,12 @@ public class UIStationManager : MonoBehaviour
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.AppendLine(station.gameObject.name);
-		builder.Append("Population: ").AppendLine(station.Population.ToString());
-		builder.Append("Attributes: ");
+		builder.Append("Население: ").AppendLine(station.Population.ToString());
+		builder.Append("Параметры: ");
 		AppendAttributes(builder, station.Attributes);
 		builder.AppendLine();
-		AppendResourceSection(builder, "Produced", station.ProducedResources, station.Supply);
-		AppendResourceSection(builder, "Requested", station.ConsumedResources, station.Demand);
+		AppendResourceSection(builder, "Производит", station.ProducedResources, station.Supply);
+		AppendResourceSection(builder, "Потребляет", station.ConsumedResources, station.Demand);
 		return builder.ToString();
 	}
 
@@ -190,7 +205,7 @@ public class UIStationManager : MonoBehaviour
 	{
 		if (attributes == null || attributes.Count == 0)
 		{
-			builder.Append("None");
+			builder.Append("Нет");
 			return;
 		}
 
@@ -204,12 +219,12 @@ public class UIStationManager : MonoBehaviour
 			if (hasAttributes)
 				builder.Append(", ");
 
-			builder.Append(NicifyName(attribute.AttributeType.ToString()));
+			builder.Append(TranslateAttributeType(attribute.AttributeType));
 			hasAttributes = true;
 		}
 
 		if (!hasAttributes)
-			builder.Append("None");
+			builder.Append("Нет");
 	}
 
 	private static void AppendResourceSection(
@@ -222,7 +237,7 @@ public class UIStationManager : MonoBehaviour
 
 		if (resourceTypes == null || resourceTypes.Count == 0)
 		{
-			builder.AppendLine("None");
+			builder.AppendLine("Нет");
 			return;
 		}
 
@@ -239,10 +254,11 @@ public class UIStationManager : MonoBehaviour
 				: 0;
 
 			builder
-				.Append(NicifyName(resourceType.ToString()))
-				.Append(" x")
+				.Append(TranslateResourceType(resourceType))
+				.Append(" - ")
 				.Append(resourceInfo.Amount)
-				.Append(" (")
+				.Append(" ед.")
+				.Append(" (доступно: ")
 				.Append(amount)
 				.Append(')');
 		}
@@ -263,6 +279,12 @@ public class UIStationManager : MonoBehaviour
 				{
 					case StationAttributeType.City:
 					case StationAttributeType.Village:
+					case StationAttributeType.FinancialCenter:
+					case StationAttributeType.TourismCenter:
+					case StationAttributeType.ScientificCenter:
+					case StationAttributeType.Institute:
+					case StationAttributeType.University:
+					case StationAttributeType.Hospital:
 						return cityBackgroundColor;
 					case StationAttributeType.Factory:
 					case StationAttributeType.FurnitureFactory:
@@ -274,6 +296,9 @@ public class UIStationManager : MonoBehaviour
 					case StationAttributeType.NonFerrousMetallurgy:
 					case StationAttributeType.CoalIndustry:
 					case StationAttributeType.OilIndustry:
+					case StationAttributeType.PowerPlant:
+					case StationAttributeType.ChemicalPlant:
+					case StationAttributeType.ElectronicsFactory:
 						return factoryBackgroundColor;
 					case StationAttributeType.Port:
 					case StationAttributeType.Seaport:
@@ -285,6 +310,81 @@ public class UIStationManager : MonoBehaviour
 		}
 
 		return defaultBackgroundColor;
+	}
+
+	private static string TranslateAttributeType(StationAttributeType attributeType)
+	{
+		return attributeType switch
+		{
+			StationAttributeType.City => "Город",
+			StationAttributeType.Village => "Деревня",
+			StationAttributeType.Factory => "Завод",
+			StationAttributeType.Port => "Порт",
+			StationAttributeType.LogisticsCenter => "Логистический центр",
+			StationAttributeType.FinancialCenter => "Финансовый центр",
+			StationAttributeType.TourismCenter => "Туристический центр",
+			StationAttributeType.Seaport => "Морской порт",
+			StationAttributeType.FurnitureFactory => "Мебельная фабрика",
+			StationAttributeType.FoodIndustry => "Пищевая промышленность",
+			StationAttributeType.TextileIndustry => "Текстильная промышленность",
+			StationAttributeType.MechanicalEngineering => "Машиностроение",
+			StationAttributeType.Shipbuilding => "Судостроение",
+			StationAttributeType.WheatField => "Пшеничное поле",
+			StationAttributeType.CattleFarm => "Ферма",
+			StationAttributeType.RiverFishing => "Речное рыболовство",
+			StationAttributeType.SeaFishing => "Морское рыболовство",
+			StationAttributeType.ForestBelt => "Лесной пояс",
+			StationAttributeType.IronOreIndustry => "Железорудная промышленность",
+			StationAttributeType.NonFerrousMetallurgy => "Цветная металлургия",
+			StationAttributeType.CoalIndustry => "Угольная промышленность",
+			StationAttributeType.OilIndustry => "Нефтяная промышленность",
+			StationAttributeType.ScientificCenter => "Научный центр",
+			StationAttributeType.Institute => "Институт",
+			StationAttributeType.University => "Университет",
+			StationAttributeType.Hospital => "Больница",
+			StationAttributeType.PowerPlant => "Электростанция",
+			StationAttributeType.ChemicalPlant => "Химический завод",
+			StationAttributeType.ElectronicsFactory => "Фабрика электроники",
+			_ => NicifyName(attributeType.ToString())
+		};
+	}
+
+	private static string TranslateResourceType(ResourceType resourceType)
+	{
+		return resourceType switch
+		{
+			ResourceType.Coal => "Уголь",
+			ResourceType.Iron => "Железо",
+			ResourceType.Milk => "Молоко",
+			ResourceType.Water => "Вода",
+			ResourceType.Millet => "Зерно",
+			ResourceType.Plastic => "Пластик",
+			ResourceType.Food => "Еда",
+			ResourceType.Fish => "Рыба",
+			ResourceType.IronOre => "Железная руда",
+			ResourceType.Metal => "Металл",
+			ResourceType.Oil => "Нефть",
+			ResourceType.Fuel => "Топливо",
+			ResourceType.Wood => "Древесина",
+			ResourceType.Electricity => "Электричество",
+			ResourceType.Tools => "Инструменты",
+			ResourceType.Equipment => "Оборудование",
+			ResourceType.Goods => "Товары",
+			ResourceType.Money => "Деньги",
+			ResourceType.Workforce => "Рабочая сила",
+			ResourceType.Specialists => "Специалисты",
+			ResourceType.ResearchData => "Научные данные",
+			ResourceType.Technology => "Технологии",
+			ResourceType.Medicine => "Лекарства",
+			ResourceType.Fertilizer => "Удобрения",
+			ResourceType.Fabric => "Ткани",
+			ResourceType.Cotton => "Хлопок",
+			ResourceType.Culture => "Культура",
+			ResourceType.Investments => "Инвестиции",
+			ResourceType.LogisticsService => "Логистические услуги",
+			ResourceType.ImportedGoods => "Импортные товары",
+			_ => NicifyName(resourceType.ToString())
+		};
 	}
 
 	private static string NicifyName(string value)
