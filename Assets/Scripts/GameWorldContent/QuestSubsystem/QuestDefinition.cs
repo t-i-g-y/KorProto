@@ -91,7 +91,7 @@ public class QuestReward
     }
 }
 
-[CreateAssetMenu(menuName = "Rail/Quests/Quest Definition")]
+[CreateAssetMenu(menuName = "GameContent/Quests/Quest Definition")]
 public class QuestDefinition : ScriptableObject
 {
     [Header("Quest")]

@@ -292,6 +292,8 @@ MonoBehaviour:
   spriteRenderer: {fileID: 2503731766221777518}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  brokenColor: {r: 0.6627451, g: 0.6627451, b: 0.6627451, a: 1}
+  noDemandColor: {r: 0, g: 0, b: 0, a: 0}
   cargoVisualizer: {fileID: 1964913805280480309}
   incomePopupOffset: {x: 0, y: 0.1, z: 0}
   speed: 0.6
@@ -303,9 +305,11 @@ MonoBehaviour:
   currentTileIndex: 0
   atStation: 0
   isOperational: 1
+  isBroken: 0
   attachedTrainConsist: {fileID: 0}
   wagonViewPrefab: {fileID: 5702792900398289949, guid: 892873a4111ae8f40a08a57ecce3875e, type: 3}
   attachedWagonViews: []
+  breakChancePerSecond: 0.002
   config: {fileID: 11400000, guid: cf71a7f4ffad4d348aef33fe6b1b0e95, type: 2}
   onlyLoadRequested: 0
 --- !u!114 &1911917591371393508
@@ -320,21 +324,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82e8d461595213242ae9cbd31d7e0aa4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainConsist
+  defaultHeadCapacity: 6
+  defaultWagonCapacity: 6
+  defaultHeadMaintenance: 5
+  defaultWagonMaintenance: 2
+  cargo: []
+  debugCargo: 1
   headLocomotive:
     capacity: 6
     cargo: []
-    maintenance: 0
+    maintenance: 5
   wagons: []
   usedCapacity: 0
   totalCapacity: 0
   loadSpeed: 0.5
   unloadSpeed: 0.5
-  defaultHeadCapacity: 6
-  defaultWagonCapacity: 6
-  defaultHeadMaintenance: 1
-  defaultWagonMaintenance: 1
-  cargo: []
-  debugCargo: 1
 --- !u!1 &5248008652041386375
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,12 +489,35 @@ MonoBehaviour:
   - {fileID: 240689404812303889}
   resourceSprites:
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
-  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
-  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
   - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
   - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
 --- !u!1 &8252636555856329808
 GameObject:
   m_ObjectHideFlags: 0

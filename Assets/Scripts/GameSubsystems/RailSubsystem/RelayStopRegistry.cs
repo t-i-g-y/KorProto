@@ -12,7 +12,7 @@ public class RelayStopRegistry : MonoBehaviour
     private readonly Dictionary<Vector3Int, RelayStop> relaysByCell = new();
     private int nextID = 0;
 
-    public IEnumerable<RelayStop> AllRelays => relaysByCell.Values;
+    public Dictionary<Vector3Int, RelayStop> Relays => relaysByCell;
 
     private void Awake()
     {

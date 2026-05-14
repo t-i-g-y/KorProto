@@ -220,8 +220,7 @@ public class ArtifactManager : MonoBehaviour
             ArtifactTriggerType.QuestCompleted,
             0f,
             ArtifactSpawnMode.RandomRailLineCell,
-            false,
-            "builtin_build_5_rail_lines"));
+            false));
     }
 
     private IEnumerable<ArtifactDefinition> GetActiveDefinitions()

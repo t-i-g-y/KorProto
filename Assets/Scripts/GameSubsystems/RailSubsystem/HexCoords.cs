@@ -70,12 +70,4 @@ public static class HexCoords
         Debug.Log($"Impossible dir={d}");
         return -1;
     }
-
-    public static int[] GetDoubleSidedDirs(Vector3Int cellA, Vector3Int cellB)
-    {
-        int dAB = HexCoords.DirIndex(cellA, cellB);
-        int dBA = HexCoords.DirIndex(cellB, cellA);
-
-        return new int[] {dAB, dBA};
-    }
 }

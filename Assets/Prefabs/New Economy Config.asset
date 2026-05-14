@@ -16,8 +16,13 @@ MonoBehaviour:
   BaseConstructionCostPerCell: 10
   BaseLineMaintenanceFlat: 1
   BaseLineMaintenancePerCell: 0.25
+  BaseTrainPurchaseCost: 50
+  BaseWagonUpdateCost: 25
+  BaseSpeedUpgradeCost: 10
+  BaseTrainRepairCost: 10
   BaseTrainMaintenanceFlat: 2
-  RefundRatio: 0.5
+  BaseRelayMaintenance: 5
+  RefundRatio: 0.4
   CargoValues:
   - Resource: 0
     Value: 10

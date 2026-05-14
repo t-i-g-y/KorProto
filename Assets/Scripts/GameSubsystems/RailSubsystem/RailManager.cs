@@ -307,7 +307,111 @@ public class RailManager : MonoBehaviour
 
         return false;
     }
+    
+    public bool TryGetShortestPathFull(Vector3Int from, Vector3Int to, out List<Vector3Int> nodes, out List<RailLine> lines, out float totalCost)
+    {
+        nodes = new List<Vector3Int>();
+        lines = new List<RailLine>();
+        totalCost = 0;
 
+        if (from == to)
+            return false;
+
+        if (!TryGetIslandForNode(from, out NetworkIsland islandFrom))
+            return false;
+
+        if (!TryGetIslandForNode(to, out NetworkIsland islandTo))
+            return false;
+
+        if (islandFrom.ID != islandTo.ID)
+            return false;
+
+        if (!IsIslandActive(islandFrom))
+            return false;
+
+        if (!islandFrom.Adjacency.ContainsKey(from) || !islandFrom.Nodes.Contains(to))
+            return false;
+
+        Dictionary<Vector3Int, float> dist = new();
+        Dictionary<Vector3Int, Vector3Int> prevNode = new();
+        Dictionary<Vector3Int, RailLine> prevLine = new();
+        HashSet<Vector3Int> visited = new();
+
+        List<(Vector3Int node, float cost)> queue = new()
+        {
+            (from, 0f)
+        };
+        dist[from] = 0f;
+        while (queue.Count > 0)
+        {
+            queue.Sort((a, b) => a.cost.CompareTo(b.cost));
+
+            var current = queue[0];
+            queue.RemoveAt(0);
+
+            Vector3Int currentNode = current.node;
+
+            if (!visited.Add(currentNode))
+                continue;
+
+            if (currentNode == to)
+                break;
+
+            if (!islandFrom.Adjacency.TryGetValue(currentNode, out var edges))
+                continue;
+
+            foreach (RailEdge edge in edges)
+            {
+                if (visited.Contains(edge.To))
+                    continue;
+
+                List<Train> trains = edge.Line.AssignedTrains;
+
+                float speed = trains == null ? 0f : edge.Line.GetRoutingSpeed();
+                
+                float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
+
+                if (!dist.TryGetValue(edge.To, out float oldCost) || nextCost < oldCost)
+                {
+                    dist[edge.To] = nextCost;
+                    prevNode[edge.To] = currentNode;
+                    prevLine[edge.To] = edge.Line;
+                    queue.Add((edge.To, nextCost));
+                }
+            }
+        }
+
+        if (!dist.TryGetValue(to, out totalCost))
+            return false;
+
+        List<Vector3Int> reversedNodes = new();
+        List<RailLine> reversedLines = new();
+
+        Vector3Int walk = to;
+        reversedNodes.Add(walk);
+
+        while (walk != from)
+        {
+            if (!prevNode.TryGetValue(walk, out Vector3Int previous))
+                return false;
+
+            if (!prevLine.TryGetValue(walk, out RailLine line))
+                return false;
+
+            reversedLines.Add(line);
+            walk = previous;
+            reversedNodes.Add(walk);
+        }
+
+        reversedNodes.Reverse();
+        reversedLines.Reverse();
+
+        nodes = reversedNodes;
+        lines = reversedLines;
+
+        return nodes.Count >= 2 && lines.Count >= 1;
+    }
+    
     public bool IsFirstHopOnCurrentLine(RailLine line, Vector3Int currentCell, Vector3Int destinationCell, out float totalCost)
     {
         totalCost = 0;

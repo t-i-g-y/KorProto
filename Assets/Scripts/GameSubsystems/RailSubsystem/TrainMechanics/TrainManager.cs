@@ -9,11 +9,9 @@ public class TrainManager : MonoBehaviour
     [SerializeField] private Train trainPrefab;
     [SerializeField] private TrainConfig trainConfig;
     [SerializeField] private Tilemap land;
-
+    private int nextID;
     public List<Train> Trains= new();
     public Train SelectedTrain { get; private set; }
-
-    private int nextID;
 
     public static event Action<Train, RailLine> TrainCreated;
     public static event Action<Train> TrainRemoved;
@@ -150,6 +148,27 @@ public class TrainManager : MonoBehaviour
         panPosition.y = train.transform.position.y;
         Camera.main.transform.position = panPosition;
         Camera.main.orthographicSize = 2f;
+    }
+
+    public bool IsLineDemandedRoute(RailLine line)
+    {
+        if (line == null)
+            return false;
+
+        foreach (Train train in Trains)
+        {
+            if (train == null)
+                continue;
+
+            if (train.AssignedLine != line)
+                continue;
+
+            if (train.InDemandedRoute)
+                return true;
+        }
+
+        return false;
+
     }
 
     #region save sbusystem

@@ -4,19 +4,20 @@ using UnityEngine;
 
 public class TrainConsist : MonoBehaviour
 {
+    [SerializeField] private int defaultHeadCapacity = 6;
+    [SerializeField] private int defaultWagonCapacity = 6;
+    [SerializeField] private float defaultHeadMaintenance = 5f;
+    [SerializeField] private float defaultWagonMaintenance = 2f;
+    [SerializeField] private ResourceAmount[] cargo;
+    private Queue<int>[] cargoDestinations;
+    private int maxWagonCount = 2;
+    [SerializeField] private bool debugCargo;
     public TrainConsistUnit headLocomotive;
     public List<TrainConsistUnit> wagons = new();
     public int usedCapacity;
     public int totalCapacity;
     public float loadSpeed = 0.5f;
     public float unloadSpeed = 0.5f;
-    [SerializeField] private int defaultHeadCapacity = 6;
-    [SerializeField] private int defaultWagonCapacity = 6;
-    [SerializeField] private float defaultHeadMaintenance = 1f;
-    [SerializeField] private float defaultWagonMaintenance = 1f;
-    [SerializeField] private ResourceAmount[] cargo;
-    private Queue<int>[] cargoDestinations;
-    [SerializeField] private bool debugCargo;
     public int WagonCount => wagons.Count;
     public ResourceAmount[] Cargo => cargo;
 
@@ -241,6 +242,10 @@ public class TrainConsist : MonoBehaviour
 
     public bool TryAddWagon()
     {
+        int maxWagons = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonUpgradeTiers : maxWagonCount;
+        if (wagons.Count >= maxWagons) 
+            return false;
+    
         wagons.Add(new TrainConsistUnit(defaultWagonCapacity, defaultWagonMaintenance));
         RecalculateCapacity();
         return true;
@@ -288,32 +293,66 @@ public class TrainConsist : MonoBehaviour
 
         return slice;
     }
+    public float GetHeadMaintenance()
+    {
+        float maintenance = headLocomotive != null ? headLocomotive.maintenance : 0f;
 
+        if (ResearchModifierSystem.Instance != null)
+            maintenance *= ResearchModifierSystem.Instance.TrainMaintenanceResearchMultiplier;
+
+        return maintenance;
+    }
+
+    public float GetUnitMaintenance(int wagonIndex)
+    {
+        if (wagonIndex < 0 || wagonIndex >= wagons.Count || wagons[wagonIndex] == null)
+            return 0f;
+
+        float maintenance = wagons[wagonIndex].maintenance;
+
+        if (ResearchModifierSystem.Instance != null)
+            maintenance *= ResearchModifierSystem.Instance.WagonMaintenanceResearchMultiplier;
+
+        return maintenance;
+    }
+
+    public int GetCargoStartIndexForWagon(int wagonIndex)
+    {
+        if (wagonIndex < 0)
+            return 0;
+
+        int start = GetHeadCapacity();
+
+        for (int i = 0; i < wagonIndex; i++)
+            start += GetUnitCapacity(i);
+
+        return start;
+    }
     public int GetHeadCapacity()
     {
-        return headLocomotive != null ? headLocomotive.capacity : 0;
+        int capacity = headLocomotive != null ? headLocomotive.capacity : 0;
+        int bonus = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.LocomotiveCargoCapacityBonus : 0;
+
+        return Mathf.Max(0, capacity + bonus);
     }
 
     public int GetUnitCapacity(int wagonIndex)
     {
         if (wagonIndex < 0 || wagonIndex >= wagons.Count)
             return 0;
+        int bonus = ResearchModifierSystem.Instance != null ? ResearchModifierSystem.Instance.WagonCargoCapacityBonus : 0;
 
-        return wagons[wagonIndex].capacity;
+        return Mathf.Max(0, wagons[wagonIndex].capacity + bonus);
     }
 
+    public int GetFreeCapacity() => totalCapacity - usedCapacity;
+    
     private void RecalculateCapacity()
     {
-        totalCapacity = 0;
+        totalCapacity = GetHeadCapacity();
 
-        if (headLocomotive != null)
-            totalCapacity += Mathf.Max(0, headLocomotive.capacity);
-
-        foreach (TrainConsistUnit wagon in wagons)
-        {
-            if (wagon != null)
-                totalCapacity += Mathf.Max(0, wagon.capacity);
-        }
+        for (int i = 0; i < wagons.Count; i++)
+            totalCapacity += GetUnitCapacity(i);
 
         usedCapacity = CountCargo();
     }
@@ -491,5 +530,8 @@ public class TrainConsist : MonoBehaviour
 
         RecalculateCapacity();
     }
+    #endregion
+    #region testing
+    public void SetMaxWagonCount(int count) => maxWagonCount = count;
     #endregion
 }

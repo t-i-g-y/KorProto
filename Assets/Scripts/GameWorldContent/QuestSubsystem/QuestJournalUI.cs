@@ -239,20 +239,99 @@ public class QuestJournalUI : MonoBehaviour
         if (contentRoot == null)
             return null;
 
-        GameObject entryObject = new("QuestJournalEntry", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject entryObject = new("QuestJournalEntry", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(LayoutElement), typeof(QuestJournalEntryUI));
         entryObject.transform.SetParent(contentRoot, false);
 
         RectTransform rect = entryObject.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0f, 1f);
         rect.anchorMax = new Vector2(1f, 1f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.sizeDelta = new Vector2(0f, 140f);
+        rect.sizeDelta = new Vector2(0f, 190f);
 
-        LayoutElement layout = entryObject.AddComponent<LayoutElement>();
-        layout.minHeight = 140f;
-        layout.preferredHeight = 140f;
+        Image image = entryObject.GetComponent<Image>();
+        image.color = new Color32(255, 255, 255, 225);
+
+        VerticalLayoutGroup layoutGroup = entryObject.GetComponent<VerticalLayoutGroup>();
+        layoutGroup.padding = new RectOffset(14, 14, 10, 10);
+        layoutGroup.spacing = 5f;
+        layoutGroup.childControlHeight = true;
+        layoutGroup.childControlWidth = true;
+        layoutGroup.childForceExpandHeight = false;
+
+        LayoutElement layout = entryObject.GetComponent<LayoutElement>();
+        layout.minHeight = 190f;
+        layout.preferredHeight = 190f;
+
+        TMP_Text titleText = CreateEntryText(entryObject.transform, "Title", 20f, FontStyles.Bold);
+        TMP_Text statusText = CreateEntryText(entryObject.transform, "Status", 16f, FontStyles.Normal);
+        TMP_Text descriptionText = CreateEntryText(entryObject.transform, "Description", 16f, FontStyles.Normal);
+        TMP_Text conditionText = CreateEntryText(entryObject.transform, "Condition", 15f, FontStyles.Normal);
+        TMP_Text rewardText = CreateEntryText(entryObject.transform, "Reward", 15f, FontStyles.Normal);
+        Slider progressSlider = CreateProgressSlider(entryObject.transform);
+        TMP_Text progressText = CreateEntryText(entryObject.transform, "Progress", 15f, FontStyles.Bold);
+
+        QuestJournalEntryUI entryUI = entryObject.GetComponent<QuestJournalEntryUI>();
+        entryUI.Configure(titleText, statusText, descriptionText, conditionText, rewardText, progressText, progressSlider);
 
         return entryObject;
+    }
+
+    private static TMP_Text CreateEntryText(Transform parent, string name, float fontSize, FontStyles fontStyle)
+    {
+        GameObject textObject = new(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(parent, false);
+
+        TMP_Text text = textObject.GetComponent<TMP_Text>();
+        text.color = Color.black;
+        text.fontSize = fontSize;
+        text.fontStyle = fontStyle;
+        text.textWrappingMode = TextWrappingModes.Normal;
+
+        return text;
+    }
+
+    private static Slider CreateProgressSlider(Transform parent)
+    {
+        GameObject sliderObject = new("ProgressSlider", typeof(RectTransform), typeof(Slider), typeof(LayoutElement));
+        sliderObject.transform.SetParent(parent, false);
+
+        LayoutElement layout = sliderObject.GetComponent<LayoutElement>();
+        layout.minHeight = 18f;
+        layout.preferredHeight = 18f;
+
+        GameObject backgroundObject = new("Background", typeof(RectTransform), typeof(Image));
+        backgroundObject.transform.SetParent(sliderObject.transform, false);
+        RectTransform backgroundRect = backgroundObject.GetComponent<RectTransform>();
+        backgroundRect.anchorMin = Vector2.zero;
+        backgroundRect.anchorMax = Vector2.one;
+        backgroundRect.offsetMin = Vector2.zero;
+        backgroundRect.offsetMax = Vector2.zero;
+        backgroundObject.GetComponent<Image>().color = new Color32(220, 224, 219, 255);
+
+        GameObject fillAreaObject = new("Fill Area", typeof(RectTransform));
+        fillAreaObject.transform.SetParent(sliderObject.transform, false);
+        RectTransform fillAreaRect = fillAreaObject.GetComponent<RectTransform>();
+        fillAreaRect.anchorMin = Vector2.zero;
+        fillAreaRect.anchorMax = Vector2.one;
+        fillAreaRect.offsetMin = Vector2.zero;
+        fillAreaRect.offsetMax = Vector2.zero;
+
+        GameObject fillObject = new("Fill", typeof(RectTransform), typeof(Image));
+        fillObject.transform.SetParent(fillAreaObject.transform, false);
+        RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        fillObject.GetComponent<Image>().color = new Color32(24, 128, 56, 255);
+
+        Slider slider = sliderObject.GetComponent<Slider>();
+        slider.targetGraphic = backgroundObject.GetComponent<Image>();
+        slider.fillRect = fillRect;
+        slider.interactable = false;
+        slider.transition = Selectable.Transition.None;
+
+        return slider;
     }
 
     private static void SetFallbackText(GameObject entryObject, QuestRuntime quest)

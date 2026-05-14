@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +16,15 @@ public class EventManager : MonoBehaviour
     private readonly Dictionary<string, int> lastTriggerDayByEventId = new();
 
     private TimeManager boundTimeManager;
+    private QuestManager boundQuestManager;
+    private ResearchSystem boundResearchSystem;
+    private int elapsedHoursSinceStart;
+    private int removedRailLineCount;
+    private int destroyedTrainCount;
+    private float trainSpeedEventMultiplier = 1f;
+    private RailLine lastCreatedRailLine;
+    private Train lastCreatedTrain;
+    private RailLine railLinePendingRemoval;
     private GameEventRuntime pendingEvent;
     private float timeMultiplierBeforePendingEvent = 1f;
     private bool shouldResumeTimeAfterPendingEvent;
@@ -56,23 +66,35 @@ public class EventManager : MonoBehaviour
     private void OnEnable()
     {
         RailManager.LineCreated += HandleLineCreated;
+        RailManager.LineRemoved += HandleLineRemoved;
         TrainManager.TrainCreated += HandleTrainCreated;
         Train.TrainBroken += HandleTrainBroken;
         TryBindTimeManager();
+        TryBindQuestManager();
+        TryBindResearchSystem();
     }
 
     private void OnDisable()
     {
         RailManager.LineCreated -= HandleLineCreated;
+        RailManager.LineRemoved -= HandleLineRemoved;
         TrainManager.TrainCreated -= HandleTrainCreated;
         Train.TrainBroken -= HandleTrainBroken;
         UnbindTimeManager();
+        UnbindQuestManager();
+        UnbindResearchSystem();
     }
 
     private void Update()
     {
         if (boundTimeManager == null)
             TryBindTimeManager();
+
+        if (boundQuestManager == null)
+            TryBindQuestManager();
+
+        if (boundResearchSystem == null)
+            TryBindResearchSystem();
     }
 
     public void TriggerManualEvent(EventDefinition definition)
@@ -81,6 +103,176 @@ public class EventManager : MonoBehaviour
             return;
 
         TryActivate(definition, BuildContext(GameEventTriggerType.Manual));
+    }
+
+    public void NotifyTrainTravelledPath(RailLine line, int passCount)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainTravelledPathTimes);
+        context.RailLine = line;
+        context.PathPassCount = passCount;
+        EvaluateTrigger(GameEventTriggerType.TrainTravelledPathTimes, context);
+    }
+
+    public void NotifyTrainDeliveredCargo(ResourceType cargoType, int amount)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainDeliveredCargo);
+        context.CargoType = cargoType;
+        context.CargoAmount = amount;
+        EvaluateTrigger(GameEventTriggerType.TrainDeliveredCargo, context);
+    }
+
+    public void NotifyTrainDeliveredCargo(ResourceType cargoType, int amount, Station destinationStation)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainDeliveredCargo);
+        context.CargoType = cargoType;
+        context.CargoAmount = amount;
+        context.DestinationStationName = destinationStation != null ? destinationStation.StationName : null;
+        EvaluateTrigger(GameEventTriggerType.TrainDeliveredCargo, context);
+    }
+
+    public void NotifyTrainArrivedAtStation(int arrivalCount)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainArrivedAtStation);
+        context.ArrivalCount = arrivalCount;
+        EvaluateTrigger(GameEventTriggerType.TrainArrivedAtStation, context);
+    }
+
+    public void NotifyTrainArrivedAtStation(Station station, int arrivalCount)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainArrivedAtStation);
+        context.StationName = station != null ? station.StationName : null;
+        context.ArrivalCount = arrivalCount;
+        EvaluateTrigger(GameEventTriggerType.TrainArrivedAtStation, context);
+    }
+
+    public void NotifyTrainDestroyed(Train train)
+    {
+        destroyedTrainCount++;
+
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainDestroyed);
+        context.Train = train;
+        context.TrainDestroyedCount = destroyedTrainCount;
+        EvaluateTrigger(GameEventTriggerType.TrainDestroyed, context);
+    }
+
+    public void NotifyIncomeEarned(float amount, int periodHours)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.IncomeEarnedForPeriod);
+        context.IncomeAmount = amount;
+        context.PeriodHours = periodHours;
+        EvaluateTrigger(GameEventTriggerType.IncomeEarnedForPeriod, context);
+    }
+
+    public void NotifyAmountSpent(float amount)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.AmountSpent);
+        context.SpentAmount = amount;
+        EvaluateTrigger(GameEventTriggerType.AmountSpent, context);
+    }
+
+    public void NotifyStationPopulationChanged(int delta)
+    {
+        GameEventTriggerType triggerType = delta < 0
+            ? GameEventTriggerType.StationPopulationDecreased
+            : GameEventTriggerType.StationPopulationIncreased;
+
+        EventWorldContext context = BuildContext(triggerType);
+        context.PopulationDelta = delta;
+        EvaluateTrigger(triggerType, context);
+    }
+
+    public void NotifyStationPopulationChanged(Station station, int delta)
+    {
+        GameEventTriggerType triggerType = delta < 0
+            ? GameEventTriggerType.StationPopulationDecreased
+            : GameEventTriggerType.StationPopulationIncreased;
+
+        EventWorldContext context = BuildContext(triggerType);
+        context.StationName = station != null ? station.StationName : null;
+        context.PopulationDelta = delta;
+        EvaluateTrigger(triggerType, context);
+    }
+
+    public void NotifyArtifactObtained(int count)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.ArtifactObtained);
+        context.ArtifactCount = count;
+        EvaluateTrigger(GameEventTriggerType.ArtifactObtained, context);
+    }
+
+    public void NotifyQuestCompleted(int count)
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.QuestCompleted);
+        context.QuestCompletedCount = count;
+        EvaluateTrigger(GameEventTriggerType.QuestCompleted, context);
+    }
+
+    public void NotifyTechnologyUnlocked()
+    {
+        EventWorldContext context = BuildContext(GameEventTriggerType.TechnologyUnlocked);
+        context.TechnologyUnlocked = true;
+        EvaluateTrigger(GameEventTriggerType.TechnologyUnlocked, context);
+    }
+
+    public void ApplyTrainSpeedEventMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f)
+            return;
+
+        trainSpeedEventMultiplier *= multiplier;
+
+        if (TrainManager.Instance == null)
+            return;
+
+        foreach (Train train in TrainManager.Instance.Trains)
+        {
+            if (train != null)
+                train.ChangeSpeed(multiplier);
+        }
+    }
+
+    public void RemoveLastCreatedTrain()
+    {
+        if (TrainManager.Instance == null || TrainManager.Instance.Trains.Count == 0)
+            return;
+
+        Train train = lastCreatedTrain;
+        if (train == null || !TrainManager.Instance.Trains.Contains(train))
+            train = TrainManager.Instance.Trains[^1];
+
+        TrainManager.Instance.RemoveTrain(train);
+    }
+
+    public void RemoveLastCreatedRailLine()
+    {
+        if (RailManager.Instance == null || RailManager.Instance.Lines.Count == 0)
+            return;
+
+        RailLine line = lastCreatedRailLine;
+        if (line == null || !RailManager.Instance.Lines.Contains(line))
+            line = RailManager.Instance.Lines[^1];
+
+        QueueRailLineRemoval(line);
+    }
+
+    private void QueueRailLineRemoval(RailLine line)
+    {
+        if (line == null)
+            return;
+
+        railLinePendingRemoval = line;
+        StartCoroutine(RemoveRailLineAtEndOfFrame());
+    }
+
+    private IEnumerator RemoveRailLineAtEndOfFrame()
+    {
+        yield return null;
+
+        RailLine line = railLinePendingRemoval;
+        railLinePendingRemoval = null;
+
+        if (line != null && RailManager.Instance != null && RailManager.Instance.Lines.Contains(line))
+            RailManager.Instance.RemoveLine(line);
     }
 
     public bool ResolvePendingChoice(int optionIndex)
@@ -120,6 +312,7 @@ public class EventManager : MonoBehaviour
     {
         EventManagerSaveData data = new();
         data.history.AddRange(history);
+        data.trainSpeedEventMultiplier = trainSpeedEventMultiplier;
 
         foreach (string eventId in firedNonRepeatableEvents)
             data.firedEventIds.Add(eventId);
@@ -136,6 +329,7 @@ public class EventManager : MonoBehaviour
         firedNonRepeatableEvents.Clear();
         lastTriggerDayByEventId.Clear();
         pendingEvent = null;
+        trainSpeedEventMultiplier = 1f;
         shouldResumeTimeAfterPendingEvent = false;
         isEventNotificationOpen = false;
 
@@ -146,6 +340,7 @@ public class EventManager : MonoBehaviour
         }
 
         history.AddRange(data.history);
+        trainSpeedEventMultiplier = data.trainSpeedEventMultiplier > 0f ? data.trainSpeedEventMultiplier : 1f;
         TrimHistory();
 
         foreach (string eventId in data.firedEventIds)
@@ -174,71 +369,71 @@ public class EventManager : MonoBehaviour
             "builtin_first_line",
             "Первый железнодорожный контракт",
             "Новый путь сразу привлек внимание местных заказчиков.",
-            GameEventTriggerType.RailLineCreated,
+            GameEventTriggerType.PathBuilt,
             0f,
             GameEventConsequenceMode.Fixed,
             false,
             0,
-            CreateRuntimeOption("Премия за запуск", "Бюджет пополнен за первый работающий участок.", GameEventEffectType.AdjustBalance, 25f, 0)));
+            CreateRuntimeOption("Премия за запуск", "Бюджет пополнен за первый работающий участок.", GameEventEffectType.AddBalance, 25f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_inspection",
             "Проверка путевого хозяйства",
             "Инспекторы требуют решить, как обслуживать растущую сеть.",
-            GameEventTriggerType.RailLineCountReached,
+            GameEventTriggerType.PathBuilt,
             3f,
             GameEventConsequenceMode.PlayerChoice,
             true,
             5,
-            CreateRuntimeOption("Провести обслуживание", "Потратить средства сейчас и получить инженерный опыт.", GameEventEffectType.AdjustBalance, -20f, 0, GameEventEffectType.AddResearchPoints, 0f, 8),
-            CreateRuntimeOption("Отложить работы", "Сохранить деньги, но снизить скорость поездов из-за ограничений.", GameEventEffectType.ChangeAllTrainSpeed, 0.9f, 0)));
+            CreateRuntimeOption("Провести обслуживание", "Потратить средства сейчас и получить инженерный опыт.", GameEventEffectType.SubtractBalance, 20f, 0, GameEventEffectType.AddResearchPoints, 0f, 8),
+            CreateRuntimeOption("Отложить работы", "Сохранить деньги, но снизить скорость поездов из-за ограничений.", GameEventEffectType.ChangeTrainSpeed, 0.9f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_breakdown_report",
             "Поломка состава",
             "Бригада докладывает о неисправности поезда на линии.",
-            GameEventTriggerType.TrainBroken,
+            GameEventTriggerType.TrainDestroyed,
             0f,
             GameEventConsequenceMode.PlayerChoice,
             true,
             1,
-            CreateRuntimeOption("Срочный ремонт", "Заплатить за ремонт затронутого поезда.", GameEventEffectType.AdjustBalance, -10f, 0, GameEventEffectType.RepairContextTrain, 0f, 0),
+            CreateRuntimeOption("Срочный ремонт", "Заплатить за ремонт затронутого поезда.", GameEventEffectType.SubtractBalance, 10f, 0),
             CreateRuntimeOption("Поставить в очередь", "Оставить поезд сломанным и не тратить бюджет прямо сейчас.", GameEventEffectType.None, 0f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_route_permit_dispute_4",
             "Владелец земли затеял спор!",
             "После прокладки длинного участка владельцы земли требуют компенсацию. Можно заплатить и оставить путь или разобрать спорный участок.",
-            GameEventTriggerType.RailLineCountReached,
+            GameEventTriggerType.PathBuilt,
             4f,
             GameEventConsequenceMode.PlayerChoice,
             false,
             0,
-            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.AdjustBalance, -35f, 0),
-            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemoveContextRailLine, 0f, 0)));
+            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.SubtractBalance, 35f, 0),
+            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemovePath, 0f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_route_permit_dispute_8",
             "Владелец земли затеял спор!",
             "Расширение сети снова вызвало претензии владельцев земли. Можно заплатить и оставить путь или разобрать спорный участок.",
-            GameEventTriggerType.RailLineCountReached,
+            GameEventTriggerType.PathBuilt,
             8f,
             GameEventConsequenceMode.PlayerChoice,
             false,
             0,
-            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.AdjustBalance, -35f, 0),
-            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemoveContextRailLine, 0f, 0)));
+            CreateRuntimeOption("Заплатить компенсацию", "Путь остается в сети, но бюджет уменьшается.", GameEventEffectType.SubtractBalance, 35f, 0),
+            CreateRuntimeOption("Удалить путь", "Спорный путь демонтирован вместе с поездами на нем.", GameEventEffectType.RemovePath, 0f, 0)));
 
         runtimeDefinitions.Add(EventDefinition.CreateRuntime(
             "builtin_city_request",
             "Городской заказ",
             "Одна из станций стала популярной, и местные власти просят обеспечить дополнительный спрос.",
-            GameEventTriggerType.DayInterval,
+            GameEventTriggerType.RandomEvent,
             4f,
             GameEventConsequenceMode.Fixed,
             true,
             4,
-            CreateRuntimeOption("Спрос вырос", "На случайной станции появился дополнительный спрос.", GameEventEffectType.AddDemandToRandomStation, 0f, 3)));
+            CreateRuntimeOption("Спрос вырос", "На случайной станции появился дополнительный спрос.", GameEventEffectType.AddStationRequiredResource, 0f, 3)));
     }
 
     private static GameEventOption CreateRuntimeOption(
@@ -287,43 +482,89 @@ public class EventManager : MonoBehaviour
             yield return definition;
     }
 
+    private void HandleHourChanged(int day, int hour)
+    {
+        elapsedHoursSinceStart++;
+
+        EventWorldContext hourContext = BuildContext(GameEventTriggerType.SpecificHourReached);
+        hourContext.HoursPassed = elapsedHoursSinceStart;
+        EvaluateTrigger(GameEventTriggerType.SpecificHourReached, hourContext);
+
+        EventWorldContext timePassedContext = BuildContext(GameEventTriggerType.TimePassed);
+        timePassedContext.HoursPassed = elapsedHoursSinceStart;
+        EvaluateTrigger(GameEventTriggerType.TimePassed, timePassedContext);
+
+        EventWorldContext randomContext = BuildContext(GameEventTriggerType.RandomEvent);
+        randomContext.HoursPassed = elapsedHoursSinceStart;
+        EvaluateTrigger(GameEventTriggerType.RandomEvent, randomContext);
+
+        EvaluateTrigger(GameEventTriggerType.FinanceAmountReached, BuildContext(GameEventTriggerType.FinanceAmountReached));
+    }
+
     private void HandleDayChanged(int day)
     {
-        EvaluateTrigger(GameEventTriggerType.DayReached, BuildContext(GameEventTriggerType.DayReached));
-        EvaluateTrigger(GameEventTriggerType.DayInterval, BuildContext(GameEventTriggerType.DayInterval));
-        EvaluateTrigger(GameEventTriggerType.BalanceBelow, BuildContext(GameEventTriggerType.BalanceBelow));
+        EvaluateTrigger(GameEventTriggerType.SpecificDayReached, BuildContext(GameEventTriggerType.SpecificDayReached));
     }
 
     private void HandleLineCreated(RailLine line)
     {
-        EventWorldContext context = BuildContext(GameEventTriggerType.RailLineCreated);
+        lastCreatedRailLine = line;
+
+        EventWorldContext context = BuildContext(GameEventTriggerType.PathBuilt);
         context.RailLine = line;
-        EvaluateTrigger(GameEventTriggerType.RailLineCreated, context);
+        FillRailEndpointStationNames(context, line);
+        EvaluateTrigger(GameEventTriggerType.PathBuilt, context);
 
-        context.TriggerType = GameEventTriggerType.RailLengthReached;
-        EvaluateTrigger(GameEventTriggerType.RailLengthReached, context);
+        context.TriggerType = GameEventTriggerType.PathBuiltWithLength;
+        EvaluateTrigger(GameEventTriggerType.PathBuiltWithLength, context);
 
-        context.TriggerType = GameEventTriggerType.RailLineCountReached;
-        EvaluateTrigger(GameEventTriggerType.RailLineCountReached, context);
+        context.TriggerType = GameEventTriggerType.PathPassesThroughBiome;
+        EvaluateTrigger(GameEventTriggerType.PathPassesThroughBiome, context);
+
+        context.TriggerType = GameEventTriggerType.StationsConnected;
+        EvaluateTrigger(GameEventTriggerType.StationsConnected, context);
+
+        context.TriggerType = GameEventTriggerType.StationCount;
+        EvaluateTrigger(GameEventTriggerType.StationCount, context);
+    }
+
+    private void HandleLineRemoved(RailLine line)
+    {
+        removedRailLineCount++;
+
+        EventWorldContext context = BuildContext(GameEventTriggerType.PathRemoved);
+        context.RailLine = line;
+        context.RemovedRailLineCount = removedRailLineCount;
+        FillRailEndpointStationNames(context, line);
+        EvaluateTrigger(GameEventTriggerType.PathRemoved, context);
     }
 
     private void HandleTrainCreated(Train train, RailLine line)
     {
-        EventWorldContext context = BuildContext(GameEventTriggerType.TrainCreated);
+        lastCreatedTrain = train;
+
+        if (train != null && !Mathf.Approximately(trainSpeedEventMultiplier, 1f))
+            train.ChangeSpeed(trainSpeedEventMultiplier);
+
+        EventWorldContext context = BuildContext(GameEventTriggerType.TrainCount);
         context.Train = train;
         context.RailLine = line;
-        EvaluateTrigger(GameEventTriggerType.TrainCreated, context);
-
-        context.TriggerType = GameEventTriggerType.TrainCountReached;
-        EvaluateTrigger(GameEventTriggerType.TrainCountReached, context);
+        EvaluateTrigger(GameEventTriggerType.TrainCount, context);
     }
 
     private void HandleTrainBroken(Train train)
     {
-        EventWorldContext context = BuildContext(GameEventTriggerType.TrainBroken);
-        context.Train = train;
-        context.RailLine = train != null ? train.AssignedLine : null;
-        EvaluateTrigger(GameEventTriggerType.TrainBroken, context);
+        NotifyTrainDestroyed(train);
+    }
+
+    private void HandleQuestCompleted(QuestRuntime quest)
+    {
+        NotifyQuestCompleted(boundQuestManager != null ? boundQuestManager.CompletedQuests.Count : 1);
+    }
+
+    private void HandleTechnologyUnlocked(Technology technology)
+    {
+        NotifyTechnologyUnlocked();
     }
 
     private void EvaluateTrigger(GameEventTriggerType triggerType, EventWorldContext context)
@@ -431,7 +672,11 @@ public class EventManager : MonoBehaviour
             Day = TimeManager.Instance != null ? TimeManager.Instance.DayCounter : 0,
             Hour = TimeManager.Instance != null ? TimeManager.Instance.HourCounter : 0,
             RailLineCount = RailManager.Instance != null ? RailManager.Instance.Lines.Count : 0,
+            RemovedRailLineCount = removedRailLineCount,
+            TotalConnectedStationCount = StationEconomySystem.Instance != null ? StationEconomySystem.Instance.Stations.Count : 0,
             TrainCount = TrainManager.Instance != null ? TrainManager.Instance.Trains.Count : 0,
+            TrainDestroyedCount = destroyedTrainCount,
+            HoursPassed = elapsedHoursSinceStart,
             Balance = FinanceSystem.Instance != null ? FinanceSystem.Instance.Balance : 0f
         };
     }
@@ -444,11 +689,40 @@ public class EventManager : MonoBehaviour
             Day = context.Day,
             Hour = context.Hour,
             RailLineCount = context.RailLineCount,
+            RemovedRailLineCount = context.RemovedRailLineCount,
+            TotalConnectedStationCount = context.TotalConnectedStationCount,
             TrainCount = context.TrainCount,
+            TrainDestroyedCount = context.TrainDestroyedCount,
+            PathPassCount = context.PathPassCount,
+            CargoAmount = context.CargoAmount,
+            CargoType = context.CargoType,
+            StationName = context.StationName,
+            StartStationName = context.StartStationName,
+            EndStationName = context.EndStationName,
+            DestinationStationName = context.DestinationStationName,
+            ArrivalCount = context.ArrivalCount,
+            PopulationDelta = context.PopulationDelta,
+            ArtifactCount = context.ArtifactCount,
+            QuestCompletedCount = context.QuestCompletedCount,
+            TechnologyUnlocked = context.TechnologyUnlocked,
+            IncomeAmount = context.IncomeAmount,
+            SpentAmount = context.SpentAmount,
+            PeriodHours = context.PeriodHours,
+            HoursPassed = context.HoursPassed,
             Balance = context.Balance,
+            BiomeType = context.BiomeType,
             RailLine = context.RailLine,
             Train = context.Train
         };
+    }
+
+    private static void FillRailEndpointStationNames(EventWorldContext context, RailLine line)
+    {
+        if (context == null || line == null)
+            return;
+
+        context.StartStationName = StationRegistry.TryGet(line.Start, out Station startStation) ? startStation.StationName : null;
+        context.EndStationName = StationRegistry.TryGet(line.End, out Station endStation) ? endStation.StationName : null;
     }
 
     private void TryBindTimeManager()
@@ -457,6 +731,7 @@ public class EventManager : MonoBehaviour
             return;
 
         boundTimeManager = TimeManager.Instance;
+        boundTimeManager.OnHourChanged += HandleHourChanged;
         boundTimeManager.OnDayChanged += HandleDayChanged;
     }
 
@@ -465,8 +740,45 @@ public class EventManager : MonoBehaviour
         if (boundTimeManager == null)
             return;
 
+        boundTimeManager.OnHourChanged -= HandleHourChanged;
         boundTimeManager.OnDayChanged -= HandleDayChanged;
         boundTimeManager = null;
+    }
+
+    private void TryBindQuestManager()
+    {
+        if (boundQuestManager != null || QuestManager.Instance == null)
+            return;
+
+        boundQuestManager = QuestManager.Instance;
+        boundQuestManager.QuestCompleted += HandleQuestCompleted;
+    }
+
+    private void UnbindQuestManager()
+    {
+        if (boundQuestManager == null)
+            return;
+
+        boundQuestManager.QuestCompleted -= HandleQuestCompleted;
+        boundQuestManager = null;
+    }
+
+    private void TryBindResearchSystem()
+    {
+        if (boundResearchSystem != null || ResearchSystem.Instance == null)
+            return;
+
+        boundResearchSystem = ResearchSystem.Instance;
+        boundResearchSystem.OnTechnologyUnlocked += HandleTechnologyUnlocked;
+    }
+
+    private void UnbindResearchSystem()
+    {
+        if (boundResearchSystem == null)
+            return;
+
+        boundResearchSystem.OnTechnologyUnlocked -= HandleTechnologyUnlocked;
+        boundResearchSystem = null;
     }
 
     private void PauseTimeForEventNotification()

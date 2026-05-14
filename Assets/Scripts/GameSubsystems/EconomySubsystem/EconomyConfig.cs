@@ -13,9 +13,12 @@ public class EconomyConfig : ScriptableObject
     public float BaseLineMaintenanceFlat = 1f;
     public float BaseLineMaintenancePerCell = 0.25f;
     public float BaseTrainPurchaseCost = 50f;
+    public float BaseWagonUpdateCost = 25f;
+    public float BaseSpeedUpgradeCost = 10f;
     public float BaseTrainRepairCost = 10f;
     public float BaseTrainMaintenanceFlat = 2f;
-    public float RefundRatio = 0.5f;
+    public float BaseRelayMaintenance = 5f;
+    public float RefundRatio = 0.4f;
 
     public List<ResourceValueEntry> CargoValues = new();
     public List<TerrainModifierEntry> TerrainModifierEntries = new();

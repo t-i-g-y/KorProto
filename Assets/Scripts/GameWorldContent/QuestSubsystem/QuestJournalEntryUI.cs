@@ -12,6 +12,24 @@ public class QuestJournalEntryUI : MonoBehaviour
     [SerializeField] private TMP_Text progressText;
     [SerializeField] private Slider progressSlider;
 
+    public void Configure(
+        TMP_Text title,
+        TMP_Text status,
+        TMP_Text description,
+        TMP_Text condition,
+        TMP_Text reward,
+        TMP_Text progress,
+        Slider slider)
+    {
+        titleText = title;
+        statusText = status;
+        descriptionText = description;
+        conditionText = condition;
+        rewardText = reward;
+        progressText = progress;
+        progressSlider = slider;
+    }
+
     public void Set(QuestRuntime quest)
     {
         if (quest == null)

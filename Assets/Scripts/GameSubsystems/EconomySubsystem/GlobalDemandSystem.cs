@@ -77,8 +77,7 @@ public class GlobalDemandSystem : MonoBehaviour
 
     public bool HasOutstandingDemand(ResourceType resource)
     {
-        return outstandingTotals != null &&
-               outstandingTotals[(int)resource].Amount > 0;
+        return outstandingTotals != null && outstandingTotals[(int)resource].Amount > 0;
     }
 
     public int GetOutstanding(ResourceType resource)

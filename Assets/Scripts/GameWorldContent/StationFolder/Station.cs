@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Station : MonoBehaviour
 {
+    private static Station selectedStation;
+    private static int lastHoverInputFrame = -1;
+    private const float SelectionRadius = 0.35f;
+
     private int stationID;
     [Header("Grid / Tile")]
     [SerializeField] private Grid grid;
     [SerializeField] private Vector3Int cell;
 
     [Header("Station data")]
+    [SerializeField] private string stationName;
     [SerializeField] private List<StationAttribute> attributes = new();
     [SerializeField] private int population = 100;
 
@@ -31,6 +38,7 @@ public class Station : MonoBehaviour
     private float demandTimer;
 
     public int StationID { get; set; }
+    public string StationName => string.IsNullOrWhiteSpace(stationName) ? gameObject.name : stationName;
     public Vector3Int Cell => cell;
     public int Population => population;
     public IReadOnlyList<StationAttribute> Attributes => attributes;
@@ -38,6 +46,7 @@ public class Station : MonoBehaviour
     public IReadOnlyList<ResourceAmount> ConsumedResources => consumedResources;
     public ResourceAmount[] Supply => supply;
     public ResourceAmount[] Demand => demand;
+    public bool IsSelected => selectedStation == this;
 
     private void Awake()
     {
@@ -49,6 +58,9 @@ public class Station : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (selectedStation == this)
+            SetHoveredStation(null);
+
         StationRegistry.Unregister(this);
     }
 
@@ -60,6 +72,8 @@ public class Station : MonoBehaviour
 
     private void Update()
     {
+        UpdateHoveredStation();
+
         if (config == null || TimeManager.Instance == null)
             return;
 
@@ -77,6 +91,60 @@ public class Station : MonoBehaviour
             demandTimer = 0f;
             TryRequest();
         }
+    }
+
+    private static void UpdateHoveredStation()
+    {
+        if (lastHoverInputFrame == Time.frameCount)
+            return;
+
+        lastHoverInputFrame = Time.frameCount;
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
+        {
+            SetHoveredStation(null);
+            return;
+        }
+
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            SetHoveredStation(null);
+            return;
+        }
+
+        Camera camera = Camera.main;
+        if (camera == null)
+        {
+            SetHoveredStation(null);
+            return;
+        }
+
+        Vector2 screenPosition = mouse.position.ReadValue();
+        Vector3 worldPosition = camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -camera.transform.position.z));
+        Collider2D[] hits = Physics2D.OverlapCircleAll(worldPosition, SelectionRadius);
+
+        foreach (Collider2D hit in hits)
+        {
+            Station station = hit.GetComponentInParent<Station>();
+            if (station == null)
+                continue;
+
+            SetHoveredStation(station);
+            return;
+        }
+
+        SetHoveredStation(null);
+    }
+
+    private static void SetHoveredStation(Station station)
+    {
+        selectedStation = station;
+
+        if (station != null)
+            UIStationManager.Instance?.ShowStationInfo(station);
+        else
+            UIStationManager.Instance?.HideStationInfo();
     }
 
     public void UpdateCellFromWorldPosition()
@@ -164,6 +232,18 @@ public class Station : MonoBehaviour
             RebuildResourceListsFromAttributes();
     }
 
+    public void AddProducedResource(ResourceType resourceType, int amount)
+    {
+        producedResources ??= new List<ResourceAmount>();
+        AddOrIncreaseResource(producedResources, new ResourceAmount(resourceType, Mathf.Max(0, amount)));
+    }
+
+    public void AddConsumedResource(ResourceType resourceType, int amount)
+    {
+        consumedResources ??= new List<ResourceAmount>();
+        AddOrIncreaseResource(consumedResources, new ResourceAmount(resourceType, Mathf.Max(0, amount)));
+    }
+
     public void SetPopulation(int newPopulation)
     {
         population = Mathf.Max(0, newPopulation);
@@ -175,6 +255,7 @@ public class Station : MonoBehaviour
             return;
 
         population += amount;
+        EventManager.Instance?.NotifyStationPopulationChanged(this, amount);
     }
 
     public void DecreasePopulation(int amount)
@@ -183,6 +264,7 @@ public class Station : MonoBehaviour
             return;
 
         population = Mathf.Max(0, population - amount);
+        EventManager.Instance?.NotifyStationPopulationChanged(this, -amount);
     }
 
     private void TrySpawn()

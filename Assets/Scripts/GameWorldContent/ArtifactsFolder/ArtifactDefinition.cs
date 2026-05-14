@@ -40,7 +40,7 @@ public class ArtifactWorldContext
     public QuestRuntime Quest;
 }
 
-[CreateAssetMenu(menuName = "Rail/Artifacts/Artifact Definition")]
+[CreateAssetMenu(menuName = "GameContent/Artifacts/Artifact Definition")]
 public class ArtifactDefinition : ScriptableObject
 {
     [Header("Artifact")]
@@ -54,7 +54,6 @@ public class ArtifactDefinition : ScriptableObject
     [SerializeField] private ArtifactTriggerType triggerType = ArtifactTriggerType.Manual;
     [SerializeField] private float triggerValue;
     [SerializeField] private int minDay;
-    [SerializeField] private string sourceIdFilter;
     [SerializeField] private bool canRepeat;
 
     [Header("Spawn")]
@@ -68,7 +67,6 @@ public class ArtifactDefinition : ScriptableObject
     public ArtifactTriggerType TriggerType => triggerType;
     public float TriggerValue => triggerValue;
     public int MinDay => minDay;
-    public string SourceIdFilter => sourceIdFilter;
     public bool CanRepeat => canRepeat;
     public ArtifactSpawnMode SpawnMode => spawnMode;
     public Vector3Int FixedCell => fixedCell;
@@ -94,15 +92,10 @@ public class ArtifactDefinition : ScriptableObject
             ArtifactTriggerType.TrainCountReached => context.TrainCount >= threshold,
             ArtifactTriggerType.TrainBroken => context.Train != null,
             ArtifactTriggerType.BalanceBelow => context.Balance <= triggerValue,
-            ArtifactTriggerType.EventResolved => MatchesSource(context.EventRuntime?.Definition?.EventId),
-            ArtifactTriggerType.QuestCompleted => MatchesSource(context.Quest?.questId),
+            ArtifactTriggerType.EventResolved => context.EventRuntime != null,
+            ArtifactTriggerType.QuestCompleted => context.Quest != null,
             _ => false
         };
-    }
-
-    private bool MatchesSource(string sourceId)
-    {
-        return string.IsNullOrWhiteSpace(sourceIdFilter) || sourceIdFilter == sourceId;
     }
 
     public static ArtifactDefinition CreateRuntime(
@@ -112,8 +105,7 @@ public class ArtifactDefinition : ScriptableObject
         ArtifactTriggerType artifactTriggerType,
         float artifactTriggerValue,
         ArtifactSpawnMode artifactSpawnMode,
-        bool repeat,
-        string sourceFilter = null)
+        bool repeat)
     {
         ArtifactDefinition definition = CreateInstance<ArtifactDefinition>();
         definition.artifactId = id;
@@ -123,9 +115,7 @@ public class ArtifactDefinition : ScriptableObject
         definition.triggerValue = artifactTriggerValue;
         definition.spawnMode = artifactSpawnMode;
         definition.canRepeat = repeat;
-        definition.sourceIdFilter = sourceFilter;
 
         return definition;
     }
 }
-
