@@ -3147,6 +3147,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 137364555}
     - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
+      propertyPath: stationName
+      value: "\u0422\u043A\u0430\u0446\u043A"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
       propertyPath: produceCircle
       value: 0
       objectReference: {fileID: 0}
@@ -26745,6 +26749,8 @@ MonoBehaviour:
   eventDefinitions:
   - {fileID: 11400000, guid: 45e6834aed1af42cea6daf4949d8701a, type: 2}
   - {fileID: 11400000, guid: 7bc1b81d74d0d4850abeb355fa78574a, type: 2}
+  - {fileID: 11400000, guid: 681e786a52ed64554907a3aa6d0c4de8, type: 2}
+  - {fileID: 11400000, guid: cbb3e7aa23b5f4251b274b04b5ad026d, type: 2}
   useBuiltInEventsWhenEmpty: 0
 --- !u!4 &1884588474
 Transform:
@@ -28724,6 +28730,10 @@ PrefabInstance:
       propertyPath: grid
       value: 
       objectReference: {fileID: 137364555}
+    - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
+      propertyPath: stationName
+      value: "\u0418\u0437\u0435\u0441\u043B\u0430\u0432\u043B\u044C"
+      objectReference: {fileID: 0}
     - target: {fileID: 8170524890530146598, guid: 3f1f953d43516764ca99c987a119703d, type: 3}
       propertyPath: consumeCircle
       value: 1
