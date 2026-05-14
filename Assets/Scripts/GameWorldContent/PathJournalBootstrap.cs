@@ -63,19 +63,22 @@ public static class PathJournalBootstrap
 
         Canvas canvas = journalRoot.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 7;
+        canvas.sortingOrder = -10;
 
         CanvasScaler scaler = journalRoot.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        Button toggleButton = CreateButton(journalRoot.transform, "PathJournalButton", "Журнал путейца", new Vector2(150f, 34f));
+        Button toggleButton = CreateButton(journalRoot.transform, "PathJournalButton", "", new Vector2(300f, 70f));
+        Image buttonImage = toggleButton.GetComponent<Image>();
+        buttonImage.sprite = LoadSpriteResource("Artifacts/free-icon-open-book-167755");
+        buttonImage.preserveAspect = true;
         RectTransform toggleRect = toggleButton.GetComponent<RectTransform>();
         toggleRect.anchorMin = new Vector2(1f, 1f);
         toggleRect.anchorMax = new Vector2(1f, 1f);
         toggleRect.pivot = new Vector2(1f, 1f);
-        toggleRect.anchoredPosition = new Vector2(-1750f, -450f);
+        toggleRect.anchoredPosition = new Vector2(-100f, -250f);
 
         notificationBadge = CreateNotificationBadge(toggleButton.transform);
         panelRoot = CreatePanel(journalRoot.transform);
@@ -477,6 +480,16 @@ public static class PathJournalBootstrap
         text.text = label;
 
         return buttonObject.GetComponent<Button>();
+    }
+
+    private static Sprite LoadSpriteResource(string path)
+    {
+        Sprite sprite = Resources.Load<Sprite>(path);
+        if (sprite != null)
+            return sprite;
+
+        Sprite[] sprites = Resources.LoadAll<Sprite>(path);
+        return sprites.Length > 0 ? sprites[0] : null;
     }
 
     private static GameObject CreateNotificationBadge(Transform parent)

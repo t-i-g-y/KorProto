@@ -1548,7 +1548,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 150966845}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5dd1498e514240e6ac43d25ed8235fc1, type: 3}
   m_Name: 
@@ -11069,7 +11069,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 802f55cd01f4e3d41a03420cc5645b8f, type: 2}
   railTile: {fileID: 11400000, guid: 4f674d84d2eb2fe4598ae776b968602e, type: 2}
   ghostTile: {fileID: 11400000, guid: a1259d29251b7e44e82f8f28ce0850bc, type: 2}
-  maxLineLength: 8
+  baseLineLength: 5
   confirmHolder: {fileID: 1509731743}
   confirmButton: {fileID: 407800267}
   cancelButton: {fileID: 1979655534}
@@ -11077,6 +11077,8 @@ MonoBehaviour:
   lengthPanel: {fileID: 619147769}
   lengthText: {fileID: 1305107634}
   lengthPanelOffset: {x: 0, y: 30, z: 0}
+  costPanel: {fileID: 0}
+  costText: {fileID: 0}
 --- !u!4 &1078854477
 Transform:
   m_ObjectHideFlags: 0
@@ -12379,6 +12381,7 @@ MonoBehaviour:
   listPanel: {fileID: 1354124804}
   listEntryPrefab: {fileID: 8660613560215885048, guid: cd87fe90bca255640a09f2a64b405137, type: 3}
   listContent: {fileID: 1038126096}
+  trainCardController: {fileID: 0}
 --- !u!4 &1180072988
 Transform:
   m_ObjectHideFlags: 0
@@ -19489,7 +19492,18 @@ MonoBehaviour:
   nodePrefab: {fileID: 2261078861946142116, guid: 7d5a2d5e8ffcfb9479fc12cf4580b4d9, type: 3}
   contentPadding: {x: 0, y: 0}
   connectionsRoot: {fileID: 1494795772}
+  mainConnectionRoot: {fileID: 0}
+  branchConnectionRoot: {fileID: 0}
   connectionPrefab: {fileID: 6910058867966002105, guid: 1482532b3962e034989021aa92c35df8, type: 3}
+  mainConnectionThickness: 8
+  branchConnectionThickness: 4
+  mainConnectionColor: {r: 0, g: 0, b: 0, a: 0}
+  branchConnectionColor: {r: 0, g: 0, b: 0, a: 0}
+  branchOffset: 0
+  tooltipRoot: {fileID: 0}
+  tooltipRect: {fileID: 0}
+  tooltipText: {fileID: 0}
+  tooltipOffset: {x: 24, y: -24}
 --- !u!114 &1808188343
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20939,6 +20953,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FinanceBalanceUI
   balanceText: {fileID: 559783291}
   dayBalanceText: {fileID: 1168863642}
+  warningRoot: {fileID: 0}
+  warningText: {fileID: 0}
 --- !u!1 &2024155599
 GameObject:
   m_ObjectHideFlags: 0
@@ -22101,6 +22117,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinanceManager
   economyConfig: {fileID: 11400000, guid: 71ec6fc8da2a105409607096a2c0626c, type: 2}
+  gameOverBalanceThreshold: -1000
+  maxDaysBelowThreshold: 5
+  gameOverPanel: {fileID: 0}
 --- !u!4 &2110463926
 Transform:
   m_ObjectHideFlags: 0
