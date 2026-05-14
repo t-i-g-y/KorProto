@@ -6,7 +6,7 @@ public class ResearchSystem : MonoBehaviour
 {
     public static ResearchSystem Instance { get; private set; }
     [SerializeField] private List<TechData> techDatabase = new();
-    private readonly Dictionary<TechID, Technology> technologies = new();
+    private Dictionary<TechID, Technology> technologies = new();
     private Technology currentResearch;
     public Technology CurrentResearch => currentResearch;
     public event Action OnResearchStateChanged;

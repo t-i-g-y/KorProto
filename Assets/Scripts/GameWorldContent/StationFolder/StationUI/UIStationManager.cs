@@ -191,13 +191,13 @@ public class UIStationManager : MonoBehaviour
 	private static string BuildStationDescription(Station station)
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.AppendLine(station.StationName);
+		builder.AppendLine(station.gameObject.name);
 		builder.Append("Население: ").AppendLine(station.Population.ToString());
 		builder.Append("Параметры: ");
 		AppendAttributes(builder, station.Attributes);
 		builder.AppendLine();
 		AppendResourceSection(builder, "Производит", station.ProducedResources, station.Supply);
-		AppendResourceSection(builder, "Требует", station.ConsumedResources, station.Demand);
+		AppendResourceSection(builder, "Потребляет", station.ConsumedResources, station.Demand);
 		return builder.ToString();
 	}
 
@@ -255,8 +255,9 @@ public class UIStationManager : MonoBehaviour
 
 			builder
 				.Append(TranslateResourceType(resourceType))
-				.Append(" x")
+				.Append(" - ")
 				.Append(resourceInfo.Amount)
+				.Append(" ед.")
 				.Append(" (доступно: ")
 				.Append(amount)
 				.Append(')');
@@ -278,6 +279,12 @@ public class UIStationManager : MonoBehaviour
 				{
 					case StationAttributeType.City:
 					case StationAttributeType.Village:
+					case StationAttributeType.FinancialCenter:
+					case StationAttributeType.TourismCenter:
+					case StationAttributeType.ScientificCenter:
+					case StationAttributeType.Institute:
+					case StationAttributeType.University:
+					case StationAttributeType.Hospital:
 						return cityBackgroundColor;
 					case StationAttributeType.Factory:
 					case StationAttributeType.FurnitureFactory:
@@ -289,6 +296,9 @@ public class UIStationManager : MonoBehaviour
 					case StationAttributeType.NonFerrousMetallurgy:
 					case StationAttributeType.CoalIndustry:
 					case StationAttributeType.OilIndustry:
+					case StationAttributeType.PowerPlant:
+					case StationAttributeType.ChemicalPlant:
+					case StationAttributeType.ElectronicsFactory:
 						return factoryBackgroundColor;
 					case StationAttributeType.Port:
 					case StationAttributeType.Seaport:
@@ -302,27 +312,13 @@ public class UIStationManager : MonoBehaviour
 		return defaultBackgroundColor;
 	}
 
-	private static string TranslateResourceType(ResourceType resourceType)
-	{
-		return resourceType switch
-		{
-			ResourceType.Coal => "Уголь",
-			ResourceType.Iron => "Железо",
-			ResourceType.Milk => "Молоко",
-			ResourceType.Water => "Вода",
-			ResourceType.Millet => "Просо",
-			ResourceType.Plastic => "Пластик",
-			_ => NicifyName(resourceType.ToString())
-		};
-	}
-
 	private static string TranslateAttributeType(StationAttributeType attributeType)
 	{
 		return attributeType switch
 		{
 			StationAttributeType.City => "Город",
 			StationAttributeType.Village => "Деревня",
-			StationAttributeType.Factory => "Фабрика",
+			StationAttributeType.Factory => "Завод",
 			StationAttributeType.Port => "Порт",
 			StationAttributeType.LogisticsCenter => "Логистический центр",
 			StationAttributeType.FinancialCenter => "Финансовый центр",
@@ -334,15 +330,60 @@ public class UIStationManager : MonoBehaviour
 			StationAttributeType.MechanicalEngineering => "Машиностроение",
 			StationAttributeType.Shipbuilding => "Судостроение",
 			StationAttributeType.WheatField => "Пшеничное поле",
-			StationAttributeType.CattleFarm => "Животноводческая ферма",
-			StationAttributeType.RiverFishing => "Речная рыбалка",
-			StationAttributeType.SeaFishing => "Морская рыбалка",
-			StationAttributeType.ForestBelt => "Лесополоса",
+			StationAttributeType.CattleFarm => "Ферма",
+			StationAttributeType.RiverFishing => "Речное рыболовство",
+			StationAttributeType.SeaFishing => "Морское рыболовство",
+			StationAttributeType.ForestBelt => "Лесной пояс",
 			StationAttributeType.IronOreIndustry => "Железорудная промышленность",
 			StationAttributeType.NonFerrousMetallurgy => "Цветная металлургия",
 			StationAttributeType.CoalIndustry => "Угольная промышленность",
 			StationAttributeType.OilIndustry => "Нефтяная промышленность",
+			StationAttributeType.ScientificCenter => "Научный центр",
+			StationAttributeType.Institute => "Институт",
+			StationAttributeType.University => "Университет",
+			StationAttributeType.Hospital => "Больница",
+			StationAttributeType.PowerPlant => "Электростанция",
+			StationAttributeType.ChemicalPlant => "Химический завод",
+			StationAttributeType.ElectronicsFactory => "Фабрика электроники",
 			_ => NicifyName(attributeType.ToString())
+		};
+	}
+
+	private static string TranslateResourceType(ResourceType resourceType)
+	{
+		return resourceType switch
+		{
+			ResourceType.Coal => "Уголь",
+			ResourceType.Iron => "Железо",
+			ResourceType.Milk => "Молоко",
+			ResourceType.Water => "Вода",
+			ResourceType.Millet => "Зерно",
+			ResourceType.Plastic => "Пластик",
+			ResourceType.Food => "Еда",
+			ResourceType.Fish => "Рыба",
+			ResourceType.IronOre => "Железная руда",
+			ResourceType.Metal => "Металл",
+			ResourceType.Oil => "Нефть",
+			ResourceType.Fuel => "Топливо",
+			ResourceType.Wood => "Древесина",
+			ResourceType.Electricity => "Электричество",
+			ResourceType.Tools => "Инструменты",
+			ResourceType.Equipment => "Оборудование",
+			ResourceType.Goods => "Товары",
+			ResourceType.Money => "Деньги",
+			ResourceType.Workforce => "Рабочая сила",
+			ResourceType.Specialists => "Специалисты",
+			ResourceType.ResearchData => "Научные данные",
+			ResourceType.Technology => "Технологии",
+			ResourceType.Medicine => "Лекарства",
+			ResourceType.Fertilizer => "Удобрения",
+			ResourceType.Fabric => "Ткани",
+			ResourceType.Cotton => "Хлопок",
+			ResourceType.Culture => "Культура",
+			ResourceType.Investments => "Инвестиции",
+			ResourceType.LogisticsService => "Логистические услуги",
+			ResourceType.ImportedGoods => "Импортные товары",
+			_ => NicifyName(resourceType.ToString())
 		};
 	}
 

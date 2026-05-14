@@ -7,12 +7,6 @@ public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
 
-    /*
-    ** timeMultiplier - модификатор скорости течение времени игровых процессов
-    ** 0 = пауза
-    ** 1 = базовая скорость
-    ** 2 = ускоренная 2х скорость
-    */
     [SerializeField] private TMP_Text dayHourText;
     [SerializeField] private float timeMultiplier = 1f;
     private float previousTimeMultiplier = 1f;

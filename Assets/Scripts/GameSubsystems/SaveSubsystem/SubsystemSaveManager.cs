@@ -71,17 +71,20 @@ public class SubsystemSaveManager : MonoBehaviour
         if (data.timeData != null)
             TimeManager.Instance.LoadFromSaveData(data.timeData);
 
-        if (data.financeData != null)
-            FinanceSystem.Instance.LoadFromSaveData(data.financeData);
-
         if (data.trainData != null)
             TrainManager.Instance.LoadFromSaveData(data.trainData);
+        
+        if (data.financeData != null)
+            FinanceSystem.Instance.LoadFromSaveData(data.financeData);
 
         if (data.economyData != null)
             EconomyManager.Instance.LoadFromSaveData(data.economyData);
 
         if (data.researchData != null)
             ResearchSystem.Instance.LoadFromSaveData(data.researchData);
+        
+        if (RailEconomySystem.Instance != null)
+            RailEconomySystem.Instance.ClearIncomeTokens();
 
         Debug.Log("game loaded " + path);
     }
