@@ -91,22 +91,40 @@ public class TrainCardUI : MonoBehaviour
 
     private string GetResourceText(ResourceType resource)
     {
-        switch(resource)
-        {
-            case ResourceType.Coal:
-                return "Уголь";
-            case ResourceType.Iron:
-                return "Жлз.";
-            case ResourceType.Milk:
-                return "Продукты";
-            case ResourceType.Water:
-                return "Вода";
-            case ResourceType.Millet:
-                return "Пшен.";
-            default:
-                return resource.ToString();
-
-        }
+        return resource switch
+		{
+			ResourceType.Coal => "Уголь",
+			ResourceType.Iron => "Жлз.",
+			ResourceType.Milk => "Млк.",
+			ResourceType.Water => "Вода",
+			ResourceType.Millet => "Зерно",
+			ResourceType.Plastic => "Пласт.",
+			ResourceType.Food => "Еда",
+			ResourceType.Fish => "Рыба",
+			ResourceType.IronOre => "Ж.руда",
+			ResourceType.Metal => "Мтл.",
+			ResourceType.Oil => "Нефть",
+			ResourceType.Fuel => "Топл.",
+			ResourceType.Wood => "Древ.",
+			ResourceType.Electricity => "Электр.",
+			ResourceType.Tools => "Инстр.",
+			ResourceType.Equipment => "Обрд.",
+			ResourceType.Goods => "Тов.",
+			ResourceType.Money => "Деньги",
+			ResourceType.Workforce => "Раб. с.",
+			ResourceType.Specialists => "Спец.",
+			ResourceType.ResearchData => "Науч.",
+			ResourceType.Technology => "Техн.",
+			ResourceType.Medicine => "Лек.",
+			ResourceType.Fertilizer => "Удобр.",
+			ResourceType.Fabric => "Ткани",
+			ResourceType.Cotton => "Хлоп.",
+			ResourceType.Culture => "Культ.",
+			ResourceType.Investments => "Инвест.",
+			ResourceType.LogisticsService => "Лог. усл.",
+			ResourceType.ImportedGoods => "Импорт.",
+			_ => resource.ToString()
+		};
             
     }
 

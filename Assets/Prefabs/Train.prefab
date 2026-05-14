@@ -310,7 +310,6 @@ MonoBehaviour:
   wagonViewPrefab: {fileID: 5702792900398289949, guid: 892873a4111ae8f40a08a57ecce3875e, type: 3}
   attachedWagonViews: []
   breakChancePerSecond: 0.002
-  repairCost: 10
   config: {fileID: 11400000, guid: cf71a7f4ffad4d348aef33fe6b1b0e95, type: 2}
   onlyLoadRequested: 0
 --- !u!114 &1911917591371393508
@@ -490,12 +489,35 @@ MonoBehaviour:
   - {fileID: 240689404812303889}
   resourceSprites:
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
-  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
-  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
   - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
   - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
   - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 9522dc12ea43c20429ad03ad70364458, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 08c24f5b93000a143844d367c913bf51, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
+  - {fileID: 21300000, guid: 0b2552cb205bb9340a65aa2d2f4a93c3, type: 3}
 --- !u!1 &8252636555856329808
 GameObject:
   m_ObjectHideFlags: 0
