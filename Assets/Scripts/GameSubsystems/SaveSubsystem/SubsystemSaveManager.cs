@@ -130,7 +130,6 @@ public class SubsystemSaveManager : MonoBehaviour
             Directory.CreateDirectory(folderPath);
         
         List<SaveSlotInfo> result = new();
-
         foreach (string file in Directory.GetFiles(folderPath, "*.json"))
         {
             result.Add(new SaveSlotInfo

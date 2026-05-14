@@ -72,7 +72,13 @@ public class TimeManager : MonoBehaviour
         RefreshUI();
     }
 
-    public void Pause() => timeMultiplier = 0f;
+    public void Pause()
+    {
+        if (timeMultiplier > 0f)
+            previousTimeMultiplier = timeMultiplier;
+
+        timeMultiplier = 0f;
+    }
     public void Unpause() => timeMultiplier = previousTimeMultiplier > 0f ? previousTimeMultiplier : 1f;
     public void SetSpeed(float speed)
     {
@@ -175,4 +181,3 @@ public class TimeManager : MonoBehaviour
 
     #endregion
 }
-
