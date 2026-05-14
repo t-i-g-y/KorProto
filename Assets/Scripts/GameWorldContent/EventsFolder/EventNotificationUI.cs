@@ -234,10 +234,18 @@ public class EventNotificationUI : MonoBehaviour
             return;
         }
 
-        string effects = option.BuildEffectSummary();
-        consequenceText.text = string.IsNullOrWhiteSpace(effects)
-            ? option.Description
-            : $"{option.Title}: {effects}";
+        consequenceText.text = BuildConsequenceText(option);
+    }
+
+    private static string BuildConsequenceText(GameEventOption option)
+    {
+        string title = string.IsNullOrWhiteSpace(option.Title) ? "Последствие" : option.Title;
+        string description = option.Description;
+
+        if (string.IsNullOrWhiteSpace(description))
+            return title;
+
+        return $"{title}: {description}";
     }
 
     private void Hide()

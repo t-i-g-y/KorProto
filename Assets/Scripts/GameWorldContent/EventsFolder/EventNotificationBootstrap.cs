@@ -71,14 +71,14 @@ public static class EventNotificationBootstrap
         titleRect.offsetMax = new Vector2(-32f, -24f);
 
         RectTransform descriptionRect = description.GetComponent<RectTransform>();
-        descriptionRect.anchorMin = new Vector2(0f, 0.58f);
+        descriptionRect.anchorMin = new Vector2(0f, 0.6f);
         descriptionRect.anchorMax = new Vector2(1f, 1f);
         descriptionRect.offsetMin = new Vector2(36f, 8f);
         descriptionRect.offsetMax = new Vector2(-36f, -96f);
 
         RectTransform consequenceRect = consequence.GetComponent<RectTransform>();
         consequenceRect.anchorMin = new Vector2(0f, 0.42f);
-        consequenceRect.anchorMax = new Vector2(1f, 0.58f);
+        consequenceRect.anchorMax = new Vector2(1f, 0.6f);
         consequenceRect.offsetMin = new Vector2(36f, 8f);
         consequenceRect.offsetMax = new Vector2(-36f, -8f);
 
@@ -125,7 +125,7 @@ public static class EventNotificationBootstrap
         rect.anchorMin = new Vector2(0.5f, 0.5f);
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = new Vector2(820f, 560f);
+        rect.sizeDelta = new Vector2(760f, 500f);
         rect.anchoredPosition = Vector2.zero;
 
         Image image = panel.GetComponent<Image>();
