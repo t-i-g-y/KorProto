@@ -17576,7 +17576,7 @@ MonoBehaviour:
   cameraLimitMin: {x: 0, y: 0}
   cameraLimitMax: {x: 10, y: 10}
   CameraKeyboardMovement: 1
-  CameraDragPan: 1
+  CameraDragPan: 0
   dragPanSpeed: 1
   invertDrag: 0
 --- !u!114 &1257168349
@@ -26744,7 +26744,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EventManager
   eventDefinitions:
   - {fileID: 11400000, guid: 45e6834aed1af42cea6daf4949d8701a, type: 2}
-  useBuiltInEventsWhenEmpty: 1
+  - {fileID: 11400000, guid: 7bc1b81d74d0d4850abeb355fa78574a, type: 2}
+  useBuiltInEventsWhenEmpty: 0
 --- !u!4 &1884588474
 Transform:
   m_ObjectHideFlags: 0

@@ -191,7 +191,7 @@ public class UIStationManager : MonoBehaviour
 	private static string BuildStationDescription(Station station)
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.AppendLine(station.gameObject.name);
+		builder.AppendLine(station.StationName);
 		builder.Append("Население: ").AppendLine(station.Population.ToString());
 		builder.Append("Параметры: ");
 		AppendAttributes(builder, station.Attributes);

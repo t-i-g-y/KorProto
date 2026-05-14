@@ -181,6 +181,7 @@ public class GameEventEffect
     [SerializeField] private float floatAmount;
     [SerializeField] private int intAmount;
     [SerializeField] private ResourceType resourceType;
+    [SerializeField] private string stationName;
 
     public GameEventEffect()
     {
@@ -213,25 +214,25 @@ public class GameEventEffect
                 ResearchIncomeSystem.Instance?.AddGlobalResearchPerHour(Mathf.Max(0, intAmount));
                 break;
             case GameEventEffectType.RemoveTrain:
-                TryRemoveRandomTrain();
+                TryRemoveTrain(context);
                 break;
             case GameEventEffectType.RemovePath:
-                TryRemoveContextRailLine(context);
+                TryRemoveRailLine(context);
                 break;
             case GameEventEffectType.ChangeTrainSpeed:
-                ChangeAllTrainSpeed(floatAmount);
+                ChangeTrainSpeed(context);
                 break;
             case GameEventEffectType.AddStationProducedResource:
-                TryChangeRandomStationResource(false);
+                TryChangeStationResource(context, false);
                 break;
             case GameEventEffectType.AddStationRequiredResource:
-                TryChangeRandomStationResource(true);
+                TryChangeStationResource(context, true);
                 break;
             case GameEventEffectType.AddStationPopulation:
-                TryChangeRandomStationPopulation(Mathf.Abs(intAmount));
+                TryChangeStationPopulation(context, Mathf.Abs(intAmount));
                 break;
             case GameEventEffectType.SubtractStationPopulation:
-                TryChangeRandomStationPopulation(-Mathf.Abs(intAmount));
+                TryChangeStationPopulation(context, -Mathf.Abs(intAmount));
                 break;
         }
     }
@@ -254,51 +255,41 @@ public class GameEventEffect
         };
     }
 
-    private static void TryRemoveRandomTrain()
+    private static void TryRemoveTrain(EventWorldContext context)
     {
-        if (TrainManager.Instance == null || TrainManager.Instance.Trains.Count == 0)
-            return;
-
-        int index = UnityEngine.Random.Range(0, TrainManager.Instance.Trains.Count);
-        TrainManager.Instance.RemoveTrain(TrainManager.Instance.Trains[index]);
+        EventManager.Instance?.RemoveLastCreatedTrain();
     }
 
-    private static void TryRemoveContextRailLine(EventWorldContext context)
+    private static void TryRemoveRailLine(EventWorldContext context)
     {
-        if (context == null || context.RailLine == null || RailManager.Instance == null)
-            return;
-
-        RailManager.Instance.RemoveLine(context.RailLine);
+        EventManager.Instance?.RemoveLastCreatedRailLine();
     }
 
-    private static void ChangeAllTrainSpeed(float multiplier)
+    private void ChangeTrainSpeed(EventWorldContext context)
     {
-        if (TrainManager.Instance == null || multiplier <= 0f)
+        float multiplier = floatAmount;
+        if (multiplier <= 0f)
             return;
 
-        foreach (Train train in TrainManager.Instance.Trains)
-        {
-            if (train != null)
-                train.ChangeSpeed(multiplier);
-        }
+        EventManager.Instance?.ApplyTrainSpeedEventMultiplier(multiplier);
     }
 
-    private void TryChangeRandomStationResource(bool demand)
+    private void TryChangeStationResource(EventWorldContext context, bool required)
     {
-        Station station = FindRandomStation();
+        Station station = FindStationByName(stationName, context);
         if (station == null)
             return;
 
         int amount = Mathf.Max(0, intAmount);
-        if (demand)
-            station.AddDemand(resourceType, amount);
+        if (required)
+            station.AddConsumedResource(resourceType, amount);
         else
-            station.AddSupply(resourceType, amount);
+            station.AddProducedResource(resourceType, amount);
     }
 
-    private void TryChangeRandomStationPopulation(int amount)
+    private void TryChangeStationPopulation(EventWorldContext context, int amount)
     {
-        Station station = FindRandomStation();
+        Station station = FindStationByName(stationName, context);
         if (station == null || amount == 0)
             return;
 
@@ -308,13 +299,26 @@ public class GameEventEffect
             station.DecreasePopulation(-amount);
     }
 
-    private static Station FindRandomStation()
+    private static Station FindStationByName(string name, EventWorldContext context)
     {
         Station[] stations = UnityEngine.Object.FindObjectsByType<Station>(FindObjectsSortMode.None);
         if (stations == null || stations.Length == 0)
             return null;
 
-        return stations[UnityEngine.Random.Range(0, stations.Length)];
+        string targetName = !string.IsNullOrWhiteSpace(name) ? name : context?.StationName;
+        if (string.IsNullOrWhiteSpace(targetName))
+            return null;
+
+        foreach (Station station in stations)
+        {
+            if (station == null)
+                continue;
+
+            if (string.Equals(station.StationName.Trim(), targetName.Trim(), StringComparison.OrdinalIgnoreCase))
+                return station;
+        }
+
+        return null;
     }
 }
 

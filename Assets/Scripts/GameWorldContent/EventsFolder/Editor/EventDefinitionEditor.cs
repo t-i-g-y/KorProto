@@ -178,6 +178,7 @@ public class GameEventEffectDrawer : PropertyDrawer
         SerializedProperty floatAmount = property.FindPropertyRelative("floatAmount");
         SerializedProperty intAmount = property.FindPropertyRelative("intAmount");
         SerializedProperty resourceType = property.FindPropertyRelative("resourceType");
+        SerializedProperty stationName = property.FindPropertyRelative("stationName");
 
         Rect row = new(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
         EditorGUI.PropertyField(row, effectType, new GUIContent("Последствие"));
@@ -195,16 +196,20 @@ public class GameEventEffectDrawer : PropertyDrawer
                 EditorGUI.PropertyField(row, intAmount, new GUIContent("Количество очков"));
                 break;
             case GameEventEffectType.ChangeTrainSpeed:
-                EditorGUI.PropertyField(row, floatAmount, new GUIContent("Скорость"));
+                EditorGUI.PropertyField(row, floatAmount, new GUIContent("Множитель скорости"));
                 break;
             case GameEventEffectType.AddStationProducedResource:
             case GameEventEffectType.AddStationRequiredResource:
+                EditorGUI.PropertyField(row, stationName, new GUIContent("Станция"));
+                row.y += EditorGUIUtility.singleLineHeight + VerticalGap;
                 EditorGUI.PropertyField(row, resourceType, new GUIContent("Ресурс"));
                 row.y += EditorGUIUtility.singleLineHeight + VerticalGap;
                 EditorGUI.PropertyField(row, intAmount, new GUIContent("Количество"));
                 break;
             case GameEventEffectType.AddStationPopulation:
             case GameEventEffectType.SubtractStationPopulation:
+                EditorGUI.PropertyField(row, stationName, new GUIContent("Станция"));
+                row.y += EditorGUIUtility.singleLineHeight + VerticalGap;
                 EditorGUI.PropertyField(row, intAmount, new GUIContent("Количество"));
                 break;
         }
@@ -219,14 +224,14 @@ public class GameEventEffectDrawer : PropertyDrawer
 
         int lineCount = type switch
         {
-            GameEventEffectType.AddStationProducedResource => 3,
-            GameEventEffectType.AddStationRequiredResource => 3,
+            GameEventEffectType.AddStationProducedResource => 4,
+            GameEventEffectType.AddStationRequiredResource => 4,
             GameEventEffectType.AddBalance => 2,
             GameEventEffectType.SubtractBalance => 2,
             GameEventEffectType.AddResearchPoints => 2,
             GameEventEffectType.ChangeTrainSpeed => 2,
-            GameEventEffectType.AddStationPopulation => 2,
-            GameEventEffectType.SubtractStationPopulation => 2,
+            GameEventEffectType.AddStationPopulation => 3,
+            GameEventEffectType.SubtractStationPopulation => 3,
             _ => 1
         };
 

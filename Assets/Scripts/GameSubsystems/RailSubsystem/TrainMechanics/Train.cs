@@ -191,6 +191,9 @@ public class Train : MonoBehaviour
         Vector3 popupBasePosition = transform.position + incomePopupOffset;
         int popupStackIndex = 0;
 
+        if (!justCreated)
+            EventManager.Instance?.NotifyTrainArrivedAtStation(station, 1);
+
         if (!justCreated && assignedLine != null && RailEconomySystem.Instance != null)
         {
             float earnedIncome = RailEconomySystem.Instance.ApplyLineIncome(assignedLine);
@@ -217,6 +220,7 @@ public class Train : MonoBehaviour
                 RefreshCargoVisuals();
 
                 IncomePopupSpawner.Instance?.QueueCargoSale(transform, popupBasePosition, sale.Resource, sale.Value,popupStackIndex);
+                EventManager.Instance?.NotifyTrainDeliveredCargo(sale.Resource, 1, station);
 
                 popupStackIndex++;
                 yield return WaitForGameSeconds(config.TimePerUnloadSec * ResearchModifierSystem.Instance.CargoUnloadSpeedResearchMultiplier);

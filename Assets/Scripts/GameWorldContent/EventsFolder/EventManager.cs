@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,6 +21,10 @@ public class EventManager : MonoBehaviour
     private int elapsedHoursSinceStart;
     private int removedRailLineCount;
     private int destroyedTrainCount;
+    private float trainSpeedEventMultiplier = 1f;
+    private RailLine lastCreatedRailLine;
+    private Train lastCreatedTrain;
+    private RailLine railLinePendingRemoval;
     private GameEventRuntime pendingEvent;
     private float timeMultiplierBeforePendingEvent = 1f;
     private bool shouldResumeTimeAfterPendingEvent;
@@ -209,6 +214,67 @@ public class EventManager : MonoBehaviour
         EvaluateTrigger(GameEventTriggerType.TechnologyUnlocked, context);
     }
 
+    public void ApplyTrainSpeedEventMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f)
+            return;
+
+        trainSpeedEventMultiplier *= multiplier;
+
+        if (TrainManager.Instance == null)
+            return;
+
+        foreach (Train train in TrainManager.Instance.Trains)
+        {
+            if (train != null)
+                train.ChangeSpeed(multiplier);
+        }
+    }
+
+    public void RemoveLastCreatedTrain()
+    {
+        if (TrainManager.Instance == null || TrainManager.Instance.Trains.Count == 0)
+            return;
+
+        Train train = lastCreatedTrain;
+        if (train == null || !TrainManager.Instance.Trains.Contains(train))
+            train = TrainManager.Instance.Trains[^1];
+
+        TrainManager.Instance.RemoveTrain(train);
+    }
+
+    public void RemoveLastCreatedRailLine()
+    {
+        if (RailManager.Instance == null || RailManager.Instance.Lines.Count == 0)
+            return;
+
+        RailLine line = lastCreatedRailLine;
+        if (line == null || !RailManager.Instance.Lines.Contains(line))
+            line = RailManager.Instance.Lines[^1];
+
+        QueueRailLineRemoval(line);
+    }
+
+    private void QueueRailLineRemoval(RailLine line)
+    {
+        if (line == null)
+            return;
+
+        railLinePendingRemoval = line;
+        StartCoroutine(RemoveRailLineAtEndOfFrame());
+    }
+
+    private IEnumerator RemoveRailLineAtEndOfFrame()
+    {
+        yield return null;
+
+        RailLine line = railLinePendingRemoval;
+        railLinePendingRemoval = null;
+
+        if (line != null && RailManager.Instance != null && RailManager.Instance.Lines.Contains(line))
+            RailManager.Instance.RemoveLine(line);
+    }
+
     public bool ResolvePendingChoice(int optionIndex)
     {
         if (pendingEvent == null || !pendingEvent.IsAwaitingChoice)
@@ -246,6 +312,7 @@ public class EventManager : MonoBehaviour
     {
         EventManagerSaveData data = new();
         data.history.AddRange(history);
+        data.trainSpeedEventMultiplier = trainSpeedEventMultiplier;
 
         foreach (string eventId in firedNonRepeatableEvents)
             data.firedEventIds.Add(eventId);
@@ -262,6 +329,7 @@ public class EventManager : MonoBehaviour
         firedNonRepeatableEvents.Clear();
         lastTriggerDayByEventId.Clear();
         pendingEvent = null;
+        trainSpeedEventMultiplier = 1f;
         shouldResumeTimeAfterPendingEvent = false;
         isEventNotificationOpen = false;
 
@@ -272,6 +340,7 @@ public class EventManager : MonoBehaviour
         }
 
         history.AddRange(data.history);
+        trainSpeedEventMultiplier = data.trainSpeedEventMultiplier > 0f ? data.trainSpeedEventMultiplier : 1f;
         TrimHistory();
 
         foreach (string eventId in data.firedEventIds)
@@ -439,6 +508,8 @@ public class EventManager : MonoBehaviour
 
     private void HandleLineCreated(RailLine line)
     {
+        lastCreatedRailLine = line;
+
         EventWorldContext context = BuildContext(GameEventTriggerType.PathBuilt);
         context.RailLine = line;
         FillRailEndpointStationNames(context, line);
@@ -470,6 +541,11 @@ public class EventManager : MonoBehaviour
 
     private void HandleTrainCreated(Train train, RailLine line)
     {
+        lastCreatedTrain = train;
+
+        if (train != null && !Mathf.Approximately(trainSpeedEventMultiplier, 1f))
+            train.ChangeSpeed(trainSpeedEventMultiplier);
+
         EventWorldContext context = BuildContext(GameEventTriggerType.TrainCount);
         context.Train = train;
         context.RailLine = line;
