@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class FinanceSystem : MonoBehaviour
 {
@@ -6,11 +7,19 @@ public class FinanceSystem : MonoBehaviour
     private float lastBalanceChange;
     private float dayBalance;
     private int currentDay;
+    private int daysBelowGameOverThreshold;
+    private bool gameOverTriggered;
 
     [SerializeField] private EconomyConfig economyConfig;
+    [SerializeField] private float gameOverBalanceThreshold = -1000f;
+    [SerializeField] private int maxDaysBelowThreshold = 5;
+    [SerializeField] private GameObject gameOverPanel;
 
     public float Balance => balance;
     public float LastBalanceChange => lastBalanceChange;
+    public int DaysLeftBeforeGameOver => Mathf.Max(0, maxDaysBelowThreshold - daysBelowGameOverThreshold);
+    public bool IsInGameOverWarning => balance <= gameOverBalanceThreshold && !gameOverTriggered;
+    public event Action<int> OnGameOverWarningChanged;
 
     public float DayBalance
     {
@@ -38,10 +47,55 @@ public class FinanceSystem : MonoBehaviour
             Destroy(gameObject);
         }
 
+        Initialize();
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+    }
+
+    private void Initialize()
+    {
         currentDay = 0;
         balance = 100f;
         lastBalanceChange = 0f;
         dayBalance = 0f;
+    }
+
+    private void ShowGameOver()
+    {
+        MenuPauseState.SetPaused(true);
+
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.Pause();
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(true);
+    }
+
+    private void UpdateGameOverState()
+    {
+        if (gameOverTriggered)
+            return;
+
+        if (balance <= gameOverBalanceThreshold)
+            daysBelowGameOverThreshold++;
+        else
+            daysBelowGameOverThreshold = 0;
+
+        OnGameOverWarningChanged?.Invoke(DaysLeftBeforeGameOver);
+
+        if (daysBelowGameOverThreshold >= maxDaysBelowThreshold)
+        {
+            gameOverTriggered = true;
+            ShowGameOver();
+        }
+    }
+
+    public void ApplyFinanceSystemTick()
+    {
+        currentDay++;
+        dayBalance = 0;
+        UpdateGameOverState();
     }
 
     public void AdjustBalance(float amount)
@@ -52,6 +106,12 @@ public class FinanceSystem : MonoBehaviour
 
         Debug.Log($"Balance: {balance}");
         Debug.Log($"Current balance of the day: {dayBalance}");
+
+        if (balance > gameOverBalanceThreshold && daysBelowGameOverThreshold > 0)
+        {
+            daysBelowGameOverThreshold = 0;
+            OnGameOverWarningChanged?.Invoke(DaysLeftBeforeGameOver);
+        }
     }
 
     public void PayConstruction(float amount)
@@ -100,7 +160,9 @@ public class FinanceSystem : MonoBehaviour
             balance = balance,
             lastBalanceChange = lastBalanceChange,
             dayBalance = dayBalance,
-            currentDay = currentDay
+            currentDay = currentDay,
+            daysBelowGameOverThreshold = daysBelowGameOverThreshold,
+            gameOverTriggered = gameOverTriggered
         };
     }
 
@@ -113,6 +175,8 @@ public class FinanceSystem : MonoBehaviour
         lastBalanceChange = data.lastBalanceChange;
         dayBalance = data.dayBalance;
         currentDay = data.currentDay;
+        daysBelowGameOverThreshold = data.daysBelowGameOverThreshold;
+        gameOverTriggered = data.gameOverTriggered;
     }
     #endregion
 }

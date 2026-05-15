@@ -6,8 +6,7 @@ public class ResearchSystem : MonoBehaviour
 {
     public static ResearchSystem Instance { get; private set; }
     [SerializeField] private List<TechData> techDatabase = new();
-    private readonly Dictionary<TechID, Technology> technologies = new();
-    [SerializeField] private RailBuilderController railBuilder;
+    private Dictionary<TechID, Technology> technologies = new();
     private Technology currentResearch;
     public Technology CurrentResearch => currentResearch;
     public event Action OnResearchStateChanged;
@@ -24,6 +23,7 @@ public class ResearchSystem : MonoBehaviour
         }
 
         Instance = this;
+        DontDestroyOnLoad(gameObject);
         BuildRuntimeTechnologies();
     }
 
@@ -63,30 +63,30 @@ public class ResearchSystem : MonoBehaviour
         return tech != null && tech.IsUnlocked;
     }
 
-public bool CanResearch(TechID id)
-{
-    Technology tech = GetTechnology(id);
-
-    if (tech == null)
+    public bool CanResearch(TechID id)
     {
-        Debug.Log($"CanResearch fail: {id} tech missing");
-        return false;
-    }
+        Technology tech = GetTechnology(id);
 
-    if (tech.IsUnlocked)
-        return false;
-
-    foreach (TechID prereqId in tech.Data.prerequisites)
-    {
-        if (!IsUnlocked(prereqId))
+        if (tech == null)
         {
-            Debug.Log($"{id} blocked by prereq {prereqId}");
+            Debug.Log($"CanResearch fail: {id} tech missing");
             return false;
         }
-    }
 
-    return true;
-}
+        if (tech.IsUnlocked)
+            return false;
+
+        foreach (TechID prereqId in tech.Data.prerequisites)
+        {
+            if (!IsUnlocked(prereqId))
+            {
+                Debug.Log($"{id} blocked by prereq {prereqId}");
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public bool StartResearch(TechID id)
     {
@@ -154,12 +154,12 @@ public bool CanResearch(TechID id)
         OnResearchStateChanged?.Invoke();
     }
 
-    private void ApplyUnlockEffect(TechID id)
+    private void ApplyUnlockEffect(TechID ID)
     {
         if (ResearchModifierSystem.Instance == null)
             return;
 
-        ResearchModifierSystem.Instance.ApplyTechnology(id);
+        ResearchModifierSystem.Instance.ApplyTechnology(ID);
     }
 
     private void ReapplyUnlockedEffects()
@@ -182,6 +182,8 @@ public bool CanResearch(TechID id)
 
         if (currentResearch != null && currentResearch.Data != null)
             data.currentResearchID = (int)currentResearch.Data.ID;
+        else
+            data.currentResearchID = -1;
 
         foreach (var technology in technologies)
         {
@@ -221,10 +223,17 @@ public bool CanResearch(TechID id)
             tech.LoadFromSaveData(savedTech.progress, savedTech.isUnlocked, savedTech.isResearching);
         }
 
-        if (data.currentResearchID.HasValue)
+        if (data.currentResearchID != -1)
         {
-            TechID currentID = (TechID)data.currentResearchID.Value;
-            currentResearch = GetTechnology(currentID);
+            TechID currentID = (TechID)data.currentResearchID;
+            Technology loadedCurrentResearch = GetTechnology(currentID);
+
+            if (loadedCurrentResearch != null && !loadedCurrentResearch.IsUnlocked)
+            {
+                currentResearch = loadedCurrentResearch;
+                currentResearch.StartResearch();
+                OnResearchStarted?.Invoke(currentResearch);
+            }
         }
 
         ReapplyUnlockedEffects();

@@ -64,6 +64,12 @@ public class RailManager : MonoBehaviour
         UpdateIslandCollapseTimers();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public RailLine CreateLine(List<Vector3Int> cells)
     {
         var line = new RailLine(nextID++, cells);
@@ -92,7 +98,9 @@ public class RailManager : MonoBehaviour
             LineDeselected?.Invoke(line);
         }
 
-        TrainManager.Instance.RemoveTrain(line.AssignedTrain);
+        for (int i = line.AssignedTrains.Count - 1; i >= 0; i--)
+            TrainManager.Instance.RemoveTrain(line.AssignedTrains[i]);
+            
         if (!Lines.Remove(line))
             Lines.RemoveAll(l => l.ID == line.ID);
 
@@ -156,6 +164,22 @@ public class RailManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    public List<RailLine> GetLinesAtCell(Vector3Int cell)
+    {
+        List<RailLine> result = new();
+
+        foreach (var line in Lines)
+        {
+            if (line == null)
+                continue;
+
+            if (line.Cells.Contains(cell))
+                result.Add(line);
+        }
+
+        return result;
     }
 
     public void PrintLines()
@@ -252,9 +276,7 @@ public class RailManager : MonoBehaviour
                 if (visited.Contains(edge.To))
                     continue;
 
-                Train train = edge.Line.AssignedTrain;
-
-                float speed = train == null ? 0f : edge.Line.AssignedTrain.Speed;
+                float speed = edge.Line.GetRoutingSpeed();
                 
                 float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
 
@@ -285,7 +307,111 @@ public class RailManager : MonoBehaviour
 
         return false;
     }
+    
+    public bool TryGetShortestPathFull(Vector3Int from, Vector3Int to, out List<Vector3Int> nodes, out List<RailLine> lines, out float totalCost)
+    {
+        nodes = new List<Vector3Int>();
+        lines = new List<RailLine>();
+        totalCost = 0;
 
+        if (from == to)
+            return false;
+
+        if (!TryGetIslandForNode(from, out NetworkIsland islandFrom))
+            return false;
+
+        if (!TryGetIslandForNode(to, out NetworkIsland islandTo))
+            return false;
+
+        if (islandFrom.ID != islandTo.ID)
+            return false;
+
+        if (!IsIslandActive(islandFrom))
+            return false;
+
+        if (!islandFrom.Adjacency.ContainsKey(from) || !islandFrom.Nodes.Contains(to))
+            return false;
+
+        Dictionary<Vector3Int, float> dist = new();
+        Dictionary<Vector3Int, Vector3Int> prevNode = new();
+        Dictionary<Vector3Int, RailLine> prevLine = new();
+        HashSet<Vector3Int> visited = new();
+
+        List<(Vector3Int node, float cost)> queue = new()
+        {
+            (from, 0f)
+        };
+        dist[from] = 0f;
+        while (queue.Count > 0)
+        {
+            queue.Sort((a, b) => a.cost.CompareTo(b.cost));
+
+            var current = queue[0];
+            queue.RemoveAt(0);
+
+            Vector3Int currentNode = current.node;
+
+            if (!visited.Add(currentNode))
+                continue;
+
+            if (currentNode == to)
+                break;
+
+            if (!islandFrom.Adjacency.TryGetValue(currentNode, out var edges))
+                continue;
+
+            foreach (RailEdge edge in edges)
+            {
+                if (visited.Contains(edge.To))
+                    continue;
+
+                List<Train> trains = edge.Line.AssignedTrains;
+
+                float speed = trains == null ? 0f : edge.Line.GetRoutingSpeed();
+                
+                float nextCost = speed > 0f ? dist[currentNode] + edge.Cost / speed : float.MaxValue;
+
+                if (!dist.TryGetValue(edge.To, out float oldCost) || nextCost < oldCost)
+                {
+                    dist[edge.To] = nextCost;
+                    prevNode[edge.To] = currentNode;
+                    prevLine[edge.To] = edge.Line;
+                    queue.Add((edge.To, nextCost));
+                }
+            }
+        }
+
+        if (!dist.TryGetValue(to, out totalCost))
+            return false;
+
+        List<Vector3Int> reversedNodes = new();
+        List<RailLine> reversedLines = new();
+
+        Vector3Int walk = to;
+        reversedNodes.Add(walk);
+
+        while (walk != from)
+        {
+            if (!prevNode.TryGetValue(walk, out Vector3Int previous))
+                return false;
+
+            if (!prevLine.TryGetValue(walk, out RailLine line))
+                return false;
+
+            reversedLines.Add(line);
+            walk = previous;
+            reversedNodes.Add(walk);
+        }
+
+        reversedNodes.Reverse();
+        reversedLines.Reverse();
+
+        nodes = reversedNodes;
+        lines = reversedLines;
+
+        return nodes.Count >= 2 && lines.Count >= 1;
+    }
+    
     public bool IsFirstHopOnCurrentLine(RailLine line, Vector3Int currentCell, Vector3Int destinationCell, out float totalCost)
     {
         totalCost = 0;
@@ -563,11 +689,14 @@ public class RailManager : MonoBehaviour
 
         RelayStopRegistry.Instance.RemoveIfExists(cell);
     }
+
     private void ClearAll()
     {
         foreach (var line in Lines)
-            if (line != null)
+        {
+            if (line != null && painter != null)
                 painter.UnpaintRails(line);
+        }
 
         Lines.Clear();
         SelectedLine = null;
@@ -577,6 +706,7 @@ public class RailManager : MonoBehaviour
         lineToIsland.Clear();
         islands.Clear();
         nodeToIsland.Clear();
+        inspectorIslands.Clear();
     }
 
     #region save subsystem
@@ -586,9 +716,14 @@ public class RailManager : MonoBehaviour
 
         if (SelectedLine != null)
             data.selectedLineID = SelectedLine.ID;
+        else
+            data.selectedLineID = -1;
 
         foreach (var line in Lines)
-            data.lines.Add(line.GetSaveData());
+        {
+            if (line != null)
+                data.lines.Add(line.GetSaveData());
+        }
 
         return data;
     }
@@ -596,6 +731,9 @@ public class RailManager : MonoBehaviour
     public void LoadFromSaveData(RailManagerSaveData data)
     {
         ClearAll();
+
+        if (data == null)
+            return;
 
         nextID = data.nextID;
 
@@ -605,27 +743,31 @@ public class RailManager : MonoBehaviour
             Lines.Add(line);
 
             LineCreated?.Invoke(line);
-            painter.PaintRails(line, false);
+
+            if (painter != null)
+                painter.PaintRails(line, false);
         }
 
         RebuildConnectivity();
         TopologyChanged?.Invoke();
         ActiveNetworkChanged?.Invoke();
 
-        if (data.selectedLineID.HasValue)
+        if (data.selectedLineID != -1)
         {
-            var selected = Lines.Find(l => l.ID == data.selectedLineID.Value);
+            var selected = Lines.Find(l => l.ID == data.selectedLineID);
             if (selected != null)
             {
                 SelectedLine = selected;
-                painter.PaintRails(selected, true);
+
+                if (painter != null)
+                    painter.PaintRails(selected, true);
+
                 LineSelected?.Invoke(selected);
             }
         }
     }
     #endregion
 }
-
 public struct RailEdge
 {
     public Vector3Int To;

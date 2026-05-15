@@ -30,6 +30,8 @@ public class ResearchMenuController : MonoBehaviour
     {
         if (ResearchSystem.Instance != null)
             ResearchSystem.Instance.OnResearchStateChanged += RefreshCurrentResearchView;
+        
+        RefreshCurrentResearchView();
     }
 
     private void OnDisable()

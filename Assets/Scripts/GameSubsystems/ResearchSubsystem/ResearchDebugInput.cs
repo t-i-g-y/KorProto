@@ -10,7 +10,7 @@ public class ResearchDebugInput : MonoBehaviour
         var kb = Keyboard.current;
         if (kb != null)
         {
-            if (kb.rKey.wasPressedThisFrame)
+            if (kb.equalsKey.wasPressedThisFrame)
             {
                 ResearchIncomeSystem.Instance.AddGlobalResearchPerHour(2);
             }

@@ -16,21 +16,74 @@ MonoBehaviour:
   BaseConstructionCostPerCell: 10
   BaseLineMaintenanceFlat: 1
   BaseLineMaintenancePerCell: 0.25
+  BaseTrainPurchaseCost: 50
+  BaseWagonUpdateCost: 25
+  BaseSpeedUpgradeCost: 10
+  BaseTrainRepairCost: 10
   BaseTrainMaintenanceFlat: 2
-  RefundRatio: 0.5
+  BaseRelayMaintenance: 5
+  RefundRatio: 0.4
   CargoValues:
   - Resource: 0
-    Value: 10
+    Value: 15
   - Resource: 1
-    Value: 15
+    Value: 20
   - Resource: 2
-    Value: 15
+    Value: 10
   - Resource: 3
     Value: 10
   - Resource: 4
     Value: 20
   - Resource: 5
     Value: 15
+  - Resource: 6
+    Value: 25
+  - Resource: 7
+    Value: 20
+  - Resource: 8
+    Value: 15
+  - Resource: 9
+    Value: 30
+  - Resource: 10
+    Value: 40
+  - Resource: 11
+    Value: 50
+  - Resource: 12
+    Value: 15
+  - Resource: 13
+    Value: 40
+  - Resource: 14
+    Value: 45
+  - Resource: 15
+    Value: 55
+  - Resource: 16
+    Value: 50
+  - Resource: 17
+    Value: 75
+  - Resource: 18
+    Value: 30
+  - Resource: 19
+    Value: 60
+  - Resource: 20
+    Value: 70
+  - Resource: 21
+    Value: 90
+  - Resource: 22
+    Value: 80
+  - Resource: 23
+    Value: 35
+  - Resource: 24
+    Value: 30
+  - Resource: 25
+    Value: 15
+  - Resource: 26
+    Value: 40
+  - Resource: 27
+    Value: 100
+  - Resource: 28
+    Value: 50
+  - Resource: 29
+    Value: 65
   TerrainModifierEntries:
   - Terrain: 0
     ConstructionModifier: 1
@@ -43,132 +96,160 @@ MonoBehaviour:
     MaintenanceModifier: 1.25
   - Terrain: 3
     ConstructionModifier: 1.25
-    MaintenanceModifier: 1.75
+    MaintenanceModifier: 2
   - Terrain: 4
     ConstructionModifier: 1.75
-    MaintenanceModifier: 2
+    MaintenanceModifier: 2.5
   - Terrain: 5
     ConstructionModifier: 1.75
     MaintenanceModifier: 1.75
   - Terrain: 6
-    ConstructionModifier: 2.25
-    MaintenanceModifier: 1.75
-  - Terrain: 7
     ConstructionModifier: 3
-    MaintenanceModifier: 2
+    MaintenanceModifier: 2.25
+  - Terrain: 7
+    ConstructionModifier: 10
+    MaintenanceModifier: 4
   - Terrain: 8
-    ConstructionModifier: 4
+    ConstructionModifier: 8
     MaintenanceModifier: 3
   - Terrain: 9
-    ConstructionModifier: 1
-    MaintenanceModifier: 1
+    ConstructionModifier: 20
+    MaintenanceModifier: 10
   - Terrain: 10
     ConstructionModifier: 1
     MaintenanceModifier: 1
   - Terrain: 11
-    ConstructionModifier: 1
-    MaintenanceModifier: 1
+    ConstructionModifier: 16
+    MaintenanceModifier: 8
   AttributeRelationRows:
   - Source: 0
     Values:
     - Target: 0
-      Value: 50
-    - Target: 1
       Value: 75
+    - Target: 1
+      Value: 25
     - Target: 2
-      Value: 100
+      Value: 35
     - Target: 3
-      Value: 50
+      Value: 75
     - Target: 4
-      Value: 100
+      Value: 75
     - Target: 5
-      Value: 25
+      Value: 100
     - Target: 6
-      Value: 25
+      Value: 50
     - Target: 7
-      Value: 25
+      Value: 100
     - Target: 8
-      Value: 25
+      Value: 35
     - Target: 9
-      Value: 25
+      Value: 50
     - Target: 10
-      Value: 10
+      Value: 35
     - Target: 11
-      Value: 10
+      Value: 50
     - Target: 12
-      Value: 10
+      Value: 35
     - Target: 13
-      Value: 10
+      Value: 25
     - Target: 14
-      Value: 10
+      Value: 25
     - Target: 15
-      Value: 10
+      Value: 25
     - Target: 16
-      Value: 10
+      Value: 25
     - Target: 17
-      Value: 10
+      Value: 25
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
+      Value: 25
+    - Target: 22
+      Value: 50
+    - Target: 23
+      Value: 50
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 75
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 50
   - Source: 1
     Values:
     - Target: 0
-      Value: 75
-    - Target: 1
-      Value: 50
-    - Target: 2
-      Value: 75
-    - Target: 3
       Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
     - Target: 4
-      Value: 100
+      Value: 50
     - Target: 5
       Value: 25
     - Target: 6
       Value: 25
     - Target: 7
-      Value: 25
+      Value: 50
     - Target: 8
-      Value: 25
+      Value: 35
     - Target: 9
-      Value: 25
+      Value: 50
     - Target: 10
-      Value: 15
+      Value: 35
     - Target: 11
-      Value: 15
+      Value: 35
     - Target: 12
-      Value: 15
+      Value: 35
     - Target: 13
-      Value: 15
+      Value: 75
     - Target: 14
-      Value: 15
+      Value: 75
     - Target: 15
-      Value: 15
+      Value: 10
     - Target: 16
-      Value: 15
+      Value: 10
     - Target: 17
-      Value: 15
+      Value: 50
     - Target: 18
-      Value: 5
+      Value: 10
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 10
     - Target: 21
-      Value: 5
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
   - Source: 2
     Values:
     - Target: 0
-      Value: 100
+      Value: 35
     - Target: 1
-      Value: 75
+      Value: 35
     - Target: 2
-      Value: 100
+      Value: 25
     - Target: 3
       Value: 50
     - Target: 4
@@ -178,111 +259,139 @@ MonoBehaviour:
     - Target: 6
       Value: 35
     - Target: 7
-      Value: 35
+      Value: 50
     - Target: 8
-      Value: 35
+      Value: 25
     - Target: 9
-      Value: 35
+      Value: 25
     - Target: 10
-      Value: 15
+      Value: 25
     - Target: 11
-      Value: 15
+      Value: 25
     - Target: 12
-      Value: 15
+      Value: 25
     - Target: 13
-      Value: 15
+      Value: 35
     - Target: 14
-      Value: 15
+      Value: 35
     - Target: 15
-      Value: 15
+      Value: 35
     - Target: 16
-      Value: 15
+      Value: 35
     - Target: 17
-      Value: 15
+      Value: 35
     - Target: 18
-      Value: 5
+      Value: 35
     - Target: 19
-      Value: 5
+      Value: 25
     - Target: 20
-      Value: 5
+      Value: 35
     - Target: 21
-      Value: 5
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 75
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 25
   - Source: 3
     Values:
     - Target: 0
-      Value: 50
+      Value: 75
     - Target: 1
-      Value: 25
+      Value: 50
     - Target: 2
       Value: 50
     - Target: 3
-      Value: 25
+      Value: 50
     - Target: 4
-      Value: 50
+      Value: 100
     - Target: 5
-      Value: 10
+      Value: 75
     - Target: 6
-      Value: 25
-    - Target: 7
       Value: 50
+    - Target: 7
+      Value: 100
     - Target: 8
-      Value: 10
+      Value: 50
     - Target: 9
-      Value: 10
+      Value: 50
     - Target: 10
-      Value: 20
+      Value: 50
     - Target: 11
-      Value: 20
+      Value: 50
     - Target: 12
-      Value: 20
+      Value: 75
     - Target: 13
-      Value: 20
+      Value: 50
     - Target: 14
-      Value: 10
+      Value: 50
     - Target: 15
-      Value: 10
+      Value: 75
     - Target: 16
-      Value: 10
+      Value: 50
     - Target: 17
-      Value: 10
+      Value: 50
     - Target: 18
-      Value: 5
+      Value: 50
     - Target: 19
-      Value: 5
+      Value: 50
     - Target: 20
-      Value: 5
+      Value: 50
     - Target: 21
-      Value: 5
+      Value: 50
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 75
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 75
+    - Target: 26
+      Value: 50
+    - Target: 27
+      Value: 50
+    - Target: 28
+      Value: 50
   - Source: 4
     Values:
     - Target: 0
-      Value: 100
+      Value: 75
     - Target: 1
-      Value: 100
+      Value: 50
     - Target: 2
       Value: 75
     - Target: 3
-      Value: 50
+      Value: 100
     - Target: 4
-      Value: 10
+      Value: 50
     - Target: 5
-      Value: 50
+      Value: 75
     - Target: 6
-      Value: 50
+      Value: 75
     - Target: 7
-      Value: 50
+      Value: 100
     - Target: 8
       Value: 50
     - Target: 9
       Value: 75
     - Target: 10
-      Value: 40
+      Value: 50
     - Target: 11
-      Value: 40
+      Value: 75
     - Target: 12
-      Value: 40
+      Value: 50
     - Target: 13
-      Value: 40
+      Value: 50
     - Target: 14
       Value: 50
     - Target: 15
@@ -290,577 +399,1119 @@ MonoBehaviour:
     - Target: 16
       Value: 50
     - Target: 17
-      Value: 75
+      Value: 50
     - Target: 18
-      Value: 5
+      Value: 50
     - Target: 19
-      Value: 5
+      Value: 50
     - Target: 20
-      Value: 5
+      Value: 50
     - Target: 21
-      Value: 5
+      Value: 50
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 75
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 75
+    - Target: 26
+      Value: 50
+    - Target: 27
+      Value: 50
+    - Target: 28
+      Value: 75
   - Source: 5
     Values:
     - Target: 0
-      Value: 25
+      Value: 100
     - Target: 1
       Value: 25
     - Target: 2
       Value: 35
     - Target: 3
-      Value: 10
+      Value: 75
     - Target: 4
-      Value: 50
+      Value: 75
     - Target: 5
-      Value: 0
+      Value: 75
     - Target: 6
-      Value: 0
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 0
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
       Value: 50
+    - Target: 7
+      Value: 75
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 25
+    - Target: 14
+      Value: 25
     - Target: 15
-      Value: 0
+      Value: 25
     - Target: 16
       Value: 25
     - Target: 17
-      Value: 50
+      Value: 25
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
+      Value: 25
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 50
+    - Target: 24
+      Value: 50
+    - Target: 25
+      Value: 50
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
   - Source: 6
     Values:
     - Target: 0
-      Value: 35
+      Value: 50
     - Target: 1
       Value: 25
     - Target: 2
       Value: 35
     - Target: 3
-      Value: 25
+      Value: 50
     - Target: 4
-      Value: 50
-    - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 0
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 0
-    - Target: 10
-      Value: 50
-    - Target: 11
-      Value: 50
-    - Target: 12
-      Value: 50
-    - Target: 13
       Value: 75
-    - Target: 14
-      Value: 0
-    - Target: 15
-      Value: 0
-    - Target: 16
+    - Target: 5
+      Value: 50
+    - Target: 6
+      Value: 10
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
       Value: 25
+    - Target: 14
+      Value: 25
+    - Target: 15
+      Value: 35
+    - Target: 16
+      Value: 35
     - Target: 17
       Value: 50
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
+      Value: 25
+    - Target: 22
+      Value: 50
+    - Target: 23
+      Value: 50
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 50
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
   - Source: 7
     Values:
     - Target: 0
-      Value: 25
+      Value: 100
     - Target: 1
-      Value: 25
+      Value: 50
     - Target: 2
-      Value: 35
+      Value: 50
     - Target: 3
-      Value: 50
+      Value: 100
     - Target: 4
-      Value: 50
+      Value: 100
     - Target: 5
-      Value: 0
+      Value: 75
     - Target: 6
-      Value: 0
+      Value: 50
     - Target: 7
-      Value: 0
+      Value: 50
     - Target: 8
-      Value: 0
+      Value: 50
     - Target: 9
-      Value: 0
+      Value: 50
     - Target: 10
-      Value: 0
+      Value: 50
     - Target: 11
       Value: 50
     - Target: 12
-      Value: 0
+      Value: 125
     - Target: 13
-      Value: 0
+      Value: 50
     - Target: 14
-      Value: 0
+      Value: 50
     - Target: 15
-      Value: 0
+      Value: 50
     - Target: 16
-      Value: 25
+      Value: 100
     - Target: 17
       Value: 50
     - Target: 18
-      Value: 5
+      Value: 50
     - Target: 19
-      Value: 5
+      Value: 50
     - Target: 20
-      Value: 5
+      Value: 50
     - Target: 21
-      Value: 5
+      Value: 75
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 75
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 75
+    - Target: 26
+      Value: 50
+    - Target: 27
+      Value: 50
+    - Target: 28
+      Value: 50
   - Source: 8
     Values:
     - Target: 0
-      Value: 25
-    - Target: 1
-      Value: 25
-    - Target: 2
       Value: 35
+    - Target: 1
+      Value: 35
+    - Target: 2
+      Value: 25
     - Target: 3
-      Value: 10
+      Value: 50
     - Target: 4
       Value: 50
     - Target: 5
-      Value: 0
+      Value: 35
     - Target: 6
-      Value: 0
+      Value: 35
     - Target: 7
-      Value: 0
+      Value: 50
     - Target: 8
-      Value: 0
+      Value: 25
     - Target: 9
-      Value: 0
+      Value: 25
     - Target: 10
       Value: 25
     - Target: 11
-      Value: 0
+      Value: 25
     - Target: 12
-      Value: 0
+      Value: 25
     - Target: 13
-      Value: 0
+      Value: 35
     - Target: 14
-      Value: 10
+      Value: 35
     - Target: 15
-      Value: 50
+      Value: 35
     - Target: 16
-      Value: 50
+      Value: 35
     - Target: 17
       Value: 100
     - Target: 18
-      Value: 5
+      Value: 35
     - Target: 19
-      Value: 5
+      Value: 25
     - Target: 20
-      Value: 5
+      Value: 35
     - Target: 21
-      Value: 5
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 25
   - Source: 9
     Values:
     - Target: 0
+      Value: 50
+    - Target: 1
+      Value: 50
+    - Target: 2
       Value: 25
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 75
+    - Target: 5
+      Value: 35
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 25
+    - Target: 9
+      Value: 25
+    - Target: 10
+      Value: 25
+    - Target: 11
+      Value: 25
+    - Target: 12
+      Value: 25
+    - Target: 13
+      Value: 100
+    - Target: 14
+      Value: 100
+    - Target: 15
+      Value: 75
+    - Target: 16
+      Value: 75
+    - Target: 17
+      Value: 35
+    - Target: 18
+      Value: 35
+    - Target: 19
+      Value: 25
+    - Target: 20
+      Value: 35
+    - Target: 21
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 50
+    - Target: 28
+      Value: 25
+  - Source: 10
+    Values:
+    - Target: 0
+      Value: 35
+    - Target: 1
+      Value: 35
+    - Target: 2
+      Value: 25
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 35
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 25
+    - Target: 9
+      Value: 25
+    - Target: 10
+      Value: 25
+    - Target: 11
+      Value: 25
+    - Target: 12
+      Value: 25
+    - Target: 13
+      Value: 35
+    - Target: 14
+      Value: 35
+    - Target: 15
+      Value: 35
+    - Target: 16
+      Value: 35
+    - Target: 17
+      Value: 35
+    - Target: 18
+      Value: 35
+    - Target: 19
+      Value: 25
+    - Target: 20
+      Value: 35
+    - Target: 21
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 75
+    - Target: 28
+      Value: 25
+  - Source: 11
+    Values:
+    - Target: 0
+      Value: 50
+    - Target: 1
+      Value: 35
+    - Target: 2
+      Value: 25
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 75
+    - Target: 5
+      Value: 35
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 25
+    - Target: 9
+      Value: 25
+    - Target: 10
+      Value: 25
+    - Target: 11
+      Value: 25
+    - Target: 12
+      Value: 25
+    - Target: 13
+      Value: 35
+    - Target: 14
+      Value: 35
+    - Target: 15
+      Value: 35
+    - Target: 16
+      Value: 35
+    - Target: 17
+      Value: 35
+    - Target: 18
+      Value: 75
+    - Target: 19
+      Value: 100
+    - Target: 20
+      Value: 35
+    - Target: 21
+      Value: 35
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 75
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 25
+  - Source: 12
+    Values:
+    - Target: 0
+      Value: 35
+    - Target: 1
+      Value: 35
+    - Target: 2
+      Value: 25
+    - Target: 3
+      Value: 75
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 35
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 125
+    - Target: 8
+      Value: 25
+    - Target: 9
+      Value: 25
+    - Target: 10
+      Value: 25
+    - Target: 11
+      Value: 25
+    - Target: 12
+      Value: 25
+    - Target: 13
+      Value: 35
+    - Target: 14
+      Value: 35
+    - Target: 15
+      Value: 35
+    - Target: 16
+      Value: 35
+    - Target: 17
+      Value: 35
+    - Target: 18
+      Value: 35
+    - Target: 19
+      Value: 75
+    - Target: 20
+      Value: 35
+    - Target: 21
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 25
+  - Source: 13
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 75
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 25
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 100
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 14
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 75
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 25
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 100
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 15
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 75
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 75
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 16
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 100
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 75
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 17
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 50
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 50
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 100
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 18
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 25
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 75
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 100
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 19
+    Values:
+    - Target: 0
+      Value: 35
+    - Target: 1
+      Value: 35
+    - Target: 2
+      Value: 25
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 35
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 25
+    - Target: 9
+      Value: 25
+    - Target: 10
+      Value: 25
+    - Target: 11
+      Value: 100
+    - Target: 12
+      Value: 75
+    - Target: 13
+      Value: 35
+    - Target: 14
+      Value: 35
+    - Target: 15
+      Value: 35
+    - Target: 16
+      Value: 35
+    - Target: 17
+      Value: 35
+    - Target: 18
+      Value: 100
+    - Target: 19
+      Value: 25
+    - Target: 20
+      Value: 75
+    - Target: 21
+      Value: 35
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 100
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 75
+  - Source: 20
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 25
+    - Target: 7
+      Value: 50
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 75
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 100
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 21
+    Values:
+    - Target: 0
+      Value: 25
+    - Target: 1
+      Value: 10
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 50
+    - Target: 4
+      Value: 50
+    - Target: 5
+      Value: 25
+    - Target: 6
+      Value: 25
+    - Target: 7
+      Value: 75
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 10
+    - Target: 14
+      Value: 10
+    - Target: 15
+      Value: 10
+    - Target: 16
+      Value: 10
+    - Target: 17
+      Value: 10
+    - Target: 18
+      Value: 10
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 10
+    - Target: 21
+      Value: 10
+    - Target: 22
+      Value: 25
+    - Target: 23
+      Value: 25
+    - Target: 24
+      Value: 25
+    - Target: 25
+      Value: 25
+    - Target: 26
+      Value: 75
+    - Target: 27
+      Value: 100
+    - Target: 28
+      Value: 35
+  - Source: 22
+    Values:
+    - Target: 0
+      Value: 50
     - Target: 1
       Value: 25
     - Target: 2
       Value: 35
     - Target: 3
-      Value: 10
+      Value: 75
     - Target: 4
       Value: 75
     - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 0
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 0
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 50
-    - Target: 13
-      Value: 100
-    - Target: 14
-      Value: 0
-    - Target: 15
-      Value: 50
-    - Target: 16
-      Value: 25
-    - Target: 17
-      Value: 100
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 10
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 20
-    - Target: 4
-      Value: 40
-    - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 50
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 25
-    - Target: 9
-      Value: 0
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 10
-    - Target: 15
-      Value: 0
-    - Target: 16
-      Value: 10
-    - Target: 17
-      Value: 25
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 11
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 20
-    - Target: 4
-      Value: 40
-    - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 50
-    - Target: 7
-      Value: 50
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 0
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 10
-    - Target: 15
-      Value: 0
-    - Target: 16
-      Value: 10
-    - Target: 17
-      Value: 10
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 12
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 20
-    - Target: 4
-      Value: 40
-    - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 50
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 50
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 0
-    - Target: 15
-      Value: 0
-    - Target: 16
-      Value: 10
-    - Target: 17
-      Value: 25
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 13
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 20
-    - Target: 4
-      Value: 40
-    - Target: 5
-      Value: 0
-    - Target: 6
       Value: 75
+    - Target: 6
+      Value: 50
     - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 0
-    - Target: 9
-      Value: 100
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 0
-    - Target: 15
-      Value: 0
-    - Target: 16
-      Value: 25
-    - Target: 17
       Value: 75
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 14
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 10
-    - Target: 4
-      Value: 50
-    - Target: 5
-      Value: 50
-    - Target: 6
-      Value: 0
-    - Target: 7
-      Value: 0
     - Target: 8
-      Value: 10
+      Value: 35
     - Target: 9
-      Value: 0
+      Value: 35
     - Target: 10
-      Value: 10
+      Value: 35
     - Target: 11
-      Value: 10
+      Value: 75
     - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 0
-    - Target: 15
-      Value: 10
-    - Target: 16
-      Value: 10
-    - Target: 17
-      Value: 25
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 15
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 10
-    - Target: 4
-      Value: 50
-    - Target: 5
-      Value: 0
-    - Target: 6
-      Value: 0
-    - Target: 7
-      Value: 0
-    - Target: 8
-      Value: 50
-    - Target: 9
-      Value: 50
-    - Target: 10
-      Value: 0
-    - Target: 11
-      Value: 0
-    - Target: 12
-      Value: 0
-    - Target: 13
-      Value: 0
-    - Target: 14
-      Value: 10
-    - Target: 15
-      Value: 0
-    - Target: 16
-      Value: 25
-    - Target: 17
-      Value: 50
-    - Target: 18
-      Value: 5
-    - Target: 19
-      Value: 5
-    - Target: 20
-      Value: 5
-    - Target: 21
-      Value: 5
-  - Source: 16
-    Values:
-    - Target: 0
-      Value: 10
-    - Target: 1
-      Value: 15
-    - Target: 2
-      Value: 15
-    - Target: 3
-      Value: 10
-    - Target: 4
-      Value: 50
-    - Target: 5
-      Value: 25
-    - Target: 6
-      Value: 25
-    - Target: 7
-      Value: 25
-    - Target: 8
-      Value: 50
-    - Target: 9
-      Value: 25
-    - Target: 10
-      Value: 10
-    - Target: 11
-      Value: 10
-    - Target: 12
-      Value: 10
+      Value: 35
     - Target: 13
       Value: 25
     - Target: 14
-      Value: 10
+      Value: 25
     - Target: 15
       Value: 25
     - Target: 16
-      Value: 0
+      Value: 25
     - Target: 17
       Value: 25
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
-  - Source: 17
+      Value: 25
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 100
+    - Target: 24
+      Value: 100
+    - Target: 25
+      Value: 50
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 75
+    - Target: 28
+      Value: 100
+  - Source: 23
     Values:
     - Target: 0
-      Value: 10
+      Value: 50
     - Target: 1
-      Value: 15
+      Value: 25
     - Target: 2
-      Value: 15
+      Value: 35
     - Target: 3
-      Value: 10
+      Value: 75
     - Target: 4
       Value: 75
     - Target: 5
@@ -868,228 +1519,358 @@ MonoBehaviour:
     - Target: 6
       Value: 50
     - Target: 7
-      Value: 50
-    - Target: 8
-      Value: 100
-    - Target: 9
-      Value: 100
-    - Target: 10
-      Value: 25
-    - Target: 11
-      Value: 10
-    - Target: 12
-      Value: 25
-    - Target: 13
       Value: 75
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 25
     - Target: 14
       Value: 25
     - Target: 15
+      Value: 25
+    - Target: 16
+      Value: 25
+    - Target: 17
+      Value: 25
+    - Target: 18
+      Value: 25
+    - Target: 19
+      Value: 35
+    - Target: 20
+      Value: 25
+    - Target: 21
+      Value: 25
+    - Target: 22
+      Value: 100
+    - Target: 23
+      Value: 75
+    - Target: 24
+      Value: 100
+    - Target: 25
       Value: 50
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 35
+  - Source: 24
+    Values:
+    - Target: 0
+      Value: 75
+    - Target: 1
+      Value: 25
+    - Target: 2
+      Value: 35
+    - Target: 3
+      Value: 75
+    - Target: 4
+      Value: 75
+    - Target: 5
+      Value: 50
+    - Target: 6
+      Value: 35
+    - Target: 7
+      Value: 75
+    - Target: 8
+      Value: 35
+    - Target: 9
+      Value: 35
+    - Target: 10
+      Value: 35
+    - Target: 11
+      Value: 35
+    - Target: 12
+      Value: 35
+    - Target: 13
+      Value: 25
+    - Target: 14
+      Value: 25
+    - Target: 15
+      Value: 25
     - Target: 16
       Value: 25
     - Target: 17
-      Value: 0
+      Value: 25
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
-  - Source: 18
+      Value: 25
+    - Target: 22
+      Value: 100
+    - Target: 23
+      Value: 100
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 75
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 35
+    - Target: 28
+      Value: 75
+  - Source: 25
     Values:
     - Target: 0
-      Value: 5
+      Value: 75
     - Target: 1
-      Value: 5
+      Value: 25
     - Target: 2
-      Value: 5
+      Value: 35
     - Target: 3
-      Value: 5
+      Value: 75
     - Target: 4
-      Value: 5
+      Value: 75
     - Target: 5
-      Value: 5
+      Value: 50
     - Target: 6
-      Value: 5
+      Value: 50
     - Target: 7
-      Value: 5
+      Value: 75
     - Target: 8
-      Value: 5
+      Value: 35
     - Target: 9
-      Value: 5
+      Value: 35
     - Target: 10
-      Value: 5
+      Value: 35
     - Target: 11
-      Value: 5
+      Value: 35
     - Target: 12
-      Value: 5
+      Value: 35
     - Target: 13
-      Value: 5
+      Value: 25
     - Target: 14
-      Value: 5
+      Value: 25
     - Target: 15
-      Value: 5
+      Value: 25
     - Target: 16
-      Value: 5
+      Value: 25
     - Target: 17
-      Value: 5
+      Value: 25
     - Target: 18
-      Value: 5
+      Value: 25
     - Target: 19
-      Value: 5
+      Value: 35
     - Target: 20
-      Value: 5
+      Value: 25
     - Target: 21
-      Value: 5
-  - Source: 19
+      Value: 25
+    - Target: 22
+      Value: 50
+    - Target: 23
+      Value: 50
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 10
+    - Target: 26
+      Value: 35
+    - Target: 27
+      Value: 50
+    - Target: 28
+      Value: 35
+  - Source: 26
     Values:
     - Target: 0
-      Value: 5
+      Value: 35
     - Target: 1
-      Value: 5
+      Value: 35
     - Target: 2
-      Value: 5
+      Value: 75
     - Target: 3
-      Value: 5
+      Value: 50
     - Target: 4
-      Value: 5
+      Value: 50
     - Target: 5
-      Value: 5
+      Value: 35
     - Target: 6
-      Value: 5
+      Value: 35
     - Target: 7
-      Value: 5
+      Value: 50
     - Target: 8
-      Value: 5
+      Value: 25
     - Target: 9
-      Value: 5
+      Value: 25
     - Target: 10
-      Value: 5
+      Value: 25
     - Target: 11
-      Value: 5
+      Value: 75
     - Target: 12
-      Value: 5
+      Value: 25
     - Target: 13
-      Value: 5
+      Value: 35
     - Target: 14
-      Value: 5
+      Value: 35
     - Target: 15
-      Value: 5
+      Value: 35
     - Target: 16
-      Value: 5
+      Value: 35
     - Target: 17
-      Value: 5
+      Value: 35
     - Target: 18
-      Value: 5
+      Value: 35
     - Target: 19
-      Value: 5
+      Value: 100
     - Target: 20
-      Value: 5
+      Value: 100
     - Target: 21
-      Value: 5
-  - Source: 20
+      Value: 75
+    - Target: 22
+      Value: 35
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 100
+  - Source: 27
     Values:
     - Target: 0
-      Value: 5
+      Value: 35
     - Target: 1
-      Value: 5
+      Value: 35
     - Target: 2
-      Value: 5
+      Value: 25
     - Target: 3
-      Value: 5
+      Value: 50
     - Target: 4
-      Value: 5
+      Value: 50
     - Target: 5
-      Value: 5
+      Value: 35
     - Target: 6
-      Value: 5
+      Value: 35
     - Target: 7
-      Value: 5
+      Value: 50
     - Target: 8
-      Value: 5
+      Value: 25
     - Target: 9
-      Value: 5
+      Value: 50
     - Target: 10
-      Value: 5
+      Value: 75
     - Target: 11
-      Value: 5
+      Value: 25
     - Target: 12
-      Value: 5
+      Value: 25
     - Target: 13
-      Value: 5
+      Value: 35
     - Target: 14
-      Value: 5
+      Value: 35
     - Target: 15
-      Value: 5
+      Value: 35
     - Target: 16
-      Value: 5
+      Value: 35
     - Target: 17
-      Value: 5
+      Value: 35
     - Target: 18
-      Value: 5
+      Value: 35
     - Target: 19
-      Value: 5
+      Value: 25
     - Target: 20
-      Value: 5
+      Value: 35
     - Target: 21
-      Value: 5
-  - Source: 21
+      Value: 100
+    - Target: 22
+      Value: 75
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 35
+    - Target: 25
+      Value: 50
+    - Target: 26
+      Value: 25
+    - Target: 27
+      Value: 25
+    - Target: 28
+      Value: 75
+  - Source: 28
     Values:
     - Target: 0
-      Value: 5
+      Value: 50
     - Target: 1
-      Value: 5
+      Value: 35
     - Target: 2
-      Value: 5
+      Value: 25
     - Target: 3
-      Value: 5
+      Value: 50
     - Target: 4
-      Value: 5
+      Value: 75
     - Target: 5
-      Value: 5
+      Value: 35
     - Target: 6
-      Value: 5
+      Value: 35
     - Target: 7
-      Value: 5
+      Value: 50
     - Target: 8
-      Value: 5
+      Value: 25
     - Target: 9
-      Value: 5
+      Value: 25
     - Target: 10
-      Value: 5
+      Value: 25
     - Target: 11
-      Value: 5
+      Value: 25
     - Target: 12
-      Value: 5
+      Value: 25
     - Target: 13
-      Value: 5
+      Value: 35
     - Target: 14
-      Value: 5
+      Value: 35
     - Target: 15
-      Value: 5
+      Value: 35
     - Target: 16
-      Value: 5
+      Value: 35
     - Target: 17
-      Value: 5
+      Value: 35
     - Target: 18
-      Value: 5
+      Value: 35
     - Target: 19
-      Value: 5
+      Value: 75
     - Target: 20
-      Value: 5
+      Value: 35
     - Target: 21
-      Value: 5
-  AttributeRelationCsv: {fileID: 4900000, guid: 191c10d920c585e4fa2d59f88b835d1e, type: 3}
+      Value: 35
+    - Target: 22
+      Value: 100
+    - Target: 23
+      Value: 35
+    - Target: 24
+      Value: 75
+    - Target: 25
+      Value: 35
+    - Target: 26
+      Value: 100
+    - Target: 27
+      Value: 75
+    - Target: 28
+      Value: 25
+  AttributeRelationCsv: {fileID: 4900000, guid: 7da2d1629f0a1ff4db3c17f2d2981b15, type: 3}
   AttributeMatrixStartRow: 2
   AttributeMatrixStartColumn: 1
   MissingAttributeMatrixValue: 5
-  CargoValueCsv: {fileID: 4900000, guid: 76c19e38e0941b14e943605332c1934e, type: 3}
+  CargoValueCsv: {fileID: 4900000, guid: b7f1199806c9e7f478f7d8fb3ecdb0c6, type: 3}
   CargoValueStartRow: 2
   CargoValueStartColumn: 0
   MissingCargoValue: 5
-  TerrainModifierCsv: {fileID: 4900000, guid: 942f9d4d0cd9818488c4840c03a01e27, type: 3}
+  TerrainModifierCsv: {fileID: 4900000, guid: a56812bab38b1e44e9ec4076b03f914e, type: 3}
   TerrainModifierConstructionRow: 2
   TerrainModifierMaintenanceRow: 3
   TerrainModifierStartColumn: 1

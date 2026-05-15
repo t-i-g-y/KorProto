@@ -25,40 +25,30 @@ public class EconomyManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        /*
-        if (TimeManager.Instance == null)
-            return;
-
-        int currentDay = TimeManager.Instance.DayCounter;
-        if (currentDay == lastProcessedDay)
-            return;
-
-        lastProcessedDay = currentDay;
-        TickEconomy();
-        */
-    }
-
     private void Start()
     {
         if (TimeManager.Instance != null)
+        {
             TimeManager.Instance.OnDayChanged += HandleDayChanged;
+            TimeManager.Instance.OnHourChanged += HandleHourChanged;
+        }
+            
     }
 
     private void OnDestroy()
     {
         if (TimeManager.Instance != null)
+        {
             TimeManager.Instance.OnDayChanged -= HandleDayChanged;
-    }
-    private void OnEnable()
-    {
-        
+            TimeManager.Instance.OnHourChanged -= HandleHourChanged;
+        }
+            
     }
 
-    private void OnDisable()
+    private void HandleHourChanged(int day, int newHour)
     {
-        
+        if (globalDemandSystem != null && stationEconomySystem != null)
+            globalDemandSystem.ApplyGlobalDemandSystemTick(stationEconomySystem.Stations);
     }
 
     private void HandleDayChanged(int newDay)
@@ -70,6 +60,9 @@ public class EconomyManager : MonoBehaviour
     }
     public void TickEconomy()
     {
+        if (financeSystem != null)
+            financeSystem.ApplyFinanceSystemTick();
+
         if (stationEconomySystem != null)
             stationEconomySystem.ApplyStationEconomyTick();
 
@@ -79,8 +72,6 @@ public class EconomyManager : MonoBehaviour
         if (railEconomySystem != null)
             railEconomySystem.ApplyRailEconomyTick();
 
-        if (financeSystem != null)
-            financeSystem.CurrentDay = lastProcessedDay;
     }
 
     public void ForceResync()

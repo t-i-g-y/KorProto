@@ -6,6 +6,6 @@ using UnityEngine;
 public class RailManagerSaveData
 {
     public int nextID;
-    public int? selectedLineID;
+    public int selectedLineID;
     public List<RailLineSaveData> lines = new();
 }

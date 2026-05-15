@@ -42,7 +42,7 @@ public static class HexCoords
         return new Vector3Int(x, y, 0);
     }
 
-    public static bool AreNeighbors(Vector3Int aOff, Vector3Int bOff)
+    public static bool AreNeighbours(Vector3Int aOff, Vector3Int bOff)
     {
         var a = OffsetToAxial(aOff);
         for (int i = 0; i < 6; i++)
@@ -53,7 +53,7 @@ public static class HexCoords
         return false;
     }
     
-    public static Vector3Int Neighbor(Vector3Int a, int dir)
+    public static Vector3Int Neighbour(Vector3Int a, int dir)
     {
         var offs = ((a.y & 1) != 0) ? OffOdd : OffEven;
         return a + offs[dir];
@@ -69,13 +69,5 @@ public static class HexCoords
                 return i;
         Debug.Log($"Impossible dir={d}");
         return -1;
-    }
-
-    public static int[] GetDoubleSidedDirs(Vector3Int cellA, Vector3Int cellB)
-    {
-        int dAB = HexCoords.DirIndex(cellA, cellB);
-        int dBA = HexCoords.DirIndex(cellB, cellA);
-
-        return new int[] {dAB, dBA};
     }
 }

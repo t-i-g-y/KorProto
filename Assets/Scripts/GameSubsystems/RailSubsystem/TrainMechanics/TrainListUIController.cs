@@ -1,0 +1,176 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class TrainListUIController : MonoBehaviour
+{
+    [SerializeField] private Button viewListButton;
+    [SerializeField] private GameObject listPanel;
+    [SerializeField] private GameObject listEntryPrefab;
+    [SerializeField] private Transform listContent;
+    [SerializeField] private TrainCardController trainCardController;
+    [SerializeField] private RailListUIController railList;
+
+    private readonly Dictionary<Train, TrainEntryUI> entries = new();
+
+    private void Awake()
+    {
+        if (listPanel != null)
+            listPanel.SetActive(false);
+
+        if (viewListButton != null)
+            viewListButton.onClick.AddListener(() => TogglePanel(listPanel));
+    }
+
+    private void Update()
+    {
+        foreach (TrainEntryUI entry in entries.Values)
+        {
+            if (entry == null)
+                continue;
+
+            entry.UpdateDemandRouteState();
+        }
+    }
+    
+    private void OnEnable()
+    {
+        TrainManager.TrainCreated += OnTrainCreated;
+        TrainManager.TrainRemoved += OnTrainRemoved;
+        TrainManager.TrainSelected += OnTrainSelected;
+        TrainManager.TrainDeselected += OnTrainDeselected;
+    }
+
+    private void OnDisable()
+    {
+        TrainManager.TrainCreated -= OnTrainCreated;
+        TrainManager.TrainRemoved -= OnTrainRemoved;
+        TrainManager.TrainSelected -= OnTrainSelected;
+        TrainManager.TrainDeselected -= OnTrainDeselected;
+    }
+
+    private void OnTrainCreated(Train train, RailLine line)
+    {
+        if (listEntryPrefab == null || listContent == null || train == null)
+            return;
+
+        GameObject entryObj = Instantiate(listEntryPrefab, listContent);
+        TrainEntryUI entry = entryObj.GetComponent<TrainEntryUI>();
+        if (entry == null)
+        {
+            Debug.LogError("No UITraiLineEntry on prefab");
+            return;
+        }
+
+        entry.Init(train, line);
+        entry.OnSelectClicked += HandleSelectClicked;
+        entry.OnDeleteClicked += HandleDeleteClicked;
+        entry.OnSpeedClicked += HandleSpeedClicked;
+        entry.OnCapacityClicked += HandleCapacityClicked;
+        entry.OnTrainClicked += HandleTrainClicked;
+
+        entries[train] = entry;
+    }
+
+    private void OnTrainRemoved(Train train)
+    {
+        if (train == null)
+            return;
+
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
+        {
+            entry.OnSelectClicked -= HandleSelectClicked;
+            entry.OnDeleteClicked -= HandleDeleteClicked;
+            entry.OnSpeedClicked -= HandleSpeedClicked;
+            entry.OnCapacityClicked -= HandleCapacityClicked;
+            entry.OnTrainClicked -= HandleTrainClicked;
+            Destroy(entry.gameObject);
+            entries.Remove(train);
+        }
+
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.HideCard();
+    }
+
+    private void OnTrainSelected(Train train)
+    {
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
+            entry.SetSelected(true);
+    }
+
+    private void OnTrainDeselected(Train train)
+    {
+        if (entries.TryGetValue(train, out TrainEntryUI entry))
+            entry.SetSelected(false);
+    }
+
+    private void HandleSelectClicked(TrainEntryUI entry)
+    {
+        if (entry == null || entry.ReferenceTrain == null)
+            return;
+
+        TrainManager.Instance.ToggleSelection(entry.ReferenceTrain);
+    }
+
+    private void HandleDeleteClicked(TrainEntryUI entry)
+    {
+        if (entry == null || entry.ReferenceTrain == null)
+            return;
+
+        TrainManager.Instance.RemoveTrain(entry.ReferenceTrain);
+    }
+
+    private void HandleSpeedClicked(TrainEntryUI entry)
+    {
+        Train train = entry.ReferenceTrain;
+        if (train == null)
+            return;
+
+        train.SetSpeedLevel(train.SpeedLevel + 1);
+        entry.UpdateSpeedText();
+
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.ShowTrain(entry.ReferenceTrain);
+    }
+
+    private void HandleCapacityClicked(TrainEntryUI entry)
+    {
+        Train train = entry.ReferenceTrain;
+        if (train == null)
+            return;
+
+        train.TryAddWagon();
+        entry.UpdateCapacityText();
+        
+        if (trainCardController != null && trainCardController.CurrentTrain == train)
+            trainCardController.ShowTrain(entry.ReferenceTrain);
+    }
+
+    private void HandleTrainClicked(TrainEntryUI entry)
+    {
+        if (entry == null || entry.ReferenceTrain == null)
+            return;
+
+        if (trainCardController != null)
+            trainCardController.ToggleTrain(entry.ReferenceTrain);
+    }
+
+    private void TogglePanel(GameObject panel)
+    {
+        if (panel == null)
+            return;
+
+        bool shouldOpen = !panel.activeSelf;
+
+        if (shouldOpen && railList != null)
+            railList.ClosePanel();
+
+        panel.SetActive(shouldOpen);
+    }
+
+    public void ClosePanel()
+    {
+        if (listPanel != null)
+            listPanel.SetActive(false);
+    }
+}

@@ -13,5 +13,6 @@ public class TrainSaveData
     public float headDistance;
     public bool atStation;
     public bool isOperational;
+    public bool isBroken;
     public TrainConsistSaveData consist;
 }

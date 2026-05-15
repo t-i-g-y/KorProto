@@ -29,6 +29,9 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        if (MenuPauseState.IsPaused)
+            return;
+    
         HandleMovement();
         HandleZoom();
         ConstrainCameraPosition();

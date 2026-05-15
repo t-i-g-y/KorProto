@@ -30,19 +30,9 @@ public class ResearchIncomeSystem : MonoBehaviour
         if (TimeManager.Instance != null)
             TimeManager.Instance.OnHourChanged -= HandleHourChanged;
     }
-    private void OnEnable()
-    {
-        
-    }
-
-    private void OnDisable()
-    {
-        
-    }
 
     private void HandleHourChanged(int day, int hour)
     {
-        Debug.Log($"Handling day {day} hour {hour} change");
         TickResearchIncome();
     }
 
@@ -98,8 +88,23 @@ public class ResearchIncomeSystem : MonoBehaviour
         {
             switch (attribute.AttributeType)
             {
-                case StationAttributeType.Port:
+                case StationAttributeType.City:
                     total += 2;
+                    break;
+                case StationAttributeType.Port:
+                    total += 3;
+                    break;
+                case StationAttributeType.Seaport:
+                    total += 5;
+                    break;
+                case StationAttributeType.ScientificCenter:
+                    total += 10;
+                    break;
+                case StationAttributeType.Institute:
+                    total += 15;
+                    break;
+                case StationAttributeType.University:
+                    total += 25;
                     break;
                 default:
                     total += 1;
@@ -113,6 +118,9 @@ public class ResearchIncomeSystem : MonoBehaviour
     public int AddGlobalResearchPerHour(int rp) => globalResearchPerHour += rp;
     private void SetResearchPointDisplayText(int income)
     {
+        if (researchIncomeText == null)
+            return;
+        
         string text = $"+{income}";
         researchIncomeText.text = text;
     }
