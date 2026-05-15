@@ -29,6 +29,7 @@ public class EventManager : MonoBehaviour
     private float timeMultiplierBeforePendingEvent = 1f;
     private bool shouldResumeTimeAfterPendingEvent;
     private bool isEventNotificationOpen;
+    private bool isEventEvaluationSuppressed;
 
     public static EventManager Instance { get; private set; }
     public IReadOnlyList<EventHistoryEntry> History => history;
@@ -98,6 +99,19 @@ public class EventManager : MonoBehaviour
             return;
 
         TryActivate(definition, BuildContext(GameEventTriggerType.Manual));
+    }
+
+    public void SetEventEvaluationSuppressed(bool suppressed)
+    {
+        isEventEvaluationSuppressed = suppressed;
+
+        if (!suppressed)
+            return;
+
+        pendingEvent = null;
+        shouldResumeTimeAfterPendingEvent = false;
+        isEventNotificationOpen = false;
+        PendingEventChanged?.Invoke();
     }
 
     public void NotifyTrainTravelledPath(RailLine line, int passCount)
@@ -564,7 +578,7 @@ public class EventManager : MonoBehaviour
 
     private void EvaluateTrigger(GameEventTriggerType triggerType, EventWorldContext context)
     {
-        if (pendingEvent != null || isEventNotificationOpen)
+        if (isEventEvaluationSuppressed || pendingEvent != null || isEventNotificationOpen)
             return;
 
         context.TriggerType = triggerType;
@@ -583,7 +597,7 @@ public class EventManager : MonoBehaviour
 
     private bool TryActivate(EventDefinition definition, EventWorldContext context)
     {
-        if (pendingEvent != null || isEventNotificationOpen)
+        if (isEventEvaluationSuppressed || pendingEvent != null || isEventNotificationOpen)
             return false;
 
         if (!CanActivate(definition, context))

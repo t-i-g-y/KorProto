@@ -6698,6 +6698,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameAssembly::ArtifactManager
   artifactDefinitions:
   - {fileID: 11400000, guid: 93e0bde693e5a4b31b7d3280f7ccede7, type: 2}
+  - {fileID: 11400000, guid: 31c64c475c10c4f86bfd9c2d755b89fd, type: 2}
+  - {fileID: 11400000, guid: bb9db5fa79bf04914a0ba210f1e4c1ba, type: 2}
   useBuiltInArtifactsWhenEmpty: 1
   pickupOffset: {x: 0, y: 0.2, z: -0.1}
   pickupScale: 0.55

@@ -76,8 +76,6 @@ public class MainMenu : MonoBehaviour
         while (!operation.isDone)
             yield return null;
 
-        yield return null;
-
         SubsystemSaveManager gameSaveManager = FindFirstObjectByType<SubsystemSaveManager>();
 
         if (gameSaveManager != null)
@@ -95,8 +93,6 @@ public class MainMenu : MonoBehaviour
         AsyncOperation operation = SceneManager.LoadSceneAsync(gameSceneName);
         while (!operation.isDone)
             yield return null;
-
-        yield return null;
 
         SubsystemSaveManager saveManager = FindFirstObjectByType<SubsystemSaveManager>();
 
@@ -124,8 +120,6 @@ public class MainMenu : MonoBehaviour
         AsyncOperation operation = SceneManager.LoadSceneAsync(gameSceneName);
         while (!operation.isDone)
             yield return null;
-
-        yield return null;
 
         SubsystemSaveManager gameSaveManager = FindFirstObjectByType<SubsystemSaveManager>();
 

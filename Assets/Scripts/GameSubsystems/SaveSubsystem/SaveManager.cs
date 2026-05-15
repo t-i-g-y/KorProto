@@ -17,7 +17,10 @@ public class SaveManager : MonoBehaviour
             financeData = FinanceSystem.Instance.GetSaveData(),
             trainData = TrainManager.Instance.GetSaveData(),
             economyData = EconomyManager.Instance.GetSaveData(),
-            researchData = ResearchSystem.Instance.GetSaveData()
+            researchData = ResearchSystem.Instance.GetSaveData(),
+            eventData = EventManager.Instance != null ? EventManager.Instance.GetSaveData() : null,
+            questData = QuestManager.Instance != null ? QuestManager.Instance.GetSaveData() : null,
+            artifactData = ArtifactManager.Instance != null ? ArtifactManager.Instance.GetSaveData() : null
         };
 
         string json = JsonUtility.ToJson(data, true);
@@ -42,6 +45,9 @@ public class SaveManager : MonoBehaviour
             Debug.LogError("failed to read save file");
             return;
         }
+
+        if (EventManager.Instance != null)
+            EventManager.Instance.SetEventEvaluationSuppressed(true);
 
         if (data.anchorData != null)
             RailAnchorRegistry.Instance.LoadFromSaveData(data.anchorData);
@@ -69,6 +75,18 @@ public class SaveManager : MonoBehaviour
         
         if (data.researchData != null)
             ResearchSystem.Instance.LoadFromSaveData(data.researchData);
+
+        if (data.eventData != null && EventManager.Instance != null)
+            EventManager.Instance.LoadFromSaveData(data.eventData);
+
+        if (data.questData != null && QuestManager.Instance != null)
+            QuestManager.Instance.LoadFromSaveData(data.questData);
+
+        if (data.artifactData != null && ArtifactManager.Instance != null)
+            ArtifactManager.Instance.LoadFromSaveData(data.artifactData);
+
+        if (EventManager.Instance != null)
+            EventManager.Instance.SetEventEvaluationSuppressed(false);
 
         Debug.Log("game loaded");
     }

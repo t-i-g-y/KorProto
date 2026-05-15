@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f2122e4de4054ffe8628314462e6275, type: 3}
-  m_Name: New Quest Definition
+  m_Name: TenPaths
   m_EditorClassIdentifier: GameAssembly::QuestDefinition
   questId: 1
   title: "\u041F\u043E\u0441\u0442\u0440\u043E\u0439\u0442\u0435 \u0441\u0435\u0442\u044C
