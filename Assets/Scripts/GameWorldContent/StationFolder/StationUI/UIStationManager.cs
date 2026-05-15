@@ -191,13 +191,10 @@ public class UIStationManager : MonoBehaviour
 	private static string BuildStationDescription(Station station)
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.AppendLine(station.StationName);
-		builder.Append("Население: ").AppendLine(station.Population.ToString());
-		builder.Append("Параметры: ");
-		AppendAttributes(builder, station.Attributes);
-		builder.AppendLine();
-		AppendResourceSection(builder, "Производит", station.ProducedResources, station.Supply);
-		AppendResourceSection(builder, "Потребляет", station.ConsumedResources, station.Demand);
+		builder.Append("<b>").Append(station.StationName).AppendLine("</b>");
+		builder.Append("<b>Население:</b> ").AppendLine(station.Population.ToString());
+		AppendResourceSection(builder, "<color=#ff5a5a><b>Необходимо:</b></color>", station.ConsumedResources, station.Demand);
+		AppendResourceSection(builder, "<color=#5fd36a><b>Производится:</b></color>", station.ProducedResources, station.Supply);
 		return builder.ToString();
 	}
 
@@ -233,7 +230,7 @@ public class UIStationManager : MonoBehaviour
 		IReadOnlyList<ResourceAmount> resourceTypes,
 		ResourceAmount[] values)
 	{
-		builder.Append(sectionTitle).Append(": ");
+		builder.AppendLine(sectionTitle);
 
 		if (resourceTypes == null || resourceTypes.Count == 0)
 		{
@@ -247,7 +244,12 @@ public class UIStationManager : MonoBehaviour
 			ResourceType resourceType = resourceInfo.Type;
 
 			if (i > 0)
-				builder.Append(", ");
+			{
+				if (i % 3 == 0)
+					builder.AppendLine();
+				else
+					builder.Append(", ");
+			}
 
 			int amount = values != null && (int)resourceType < values.Length
 				? values[(int)resourceType].Amount
@@ -255,12 +257,10 @@ public class UIStationManager : MonoBehaviour
 
 			builder
 				.Append(TranslateResourceType(resourceType))
-				.Append(" - ")
+				.Append(' ')
 				.Append(resourceInfo.Amount)
-				.Append(" ед.")
-				.Append(" (доступно: ")
-				.Append(amount)
-				.Append(')');
+				.Append('/')
+				.Append(amount);
 		}
 
 		builder.AppendLine();
