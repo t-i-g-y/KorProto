@@ -13,7 +13,7 @@ public class UIStationManager : MonoBehaviour
 
 	[Header("Follow Station")]
 	[SerializeField] private bool followStation = true;
-	[SerializeField] private Vector3 worldOffset = new(0f, 0.5f, 0f);
+	[SerializeField] private Vector3 worldOffset = new(0f, 0.25f, 0f);
 
 	[Header("Background Colors")]
 	[SerializeField] private Color defaultBackgroundColor = new(0f, 0f, 0f, 0.75f);
