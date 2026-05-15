@@ -40,16 +40,6 @@ public class EventManager : MonoBehaviour
     public event Action<GameEventRuntime> EventResolved;
     public event Action PendingEventChanged;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance != null || FindAnyObjectByType<EventManager>() != null)
-            return;
-
-        GameObject managerObject = new GameObject("EventManager");
-        managerObject.AddComponent<EventManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -59,7 +49,6 @@ public class EventManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         BuildRuntimeDefinitions();
     }
 
@@ -83,6 +72,12 @@ public class EventManager : MonoBehaviour
         UnbindTimeManager();
         UnbindQuestManager();
         UnbindResearchSystem();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private void Update()

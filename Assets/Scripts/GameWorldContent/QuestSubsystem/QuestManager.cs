@@ -21,16 +21,6 @@ public class QuestManager : MonoBehaviour
     public event Action<QuestRuntime> QuestCompleted;
     public event Action QuestListChanged;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance != null || FindAnyObjectByType<QuestManager>() != null)
-            return;
-
-        GameObject managerObject = new("QuestManager");
-        managerObject.AddComponent<QuestManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -40,7 +30,6 @@ public class QuestManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
     }
 
     private void OnEnable()
@@ -61,6 +50,12 @@ public class QuestManager : MonoBehaviour
         TrainManager.TrainRemoved -= HandleTrainRemoved;
         UnbindTimeManager();
         UnbindArtifactManager();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private void Update()

@@ -34,16 +34,6 @@ public class ArtifactManager : MonoBehaviour
     public event Action<ArtifactPickup> ArtifactPickupSpawned;
     public event Action InventoryChanged;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance != null || FindAnyObjectByType<ArtifactManager>() != null)
-            return;
-
-        GameObject managerObject = new("ArtifactManager");
-        managerObject.AddComponent<ArtifactManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -53,7 +43,6 @@ public class ArtifactManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         BuildRuntimeDefinitions();
     }
 
@@ -71,6 +60,12 @@ public class ArtifactManager : MonoBehaviour
         TrainManager.TrainCreated -= HandleTrainCreated;
         Train.TrainBroken -= HandleTrainBroken;
         UnbindManagers();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private void Update()
