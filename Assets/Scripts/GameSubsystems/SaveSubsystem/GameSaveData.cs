@@ -12,5 +12,7 @@ public class GameSaveData
     public TrainManagerSaveData trainData;
     public EconomyManagerSaveData economyData;
     public ResearchSystemSaveData researchData;
+    public EventManagerSaveData eventData;
+    public QuestManagerSaveData questData;
     public ArtifactManagerSaveData artifactData;
 }

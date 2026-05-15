@@ -5,14 +5,12 @@ using UnityEngine;
 public class QuestManager : MonoBehaviour
 {
     [SerializeField] private List<QuestDefinition> questDefinitions = new();
-    [SerializeField] private bool useBuiltInQuestsWhenEmpty = true;
 
-    private readonly List<QuestDefinition> runtimeDefinitions = new();
     private readonly List<QuestRuntime> activeQuests = new();
     private readonly List<QuestRuntime> completedQuests = new();
     private readonly HashSet<string> activatedQuestIds = new();
-
     private TimeManager boundTimeManager;
+    private ArtifactManager boundArtifactManager;
 
     public static QuestManager Instance { get; private set; }
     public IReadOnlyList<QuestRuntime> ActiveQuests => activeQuests;
@@ -23,16 +21,6 @@ public class QuestManager : MonoBehaviour
     public event Action<QuestRuntime> QuestCompleted;
     public event Action QuestListChanged;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance != null || FindAnyObjectByType<QuestManager>() != null)
-            return;
-
-        GameObject managerObject = new GameObject("QuestManager");
-        managerObject.AddComponent<QuestManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -42,8 +30,6 @@ public class QuestManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
-        BuildRuntimeDefinitions();
     }
 
     private void OnEnable()
@@ -51,7 +37,9 @@ public class QuestManager : MonoBehaviour
         RailManager.LineCreated += HandleLineCreated;
         RailManager.LineRemoved += HandleLineRemoved;
         TrainManager.TrainCreated += HandleTrainCreated;
+        TrainManager.TrainRemoved += HandleTrainRemoved;
         TryBindTimeManager();
+        TryBindArtifactManager();
     }
 
     private void OnDisable()
@@ -59,13 +47,43 @@ public class QuestManager : MonoBehaviour
         RailManager.LineCreated -= HandleLineCreated;
         RailManager.LineRemoved -= HandleLineRemoved;
         TrainManager.TrainCreated -= HandleTrainCreated;
+        TrainManager.TrainRemoved -= HandleTrainRemoved;
         UnbindTimeManager();
+        UnbindArtifactManager();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private void Update()
     {
         if (boundTimeManager == null)
             TryBindTimeManager();
+
+        if (boundArtifactManager == null)
+            TryBindArtifactManager();
+    }
+
+    public IReadOnlyList<QuestRuntime> BuildJournalQuests()
+    {
+        List<QuestRuntime> quests = new();
+        quests.AddRange(activeQuests);
+
+        foreach (QuestDefinition definition in GetDefinitions())
+        {
+            if (definition == null || IsKnownQuest(definition.QuestId))
+                continue;
+
+            quests.Add(QuestRuntime.FromDefinition(definition, BuildContext(), QuestStatus.Inactive));
+        }
+
+        for (int i = completedQuests.Count - 1; i >= 0; i--)
+            quests.Add(completedQuests[i]);
+
+        return quests;
     }
 
     public void TriggerManualQuest(QuestDefinition definition)
@@ -73,7 +91,19 @@ public class QuestManager : MonoBehaviour
         if (definition == null)
             return;
 
-        TryActivate(definition, BuildContext(QuestTriggerType.Manual));
+        TryActivate(definition, BuildContext());
+    }
+
+    public void NotifyResourceDelivered(ResourceType resource, int amount, Station startStation, Station endStation)
+    {
+        QuestWorldContext context = BuildContext();
+        context.ResourceType = resource;
+        context.ResourceAmount = Mathf.Max(0, amount);
+        context.StartStationName = startStation != null ? startStation.StationName : null;
+        context.EndStationName = endStation != null ? endStation.StationName : null;
+
+        EvaluateDefinitions(context);
+        RefreshAllProgress(context);
     }
 
     public QuestManagerSaveData GetSaveData()
@@ -110,90 +140,57 @@ public class QuestManager : MonoBehaviour
         QuestListChanged?.Invoke();
     }
 
-    private void BuildRuntimeDefinitions()
+    private IEnumerable<QuestDefinition> GetDefinitions()
     {
-        runtimeDefinitions.Clear();
-
-        if (!useBuiltInQuestsWhenEmpty)
-            return;
-
-        runtimeDefinitions.Add(QuestDefinition.CreateRuntime(
-            "builtin_build_5_rail_lines",
-            "Первые пять путей",
-            "Расширьте железнодорожную сеть, чтобы закрепить первые маршруты.",
-            QuestTriggerType.RailLineCountReached,
-            1f,
-            QuestObjectiveType.BuildRailLines,
-            5,
-            false,
-            new QuestReward(QuestRewardType.AdjustBalance, 75f)));
-    }
-
-    private IEnumerable<QuestDefinition> GetActiveDefinitions()
-    {
-        bool hasConfiguredDefinitions = false;
-
         foreach (QuestDefinition definition in questDefinitions)
         {
-            if (definition == null)
-                continue;
-
-            hasConfiguredDefinitions = true;
-            yield return definition;
+            if (definition != null)
+                yield return definition;
         }
-
-        if (hasConfiguredDefinitions || !useBuiltInQuestsWhenEmpty)
-            yield break;
-
-        foreach (QuestDefinition definition in runtimeDefinitions)
-            yield return definition;
     }
 
     private void HandleLineCreated(RailLine line)
     {
-        QuestWorldContext context = BuildContext(QuestTriggerType.RailLineCreated);
-        context.RailLine = line;
-        EvaluateTrigger(QuestTriggerType.RailLineCreated, context);
-
-        context.TriggerType = QuestTriggerType.RailLineCountReached;
-        EvaluateTrigger(QuestTriggerType.RailLineCountReached, context);
-
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailLines, context);
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailTiles, context);
+        QuestWorldContext context = BuildContext();
+        EvaluateDefinitions(context);
+        RefreshAllProgress(context);
     }
 
     private void HandleLineRemoved(RailLine line)
     {
-        QuestWorldContext context = BuildContext(QuestTriggerType.RailLineCountReached);
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailLines, context);
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailTiles, context);
+        RefreshAllProgress();
     }
 
     private void HandleTrainCreated(Train train, RailLine line)
     {
-        QuestWorldContext context = BuildContext(QuestTriggerType.TrainCountReached);
-        EvaluateTrigger(QuestTriggerType.TrainCountReached, context);
-        RefreshProgressForObjective(QuestObjectiveType.OwnTrains, context);
+        QuestWorldContext context = BuildContext();
+        EvaluateDefinitions(context);
+        RefreshAllProgress(context);
+    }
+
+    private void HandleTrainRemoved(Train train)
+    {
+        RefreshAllProgress();
+    }
+
+    private void HandleArtifactCollected(ArtifactInventoryEntry entry)
+    {
+        QuestWorldContext context = BuildContext();
+        EvaluateDefinitions(context);
+        RefreshAllProgress(context);
     }
 
     private void HandleDayChanged(int day)
     {
-        QuestWorldContext context = BuildContext(QuestTriggerType.DayReached);
-        EvaluateTrigger(QuestTriggerType.DayReached, context);
-        RefreshProgressForObjective(QuestObjectiveType.ReachBalance, context);
+        QuestWorldContext context = BuildContext();
+        EvaluateDefinitions(context);
+        RefreshAllProgress(context);
     }
 
-    private void EvaluateTrigger(QuestTriggerType triggerType, QuestWorldContext context)
+    private void EvaluateDefinitions(QuestWorldContext context)
     {
-        context.TriggerType = triggerType;
-
-        foreach (QuestDefinition definition in GetActiveDefinitions())
-        {
-            if (definition == null || definition.TriggerType != triggerType)
-                continue;
-
+        foreach (QuestDefinition definition in GetDefinitions())
             TryActivate(definition, context);
-        }
     }
 
     private bool TryActivate(QuestDefinition definition, QuestWorldContext context)
@@ -212,7 +209,6 @@ public class QuestManager : MonoBehaviour
 
         QuestActivated?.Invoke(quest);
         QuestListChanged?.Invoke();
-        Debug.Log($"Задание получено: {quest.title}");
 
         if (quest.IsComplete)
             CompleteQuest(quest, definition);
@@ -220,24 +216,24 @@ public class QuestManager : MonoBehaviour
         return true;
     }
 
-    private void RefreshAllProgress()
+    private void RefreshAllProgress(QuestWorldContext context = null)
     {
-        QuestWorldContext context = BuildContext(QuestTriggerType.Manual);
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailLines, context);
-        RefreshProgressForObjective(QuestObjectiveType.BuildRailTiles, context);
-        RefreshProgressForObjective(QuestObjectiveType.OwnTrains, context);
-        RefreshProgressForObjective(QuestObjectiveType.ReachBalance, context);
-    }
+        context ??= BuildContext();
 
-    private void RefreshProgressForObjective(QuestObjectiveType objectiveType, QuestWorldContext context)
-    {
         for (int i = activeQuests.Count - 1; i >= 0; i--)
         {
             QuestRuntime quest = activeQuests[i];
-            if (quest == null || quest.ObjectiveType != objectiveType)
+            if (quest == null)
                 continue;
 
-            int newProgress = Mathf.Clamp(GetObjectiveProgress(objectiveType, context), 0, quest.targetValue);
+            QuestDefinition definition = FindDefinition(quest.questId);
+            if (definition == null)
+                continue;
+
+            int newProgress = definition.Objective != null && definition.Objective.IsResourceDelivery
+                ? quest.progress + definition.Objective.GetProgressDelta(context)
+                : definition.GetProgressFromContext(context);
+            newProgress = Mathf.Clamp(newProgress, 0, quest.targetValue);
             if (quest.progress != newProgress)
             {
                 quest.progress = newProgress;
@@ -245,25 +241,10 @@ public class QuestManager : MonoBehaviour
             }
 
             if (quest.IsComplete)
-                CompleteQuest(quest, FindDefinition(quest.questId));
+                CompleteQuest(quest, definition);
         }
 
         QuestListChanged?.Invoke();
-    }
-
-    private int GetObjectiveProgress(QuestObjectiveType objectiveType, QuestWorldContext context)
-    {
-        if (context == null)
-            context = BuildContext(QuestTriggerType.Manual);
-
-        return objectiveType switch
-        {
-            QuestObjectiveType.BuildRailLines => context.RailLineCount,
-            QuestObjectiveType.BuildRailTiles => context.TotalRailTiles,
-            QuestObjectiveType.OwnTrains => context.TrainCount,
-            QuestObjectiveType.ReachBalance => Mathf.FloorToInt(context.Balance),
-            _ => 0
-        };
     }
 
     private void CompleteQuest(QuestRuntime quest, QuestDefinition definition)
@@ -276,19 +257,16 @@ public class QuestManager : MonoBehaviour
         quest.completedDay = TimeManager.Instance != null ? TimeManager.Instance.DayCounter : 0;
         quest.completedHour = TimeManager.Instance != null ? TimeManager.Instance.HourCounter : 0;
 
-        if (definition != null)
-            definition.ApplyRewards();
-
+        definition?.ApplyRewards();
         completedQuests.Add(quest);
 
         QuestCompleted?.Invoke(quest);
         QuestListChanged?.Invoke();
-        Debug.Log($"Задание выполнено: {quest.title}. Награда: {quest.rewardSummary}");
     }
 
     private QuestDefinition FindDefinition(string questId)
     {
-        foreach (QuestDefinition definition in GetActiveDefinitions())
+        foreach (QuestDefinition definition in GetDefinitions())
         {
             if (definition != null && definition.QuestId == questId)
                 return definition;
@@ -297,28 +275,22 @@ public class QuestManager : MonoBehaviour
         return null;
     }
 
-    private QuestWorldContext BuildContext(QuestTriggerType triggerType)
+    private bool IsKnownQuest(string questId)
     {
-        int totalRailTiles = 0;
+        return activatedQuestIds.Contains(questId)
+            || activeQuests.Exists(q => q != null && q.questId == questId)
+            || completedQuests.Exists(q => q != null && q.questId == questId);
+    }
 
-        if (RailManager.Instance != null)
-        {
-            foreach (RailLine line in RailManager.Instance.Lines)
-            {
-                if (line != null)
-                    totalRailTiles += line.Length;
-            }
-        }
-
+    private QuestWorldContext BuildContext()
+    {
         return new QuestWorldContext
         {
-            TriggerType = triggerType,
             Day = TimeManager.Instance != null ? TimeManager.Instance.DayCounter : 0,
             Hour = TimeManager.Instance != null ? TimeManager.Instance.HourCounter : 0,
             RailLineCount = RailManager.Instance != null ? RailManager.Instance.Lines.Count : 0,
-            TotalRailTiles = totalRailTiles,
             TrainCount = TrainManager.Instance != null ? TrainManager.Instance.Trains.Count : 0,
-            Balance = FinanceSystem.Instance != null ? FinanceSystem.Instance.Balance : 0f
+            ArtifactCount = ArtifactManager.Instance != null ? ArtifactManager.Instance.Inventory.Count : 0,
         };
     }
 
@@ -338,5 +310,23 @@ public class QuestManager : MonoBehaviour
 
         boundTimeManager.OnDayChanged -= HandleDayChanged;
         boundTimeManager = null;
+    }
+
+    private void TryBindArtifactManager()
+    {
+        if (boundArtifactManager != null || ArtifactManager.Instance == null)
+            return;
+
+        boundArtifactManager = ArtifactManager.Instance;
+        boundArtifactManager.ArtifactCollected += HandleArtifactCollected;
+    }
+
+    private void UnbindArtifactManager()
+    {
+        if (boundArtifactManager == null)
+            return;
+
+        boundArtifactManager.ArtifactCollected -= HandleArtifactCollected;
+        boundArtifactManager = null;
     }
 }

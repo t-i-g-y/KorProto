@@ -56,4 +56,5 @@ public class EventManagerSaveData
     public List<EventHistoryEntry> history = new();
     public List<string> firedEventIds = new();
     public List<EventCooldownSaveData> cooldowns = new();
+    public float trainSpeedEventMultiplier = 1f;
 }

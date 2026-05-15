@@ -34,16 +34,6 @@ public class ArtifactManager : MonoBehaviour
     public event Action<ArtifactPickup> ArtifactPickupSpawned;
     public event Action InventoryChanged;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance != null || FindAnyObjectByType<ArtifactManager>() != null)
-            return;
-
-        GameObject managerObject = new("ArtifactManager");
-        managerObject.AddComponent<ArtifactManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -53,7 +43,6 @@ public class ArtifactManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         BuildRuntimeDefinitions();
     }
 
@@ -73,6 +62,12 @@ public class ArtifactManager : MonoBehaviour
         UnbindManagers();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     private void Update()
     {
         HandlePickupClick();
@@ -85,6 +80,32 @@ public class ArtifactManager : MonoBehaviour
             return;
 
         TrySpawn(definition, BuildContext(ArtifactTriggerType.Manual));
+    }
+
+    public void AddArtifactToInventory(ArtifactDefinition definition)
+    {
+        if (definition == null)
+            return;
+
+        string artifactId = definition.ArtifactId;
+        if (string.IsNullOrWhiteSpace(artifactId) || acquiredArtifactIds.Contains(artifactId))
+            return;
+
+        ArtifactInventoryEntry entry = new()
+        {
+            artifactId = artifactId,
+            title = definition.Title,
+            story = definition.Story,
+            day = TimeManager.Instance != null ? TimeManager.Instance.DayCounter : 0,
+            hour = TimeManager.Instance != null ? TimeManager.Instance.HourCounter : 0
+        };
+
+        inventory.Add(entry);
+        acquiredArtifactIds.Add(artifactId);
+        activePickups.Remove(artifactId);
+
+        ArtifactCollected?.Invoke(entry);
+        InventoryChanged?.Invoke();
     }
 
     public Sprite GetIcon(string artifactId)

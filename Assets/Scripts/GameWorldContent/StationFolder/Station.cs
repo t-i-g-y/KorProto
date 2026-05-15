@@ -232,6 +232,18 @@ public class Station : MonoBehaviour
             RebuildResourceListsFromAttributes();
     }
 
+    public void AddProducedResource(ResourceType resourceType, int amount)
+    {
+        producedResources ??= new List<ResourceAmount>();
+        AddOrIncreaseResource(producedResources, new ResourceAmount(resourceType, Mathf.Max(0, amount)));
+    }
+
+    public void AddConsumedResource(ResourceType resourceType, int amount)
+    {
+        consumedResources ??= new List<ResourceAmount>();
+        AddOrIncreaseResource(consumedResources, new ResourceAmount(resourceType, Mathf.Max(0, amount)));
+    }
+
     public void SetPopulation(int newPopulation)
     {
         population = Mathf.Max(0, newPopulation);
@@ -243,6 +255,7 @@ public class Station : MonoBehaviour
             return;
 
         population += amount;
+        EventManager.Instance?.NotifyStationPopulationChanged(this, amount);
     }
 
     public void DecreasePopulation(int amount)
@@ -251,6 +264,7 @@ public class Station : MonoBehaviour
             return;
 
         population = Mathf.Max(0, population - amount);
+        EventManager.Instance?.NotifyStationPopulationChanged(this, -amount);
     }
 
     private void TrySpawn()
