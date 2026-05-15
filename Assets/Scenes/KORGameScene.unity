@@ -14983,9 +14983,9 @@ MonoBehaviour:
   canvas: {fileID: 310918509}
   icon: {fileID: 993936463}
   dragVisualParent: {fileID: 738398699}
-  worldCamera: {fileID: 0}
-  grid: {fileID: 0}
-  land: {fileID: 0}
+  worldCamera: {fileID: 486585313}
+  grid: {fileID: 929066134}
+  land: {fileID: 1313766078}
 --- !u!114 &993936463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62493,14 +62493,14 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1850118295}
-        m_TargetAssemblyTypeName: TimeManager, Assembly-CSharp
-        m_MethodName: Unpause
-        m_Mode: 1
+        m_TargetAssemblyTypeName: TimeManager, GameAssembly
+        m_MethodName: SetSpeed
+        m_Mode: 4
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 0
+          m_FloatArgument: 1
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2

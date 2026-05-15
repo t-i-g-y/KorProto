@@ -22,7 +22,7 @@ MonoBehaviour:
     \u0441\u0442\u0430\u043D\u0446\u0438\u044F\u043C\u0438"
   canRepeat: 0
   activationCondition:
-    conditionType: 1
+    conditionType: 4
     count: 2
     resourceType: 0
     stationName: 
