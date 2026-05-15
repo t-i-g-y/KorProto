@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -238,3 +239,4 @@ public class GameEventEffectDrawer : PropertyDrawer
         return lineCount * EditorGUIUtility.singleLineHeight + (lineCount - 1) * VerticalGap;
     }
 }
+#endif
