@@ -7,14 +7,14 @@ public class RailAnchor : MonoBehaviour
 
     public Vector3Int Cell => cell;
     public bool IsCore => isCore;
-
+    /*
 #if UNITY_EDITOR
     private void OnValidate()
     {
         cell = Vector3Int.RoundToInt(transform.position);
     }
 #endif
-
+    */
     #region save subsystem
     public RailAnchorSaveData GetSaveData()
     {

@@ -146,7 +146,7 @@ public class TrainCardController : MonoBehaviour
 
         if (titleText != null)
         {
-            titleText.text = isLocomotive ? $"ЛОКОМОТИВ - Поезд#{currentTrain.ID}" : $"ВАГОН #{currentUnitIndex + 1}";
+            titleText.text = isLocomotive ? $"ЛОКОМОТИВ - Поезд#{currentTrain.ID}" : $"ВАГОН#{currentUnitIndex + 1} - Поезд#{currentTrain.ID}";
         }
 
         if (speedRoot != null)

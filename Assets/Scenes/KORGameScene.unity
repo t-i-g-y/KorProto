@@ -12026,7 +12026,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 16.013062, y: -281}
+  m_AnchoredPosition: {x: 16.01294, y: -281}
   m_SizeDelta: {x: -1346.7361, y: -726.4505}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &826954649
@@ -15766,7 +15766,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -23830,6 +23830,7 @@ MonoBehaviour:
   listEntryPrefab: {fileID: 8660613560215885048, guid: cd87fe90bca255640a09f2a64b405137, type: 3}
   listContent: {fileID: 514641098}
   trainCardController: {fileID: 1352049599}
+  railList: {fileID: 1853282974}
 --- !u!4 &1640499831
 Transform:
   m_ObjectHideFlags: 0
@@ -26133,6 +26134,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TimeManager
   dayHourText: {fileID: 135451640}
   timeMultiplier: 1
+  pauseButton: {fileID: 1066261309}
+  playButton: {fileID: 1685804949}
+  speedButton: {fileID: 1912670043}
+  selectedButtonColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  defaultButtonColor: {r: 1, g: 1, b: 1, a: 1}
   secondsPerHour: 1
 --- !u!4 &1850118296
 Transform:
@@ -26207,6 +26213,7 @@ MonoBehaviour:
   listPanel: {fileID: 1314710169}
   listEntryPrefab: {fileID: 8660613560215885048, guid: 019c2439245e1d744afb4ca8d61bac76, type: 3}
   listContent: {fileID: 1109145102}
+  trainList: {fileID: 1640499830}
 --- !u!114 &1853282975
 MonoBehaviour:
   m_ObjectHideFlags: 0

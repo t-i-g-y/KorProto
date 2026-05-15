@@ -43,12 +43,12 @@ public class GameMenuController : MonoBehaviour
         if (TimeManager.Instance != null)
         {
             wasTimePausedBeforeMenu = TimeManager.Instance.TimeMultiplier <= 0f;
-            TimeManager.Instance.Pause();
+
+            if (!wasTimePausedBeforeMenu)
+                TimeManager.Instance.Pause();
         }
         else
-        {
             wasTimePausedBeforeMenu = false;
-        }
 
         if (rootPanel != null)
             rootPanel.SetActive(true);

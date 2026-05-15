@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class TimeManager : MonoBehaviour
 {
@@ -9,6 +10,12 @@ public class TimeManager : MonoBehaviour
 
     [SerializeField] private TMP_Text dayHourText;
     [SerializeField] private float timeMultiplier = 1f;
+    [SerializeField] private Button pauseButton;
+    [SerializeField] private Button playButton;
+    [SerializeField] private Button speedButton;
+    [SerializeField] private Color selectedButtonColor = Color.gray;
+    [SerializeField] private Color defaultButtonColor;
+
     private float previousTimeMultiplier = 1f;
 
     [SerializeField] private float secondsPerHour = 1f;
@@ -77,13 +84,22 @@ public class TimeManager : MonoBehaviour
         if (timeMultiplier > 0f)
             previousTimeMultiplier = timeMultiplier;
 
-        timeMultiplier = 0f;
+        if (timeMultiplier == 0f)
+            timeMultiplier = previousTimeMultiplier;
+        else
+            timeMultiplier = 0f;
+        RefreshUI();
     }
-    public void Unpause() => timeMultiplier = previousTimeMultiplier > 0f ? previousTimeMultiplier : 1f;
+    public void Unpause() 
+    {
+        timeMultiplier = previousTimeMultiplier > 0f ? previousTimeMultiplier : 1f;
+        RefreshUI();
+    }
     public void SetSpeed(float speed)
     {
         previousTimeMultiplier = timeMultiplier;
         timeMultiplier = Mathf.Max(0f, speed);
+        RefreshUI();
     }
 
     private void Update()
@@ -101,12 +117,6 @@ public class TimeManager : MonoBehaviour
                 else 
                     Pause();
             }
-            if (kb.digit1Key.wasPressedThisFrame) 
-                SetSpeed(1f);
-            if (kb.digit2Key.wasPressedThisFrame) 
-                SetSpeed(2f);
-            if (kb.digit3Key.wasPressedThisFrame) 
-                SetSpeed(5f);
         }
 
         float delta = Time.deltaTime * timeMultiplier;
@@ -147,6 +157,20 @@ public class TimeManager : MonoBehaviour
     {
         if (dayHourText != null)
             dayHourText.text = DayHourString;
+        
+        RefreshTimeButtons();
+    }
+
+    private void RefreshTimeButtons()
+    {
+        if (pauseButton != null)
+            pauseButton.image.color = timeMultiplier == 0f ? selectedButtonColor : defaultButtonColor;
+
+        if (playButton != null)
+            playButton.image.color = Mathf.Approximately(timeMultiplier, 1f) ? selectedButtonColor : defaultButtonColor;
+
+        if (speedButton != null)
+            speedButton.image.color = Mathf.Approximately(timeMultiplier, 2f) ? selectedButtonColor : defaultButtonColor;
     }
 
     #region save subsystem
@@ -175,7 +199,7 @@ public class TimeManager : MonoBehaviour
 
         DayCounter = data.dayCounter;
         HourCounter = data.hourCounter;
-        Pause();
+        timeMultiplier = 0f;
         RefreshUI();
     }
 

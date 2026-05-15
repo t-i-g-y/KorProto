@@ -210,7 +210,7 @@ public class GameEventEffect
                 FinanceSystem.Instance?.AdjustBalance(-Mathf.Abs(floatAmount));
                 break;
             case GameEventEffectType.AddResearchPoints:
-                ResearchIncomeSystem.Instance?.AddGlobalResearchPerHour(Mathf.Max(0, intAmount));
+                ResearchSystem.Instance?.AddResearchPoints(Mathf.Max(0, intAmount));
                 break;
             case GameEventEffectType.RemoveTrain:
                 TryRemoveRandomTrain();

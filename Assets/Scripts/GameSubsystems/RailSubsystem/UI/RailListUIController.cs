@@ -8,6 +8,7 @@ public class RailListUIController : MonoBehaviour
     [SerializeField] private GameObject listPanel;
     [SerializeField] private GameObject listEntryPrefab;
     [SerializeField] private Transform listContent;
+    [SerializeField] private TrainListUIController trainList;
 
     private readonly Dictionary<int, RailLineUIEntry> entries = new();
 
@@ -118,6 +119,20 @@ public class RailListUIController : MonoBehaviour
 
     public void TogglePanel(GameObject panel)
     {
-        panel.SetActive(!panel.activeSelf);
+        if (panel == null)
+            return;
+
+        bool shouldOpen = !panel.activeSelf;
+
+        if (shouldOpen && trainList != null)
+            trainList.ClosePanel();
+
+        panel.SetActive(shouldOpen);
+    }
+
+    public void ClosePanel()
+    {
+        if (listPanel != null)
+            listPanel.SetActive(false);
     }
 }

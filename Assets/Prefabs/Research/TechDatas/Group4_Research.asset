@@ -17,7 +17,7 @@ MonoBehaviour:
   techDescription: "\u0413\u043B\u043E\u0431\u0430\u043B\u044C\u043D\u043E\u0435
     \u0438\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u043D\u0438\u0435: +10%"
   techImage: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  researchCost: 100
+  researchCost: 200
   prerequisites: 
   technologyTreePos: {x: 120, y: -300}
   techColor: {r: 0, g: 0.7490196, b: 1, a: 1}
