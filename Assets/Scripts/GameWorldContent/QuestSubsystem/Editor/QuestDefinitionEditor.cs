@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -123,3 +124,4 @@ public class QuestRewardDrawer : PropertyDrawer
         return lines * EditorGUIUtility.singleLineHeight + (lines - 1) * Gap;
     }
 }
+#endif
